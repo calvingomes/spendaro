@@ -85,6 +85,8 @@ Expected create payload:
 - Keep client components limited to interactive pieces like OAuth buttons and future forms.
 - Avoid introducing extra abstraction unless it solves a real problem.
 - If a runtime issue appears in Next dev, check for stale `.next` output before assuming the code is broken.
+- Any TSX component, view, or page that has a `.module.css` file must live in its own folder alongside that CSS module.
+- Keep component folders shallow and obvious. Prefer `src/components/<feature>/` or `src/app/<route>/` with local CSS modules.
 
 ## Commands
 Use Bun:
@@ -104,4 +106,3 @@ The project has been scaffolded and the current phase focuses on:
 - stabilizing auth
 - getting dashboard rendering reliable
 - moving into expense CRUD and analytics
-

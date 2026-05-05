@@ -1,6 +1,6 @@
 import Link from "next/link";
 import styles from "./dashboard.module.css";
-import { SignOutButton } from "./auth/sign-out-button";
+import { SignOutButton } from "../auth/sign-out-button";
 
 const stats = [
   { label: "This month", value: "$0.00" },
@@ -26,6 +26,7 @@ export function Dashboard({ userEmail }: { userEmail: string }) {
           <p className={styles.cardCopy}>
             The app is scaffolded for Supabase auth, server routes, and future mobile shortcuts.
           </p>
+          <Link href="/sign-in">Switch account</Link>
           <SignOutButton />
         </div>
       </section>

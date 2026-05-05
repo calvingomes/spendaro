@@ -12,9 +12,13 @@ This file tracks the current build plan and the remaining work.
 - [x] Add protected dashboard route
 - [x] Add initial expenses API route
 - [x] Add a baseline dashboard shell
+- [x] Stabilize local auth flow and session refresh
+- [x] Add sign-out button to the dashboard
+- [x] Organize auth UI into a shared `src/components/auth/` folder
+- [x] Move dashboard UI into its own folder with local CSS module
+- [x] Enforce “folder per CSS module” structure rule in `AGENTS.md`
 
 ## In Progress
-- [ ] Stabilize local auth and rendering flow
 - [ ] Make the `/` and `/sign-in` experience feel polished and Vercel-like
 
 ## Next Up
@@ -61,4 +65,4 @@ This file tracks the current build plan and the remaining work.
 - Avoid Tailwind.
 - Prefer CSS Modules plus small reusable components.
 - Keep auth and server-side data access simple until the app is stable.
-
+- Any TSX component, view, or page that uses a `.module.css` file should live in its own folder with that CSS module beside it.
