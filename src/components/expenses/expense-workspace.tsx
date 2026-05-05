@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
 
@@ -53,6 +53,7 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
   }));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const totalSpent = useMemo(
@@ -80,6 +81,20 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
     setEditingId(null);
     setErrorMessage(null);
   };
+
+  useEffect(() => {
+    const openModal = () => {
+      setForm({
+        ...emptyForm,
+        created_at: formatDateTimeLocal(new Date())
+      });
+      setEditingId(null);
+      setErrorMessage(null);
+      setIsModalOpen(true);
+    };
+    window.addEventListener("spendaro:add-expense", openModal);
+    return () => window.removeEventListener("spendaro:add-expense", openModal);
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -120,6 +135,7 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
         }
 
         resetForm();
+        setIsModalOpen(false);
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : "Save failed");
       }
@@ -135,6 +151,7 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
       created_at: formatDateForInput(expense.created_at)
     });
     setErrorMessage(null);
+    setIsModalOpen(true);
   };
 
   const handleDelete = async (expenseId: string) => {
@@ -167,64 +184,6 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
 
   return (
     <section className={styles.workspace}>
-      <article className={styles.formCard}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.sectionKicker}>{editingId ? "Edit expense" : "Add expense"}</p>
-            <h2 className={styles.sectionTitle}>{editingId ? "Update the transaction" : "Capture a new expense"}</h2>
-          </div>
-          <button className={styles.ghostButton} type="button" onClick={resetForm} disabled={isPending}>
-            Clear
-          </button>
-        </div>
-
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <label className={styles.field}>
-            <span>Label</span>
-            <input
-              value={form.label}
-              onChange={(event) => setForm((current) => ({ ...current, label: event.target.value }))}
-              placeholder="Coffee, Uber, Dinner"
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Category</span>
-            <input
-              value={form.category}
-              onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
-              placeholder="Food, Travel, Bills"
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Amount</span>
-            <input
-              value={form.amount}
-              onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
-              placeholder="18.50"
-              inputMode="decimal"
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Created at</span>
-            <input
-              type="datetime-local"
-              value={form.created_at}
-              onChange={(event) => setForm((current) => ({ ...current, created_at: event.target.value }))}
-            />
-          </label>
-
-          <div className={styles.formFooter}>
-            <button className={styles.primaryButton} type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : editingId ? "Save changes" : "Add expense"}
-            </button>
-            {errorMessage ? <p className={styles.error}>{errorMessage}</p> : <p className={styles.helper}>Auto-fills today, but you can edit the timestamp.</p>}
-          </div>
-        </form>
-      </article>
-
       <article className={styles.listCard}>
         <div className={styles.sectionHeader}>
           <div>
@@ -286,6 +245,68 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
           </div>
         </div>
       </article>
+
+      {isModalOpen ? (
+        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+          <article className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionKicker}>{editingId ? "Edit expense" : "Add expense"}</p>
+                <h2 className={styles.modalTitle}>{editingId ? "Update transaction" : "Capture expense"}</h2>
+              </div>
+              <button className={styles.ghostButton} type="button" onClick={() => setIsModalOpen(false)} disabled={isPending}>
+                Close
+              </button>
+            </div>
+
+            <form className={styles.form} onSubmit={handleSubmit}>
+              <label className={styles.field}>
+                <span>Label</span>
+                <input
+                  value={form.label}
+                  onChange={(event) => setForm((current) => ({ ...current, label: event.target.value }))}
+                  placeholder="Coffee, Uber, Dinner"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Category</span>
+                <input
+                  value={form.category}
+                  onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+                  placeholder="Food, Travel, Bills"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Amount</span>
+                <input
+                  value={form.amount}
+                  onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
+                  placeholder="18.50"
+                  inputMode="decimal"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Created at</span>
+                <input
+                  type="datetime-local"
+                  value={form.created_at}
+                  onChange={(event) => setForm((current) => ({ ...current, created_at: event.target.value }))}
+                />
+              </label>
+
+              <div className={styles.formFooter}>
+                <button className={styles.primaryButton} type="submit" disabled={isPending}>
+                  {isPending ? "Saving..." : editingId ? "Save changes" : "Add expense"}
+                </button>
+                {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
+              </div>
+            </form>
+          </article>
+        </div>
+      ) : null}
     </section>
   );
 }

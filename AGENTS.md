@@ -77,6 +77,8 @@ Policies should ensure users only see and mutate their own rows.
 `/api/expenses`
 - `GET` returns the current user's expenses
 - `POST` creates an expense
+- `PUT` updates an expense
+- `DELETE` removes an expense
 
 Expected create payload:
 - `label`
@@ -91,6 +93,7 @@ Expected create payload:
 - If a runtime issue appears in Next dev, check for stale `.next` output before assuming the code is broken.
 - Any TSX component, view, or page that has a `.module.css` file must live in its own folder alongside that CSS module.
 - Keep component folders shallow and obvious. Prefer `src/components/<feature>/` or `src/app/<route>/` with local CSS modules.
+- Dashboard header actions should stay in the top-right. Add expense opens a modal; sign out stays adjacent.
 
 ## Commands
 Use Bun:

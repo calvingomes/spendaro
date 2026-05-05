@@ -1,5 +1,6 @@
 import styles from "./dashboard.module.css";
 import { SignOutButton } from "../auth/sign-out-button";
+import { AddExpenseButton } from "./add-expense-button";
 import { ExpenseWorkspace } from "../expenses/expense-workspace";
 import type { Expense } from "@/lib/types";
 
@@ -12,10 +13,8 @@ function formatCurrency(value: number) {
 }
 
 export function Dashboard({
-  userEmail,
   initialExpenses
 }: {
-  userEmail: string;
   initialExpenses: Expense[];
 }) {
   const now = new Date();
@@ -59,7 +58,7 @@ export function Dashboard({
           </div>
         </div>
         <div className={styles.topActions}>
-          <span className={styles.accountPill}>{userEmail}</span>
+          <AddExpenseButton />
           <SignOutButton />
         </div>
       </header>

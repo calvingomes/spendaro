@@ -1,11 +1,8 @@
 .workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 0.96fr) minmax(0, 1.04fr);
-  gap: 12px;
+  display: block;
   margin-top: 12px;
 }
 
-.formCard,
 .listCard {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
@@ -35,6 +32,12 @@
   font-size: 31px;
   letter-spacing: -0.032em;
   line-height: 1.05;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.028em;
 }
 
 .ghostButton,
@@ -245,10 +248,23 @@
   color: var(--color-text-tertiary);
 }
 
-@media (max-width: 1000px) {
-  .workspace {
-    grid-template-columns: 1fr;
-  }
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 80;
+}
+
+.modalCard {
+  width: min(100%, 720px);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-3);
+  box-shadow: var(--shadow-elevated);
+  padding: 16px;
 }
 
 @media (max-width: 720px) {

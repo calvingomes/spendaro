@@ -8,10 +8,11 @@
 - [x] Currency switched to rupees
 - [x] Global dark design system
 - [x] Shared folder structure for CSS modules
+- [x] Modal-based add expense flow from dashboard header
 
 ## Next
 - [ ] Analytics charts and summary cards
-- [ ] Polish the expense workspace
+- [ ] Final UI polish pass
 - [ ] PWA support
 - [ ] iPhone Shortcut support
 
@@ -19,4 +20,3 @@
 - [ ] Offline support
 - [ ] Budgets and recurring expenses
 - [ ] Shortcut auth strategy
-
