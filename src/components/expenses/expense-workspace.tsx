@@ -6,6 +6,7 @@ import type { Expense } from "@/lib/types";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import * as Label from "@radix-ui/react-label";
+import { ExpenseAnalytics } from "./expense-analytics";
 
 type ExpenseFormState = {
   label: string;
@@ -263,6 +264,8 @@ export function ExpenseWorkspace({
           </div>
         )}
       </article>
+
+      <ExpenseAnalytics expenses={expenses} />
 
       <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
         <Dialog.Portal>
