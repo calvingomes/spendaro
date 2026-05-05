@@ -33,7 +33,7 @@ export function Dashboard({
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
-  const thisMonthSpent = useMemo(
+  const thisMonthBalance = useMemo(
     () =>
       expenses.reduce((total, expense) => {
         const createdAt = new Date(expense.created_at);
@@ -42,16 +42,18 @@ export function Dashboard({
         }
 
         const amount = Number.parseFloat(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
+        if (Number.isNaN(amount)) return total;
+        return total + (expense.type === "credit" ? amount : -amount);
       }, 0),
     [expenses, currentMonth, currentYear]
   );
 
-  const totalSpent = useMemo(
+  const totalBalance = useMemo(
     () =>
       expenses.reduce((total, expense) => {
         const amount = Number.parseFloat(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
+        if (Number.isNaN(amount)) return total;
+        return total + (expense.type === "credit" ? amount : -amount);
       }, 0),
     [expenses]
   );
@@ -65,7 +67,7 @@ export function Dashboard({
     [expenses, currentMonth, currentYear]
   );
 
-  const averageSpend = monthlyExpenseCount > 0 ? thisMonthSpent / monthlyExpenseCount : 0;
+  const averageBalance = monthlyExpenseCount > 0 ? thisMonthBalance / monthlyExpenseCount : 0;
 
   const topCategory = useMemo(() => {
     const categoryCount = new Map<string, number>();
@@ -78,8 +80,8 @@ export function Dashboard({
   }, [expenses]);
 
   const stats = [
-    { label: "This month", value: formatCurrency(thisMonthSpent) },
-    { label: "Avg this month", value: formatCurrency(averageSpend) },
+    { label: "Net this month", value: formatCurrency(thisMonthBalance) },
+    { label: "Avg this month", value: formatCurrency(averageBalance) },
     { label: "Top category", value: topCategory }
   ];
 

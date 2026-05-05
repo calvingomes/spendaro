@@ -8,6 +8,7 @@ type ExpenseFormState = {
   label: string;
   category: string;
   amount: string;
+  type: "credit" | "debit";
   created_at: string;
 };
 
@@ -15,6 +16,7 @@ const emptyForm: ExpenseFormState = {
   label: "",
   category: "",
   amount: "",
+  type: "debit",
   created_at: ""
 };
 
@@ -62,11 +64,12 @@ export function ExpenseWorkspace({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const totalSpent = useMemo(
+  const totalBalance = useMemo(
     () =>
       expenses.reduce((total, expense) => {
         const amount = parseAmount(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
+        if (Number.isNaN(amount)) return total;
+        return total + (expense.type === "credit" ? amount : -amount);
       }, 0),
     [expenses]
   );
@@ -106,6 +109,7 @@ export function ExpenseWorkspace({
       label: form.label.trim(),
       category: form.category.trim(),
       amount: parseAmount(form.amount),
+      type: form.type,
       created_at: form.created_at ? new Date(form.created_at).toISOString() : undefined
     };
 
@@ -150,6 +154,7 @@ export function ExpenseWorkspace({
       label: expense.label,
       category: expense.category,
       amount: expense.amount,
+      type: expense.type,
       created_at: formatDateForInput(expense.created_at)
     });
     setErrorMessage(null);
@@ -194,7 +199,9 @@ export function ExpenseWorkspace({
           </div>
           <div className={styles.summaryPills}>
             <span className={styles.summaryPill}>{expenses.length} entries</span>
-            <span className={styles.summaryPill}>{formatCurrency(String(totalSpent))}</span>
+            <span className={styles.summaryPill}>
+              Net: <span className={totalBalance >= 0 ? styles.positive : styles.negative}>{formatCurrency(String(totalBalance))}</span>
+            </span>
           </div>
         </div>
 
@@ -216,7 +223,9 @@ export function ExpenseWorkspace({
                 {expenses.map((expense) => (
                   <tr key={expense.id}>
                     <td className={styles.labelCell}>{expense.label}</td>
-                    <td>{formatCurrency(expense.amount)}</td>
+                    <td className={expense.type === "credit" ? styles.positive : styles.negative}>
+                      {expense.type === "credit" ? "+" : "-"} {formatCurrency(expense.amount)}
+                    </td>
                     <td>{expense.category}</td>
                     <td>{new Date(expense.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
                     <td>
@@ -278,6 +287,18 @@ export function ExpenseWorkspace({
                   placeholder="18.50"
                   inputMode="decimal"
                 />
+              </label>
+
+              <label className={styles.field}>
+                <span>Type</span>
+                <select
+                  className={styles.select}
+                  value={form.type}
+                  onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as "credit" | "debit" }))}
+                >
+                  <option value="debit">Expense (Debit)</option>
+                  <option value="credit">Income (Credit)</option>
+                </select>
               </label>
 
               <label className={styles.field}>

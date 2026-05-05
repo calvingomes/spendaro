@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
   const label = String(body.label ?? "").trim();
   const category = String(body.category ?? "").trim();
   const amount = Number(body.amount);
+  const type = (body.type === "credit" ? "credit" : "debit") as "credit" | "debit";
   const createdAt = body.created_at ? new Date(body.created_at).toISOString() : new Date().toISOString();
 
   if (!label || !category || Number.isNaN(amount)) {
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       label,
       category,
       amount,
+      type,
       created_at: createdAt
     })
     .select("*")
@@ -77,6 +79,7 @@ export async function PUT(request: NextRequest) {
   const label = String(body.label ?? "").trim();
   const category = String(body.category ?? "").trim();
   const amount = Number(body.amount);
+  const type = (body.type === "credit" ? "credit" : "debit") as "credit" | "debit";
   const createdAt = body.created_at ? new Date(body.created_at).toISOString() : new Date().toISOString();
 
   if (!id || !label || !category || Number.isNaN(amount)) {
@@ -89,6 +92,7 @@ export async function PUT(request: NextRequest) {
       label,
       category,
       amount,
+      type,
       created_at: createdAt
     })
     .eq("id", id)

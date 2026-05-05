@@ -4,6 +4,7 @@ export type Expense = {
   label: string;
   category: string;
   amount: string;
+  type: "credit" | "debit";
   created_at: string;
   updated_at: string;
 };
