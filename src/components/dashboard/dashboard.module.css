@@ -14,9 +14,9 @@
 .statCard {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-3);
-  padding: 14px 16px;
+  padding: 12px 14px;
   background: var(--color-bg-surface);
-  min-height: 92px;
+  min-height: auto;
 }
 
 .statLabel {
@@ -29,9 +29,12 @@
 
 .statValue {
   display: block;
-  margin-top: 6px;
-  font-size: clamp(1.55rem, 2.6vw, 1.9rem);
+  margin-top: 4px;
+  font-size: clamp(1.1rem, 3.5vw, 1.9rem);
   letter-spacing: -0.035em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topBar {
@@ -103,23 +106,15 @@
 }
 
 @media (max-width: 900px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .topBar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  /* .statsGrid override removed to keep 3 columns */
 }
 
 @media (max-width: 620px) {
   .statsGrid {
-    grid-template-columns: 1fr;
+    gap: 8px;
   }
-
-  .topActions {
-    width: 100%;
+  
+  .statCard {
+    padding: 10px 12px;
   }
-
 }
