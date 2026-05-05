@@ -19,6 +19,11 @@
   border-color: rgba(167, 139, 250, 0.42);
 }
 
+.button:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.56);
+  outline-offset: 2px;
+}
+
 .button:disabled {
   opacity: 0.6;
   cursor: progress;

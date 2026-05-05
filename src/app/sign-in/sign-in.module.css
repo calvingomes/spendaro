@@ -6,13 +6,13 @@
 }
 
 .card {
-  width: min(100%, 560px);
+  width: min(100%, 520px);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 24%),
     var(--color-bg-surface-strong);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-5);
-  padding: var(--space-8);
+  padding: 36px;
   box-shadow: var(--shadow-floating);
   backdrop-filter: blur(22px);
   position: relative;
@@ -44,9 +44,10 @@
 
 .title {
   margin: 12px 0;
-  font-size: clamp(2.1rem, 5vw, 3.6rem);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
   line-height: 0.94;
-  max-width: 14ch;
+  max-width: 12ch;
+  letter-spacing: -0.05em;
 }
 
 .copy,
@@ -78,6 +79,11 @@
 
 .card button:hover {
   border-color: rgba(167, 139, 250, 0.42);
+}
+
+.card button:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.56);
+  outline-offset: 2px;
 }
 
 .card button:disabled {

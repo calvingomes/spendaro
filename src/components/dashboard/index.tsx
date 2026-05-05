@@ -11,6 +11,20 @@ const stats = [
 export function Dashboard({ userEmail }: { userEmail: string }) {
   return (
     <main className={styles.page}>
+      <header className={styles.topBar}>
+        <div className={styles.brand}>
+          <span className={styles.brandMark} aria-hidden="true" />
+          <div>
+            <p className={styles.brandName}>Spendaro</p>
+            <span className={styles.brandMeta}>Expense dashboard</span>
+          </div>
+        </div>
+        <div className={styles.topActions}>
+          <span className={styles.accountPill}>{userEmail}</span>
+          <SignOutButton />
+        </div>
+      </header>
+
       <section className={styles.hero}>
         <div>
           <p className={styles.kicker}>Spendaro</p>
@@ -27,7 +41,6 @@ export function Dashboard({ userEmail }: { userEmail: string }) {
             The app is scaffolded for Supabase auth, server routes, and future mobile shortcuts.
           </p>
           <Link href="/sign-in">Switch account</Link>
-          <SignOutButton />
         </div>
       </section>
 

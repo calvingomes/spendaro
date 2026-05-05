@@ -1,10 +1,11 @@
 .page {
-  max-width: 1200px;
+  max-width: var(--container-xl);
   margin: 0 auto;
-  padding: 44px 20px 72px;
+  padding: 28px 20px 72px;
 }
 
 .hero {
+  margin-top: 12px;
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
   gap: 24px;
@@ -21,9 +22,9 @@
 }
 
 .title {
-  margin: 10px 0 12px;
-  font-size: clamp(2.7rem, 6vw, 5.6rem);
-  line-height: 0.9;
+  margin: 8px 0 12px;
+  font-size: clamp(2.5rem, 5vw, 4.8rem);
+  line-height: 0.92;
   max-width: 760px;
   letter-spacing: -0.05em;
 }
@@ -32,7 +33,7 @@
   margin: 0;
   max-width: 620px;
   color: var(--color-text-secondary);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.6;
 }
 
@@ -51,7 +52,7 @@
 
 .card {
   border-radius: var(--radius-4);
-  padding: 24px;
+  padding: 22px;
 }
 
 .card::before,
@@ -75,14 +76,15 @@
 .cardLabel {
   margin: 0;
   color: var(--color-text-tertiary);
-  font-size: 13px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 .cardTitle {
   margin: 10px 0;
-  font-size: 28px;
+  font-size: 24px;
+  letter-spacing: -0.04em;
 }
 
 .cardCopy {
@@ -101,7 +103,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 
 .statCard {
@@ -112,15 +114,15 @@
 .statLabel {
   margin: 0;
   color: var(--color-text-tertiary);
-  font-size: 13px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 .statValue {
   display: block;
-  margin-top: 10px;
-  font-size: 30px;
+  margin-top: 8px;
+  font-size: 28px;
   letter-spacing: -0.04em;
 }
 
@@ -133,8 +135,8 @@
 
 .panel {
   border-radius: var(--radius-4);
-  padding: 20px;
-  min-height: 360px;
+  padding: 18px;
+  min-height: 340px;
 }
 
 .panelHeader {
@@ -147,7 +149,7 @@
 
 .panelTitle {
   margin: 0;
-  font-size: 22px;
+  font-size: 18px;
   letter-spacing: -0.03em;
 }
 
@@ -168,6 +170,60 @@
   text-align: center;
 }
 
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandMark {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background:
+    linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(20, 184, 166, 1));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.brandName {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.brandMeta {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.accountPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
 @media (max-width: 900px) {
   .hero,
   .contentGrid {
@@ -176,5 +232,10 @@
 
   .statsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .topBar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

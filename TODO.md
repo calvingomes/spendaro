@@ -19,7 +19,7 @@ This file tracks the current build plan and the remaining work.
 - [x] Enforce “folder per CSS module” structure rule in `AGENTS.md`
 
 ## In Progress
-- [ ] Make the `/` and `/sign-in` experience feel polished and Vercel-like
+- [ ] Rework the global design system to match Vercel's dark UI language
 
 ## Next Up
 - [ ] Build expense entry form
@@ -66,3 +66,5 @@ This file tracks the current build plan and the remaining work.
 - Prefer CSS Modules plus small reusable components.
 - Keep auth and server-side data access simple until the app is stable.
 - Any TSX component, view, or page that uses a `.module.css` file should live in its own folder with that CSS module beside it.
+- If local Next dev starts throwing overlay/client-manifest issues after file moves, treat that as a dev-server/cache problem first, not necessarily an app bug.
+- Global design tokens now live in `src/app/globals.css` and should be the source of truth for new UI surfaces.
