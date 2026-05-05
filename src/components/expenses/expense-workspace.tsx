@@ -343,17 +343,17 @@ export function ExpenseWorkspace({
                   value={form.type}
                   onValueChange={(value) => setForm((current) => ({ ...current, type: value as "credit" | "debit" }))}
                 >
-                  <Select.Trigger className={styles.select}>
+                  <Select.Trigger className={`${styles.select} ${form.type === "credit" ? "positive" : "negative"}`}>
                     <Select.Value />
                   </Select.Trigger>
                   <Select.Portal>
                     <Select.Content className={`${styles.suggestionsList} ${styles.selectContent}`} position="popper" sideOffset={4}>
                       <Select.Viewport>
                         <Select.Item value="debit" className={styles.suggestionItem}>
-                          <Select.ItemText>Expense (Debit)</Select.ItemText>
+                          <Select.ItemText>Debit</Select.ItemText>
                         </Select.Item>
                         <Select.Item value="credit" className={styles.suggestionItem}>
-                          <Select.ItemText>Income (Credit)</Select.ItemText>
+                          <Select.ItemText>Credit</Select.ItemText>
                         </Select.Item>
                       </Select.Viewport>
                     </Select.Content>

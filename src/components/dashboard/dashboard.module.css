@@ -29,7 +29,7 @@
 
 .statValue {
   display: block;
-  margin-top: 4px;
+  margin-top: 10px;
   font-size: clamp(1.1rem, 3.5vw, 1.9rem);
   letter-spacing: -0.035em;
   white-space: nowrap;
