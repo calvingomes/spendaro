@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
+import * as Dialog from "@radix-ui/react-dialog";
+import * as Select from "@radix-ui/react-select";
+import * as Label from "@radix-ui/react-label";
 
 type ExpenseFormState = {
   label: string;
@@ -19,6 +22,8 @@ const emptyForm: ExpenseFormState = {
   type: "debit",
   created_at: ""
 };
+
+const DEFAULT_CATEGORIES = ["Food", "Travel", "Bills", "Entertainment", "Shopping", "Health", "Subscriptions", "Salary", "Gift", "Investment"];
 
 function formatDateTimeLocal(date: Date) {
   const pad = (value: number) => String(value).padStart(2, "0");
@@ -63,8 +68,22 @@ export function ExpenseWorkspace({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
 
-  // removed totalBalance calculation
+  const suggestedCategories = useMemo(() => {
+    const categoryFreq = new Map<string, number>();
+    expenses.forEach((e) => {
+      categoryFreq.set(e.category, (categoryFreq.get(e.category) ?? 0) + 1);
+    });
+
+    const sortedUsed = [...categoryFreq.entries()].sort((a, b) => b[1] - a[1]).map(([name]) => name);
+    const combined = [...new Set([...sortedUsed, ...DEFAULT_CATEGORIES])];
+
+    const search = form.category.toLowerCase().trim();
+    if (!search) return combined.slice(0, 5);
+
+    return combined.filter((cat) => cat.toLowerCase().includes(search)).slice(0, 5);
+  }, [expenses, form.category]);
 
   const resetForm = () => {
     setForm({
@@ -194,7 +213,10 @@ export function ExpenseWorkspace({
             <button
               className={styles.addPill}
               type="button"
-              onClick={() => window.dispatchEvent(new CustomEvent("spendaro:add-expense"))}
+              onClick={() => {
+                resetForm();
+                setIsModalOpen(true);
+              }}
             >
               Add expense
             </button>
@@ -240,71 +262,114 @@ export function ExpenseWorkspace({
             </table>
           </div>
         )}
-
       </article>
 
-      {isModalOpen ? (
-        <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <article className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
+      <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className={styles.modalOverlay} />
+          <Dialog.Content className={styles.modalCard}>
             <div className={styles.sectionHeader}>
               <div>
-                <p className={styles.sectionKicker}>{editingId ? "Edit expense" : "Add expense"}</p>
-                <h2 className={styles.modalTitle}>{editingId ? "Update transaction" : "Capture expense"}</h2>
+                <Dialog.Title className={styles.modalTitle}>{editingId ? "Update transaction" : "Capture expense"}</Dialog.Title>
+                <Dialog.Description className={styles.sectionKicker}>
+                  {editingId ? "Edit expense" : "Add expense"}
+                </Dialog.Description>
               </div>
-              <button className={styles.ghostButton} type="button" onClick={() => setIsModalOpen(false)} disabled={isPending}>
-                Close
-              </button>
+              <Dialog.Close asChild>
+                <button className={styles.ghostButton} type="button" disabled={isPending}>
+                  Close
+                </button>
+              </Dialog.Close>
             </div>
 
             <form className={styles.form} onSubmit={handleSubmit}>
-              <label className={styles.field}>
-                <span>Label</span>
+              <div className={styles.field}>
+                <Label.Root htmlFor="label">Label</Label.Root>
                 <input
+                  id="label"
                   value={form.label}
                   onChange={(event) => setForm((current) => ({ ...current, label: event.target.value }))}
                   placeholder="Coffee, Uber, Dinner"
                 />
-              </label>
+              </div>
 
-              <label className={styles.field}>
-                <span>Category</span>
-                <input
-                  value={form.category}
-                  onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
-                  placeholder="Food, Travel, Bills"
-                />
-              </label>
+              <div className={styles.field}>
+                <Label.Root htmlFor="category">Category</Label.Root>
+                <div className={styles.comboboxWrapper}>
+                  <input
+                    id="category"
+                    className={styles.combobox}
+                    value={form.category}
+                    onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+                    onFocus={() => setIsSuggestionsOpen(true)}
+                    onBlur={() => setTimeout(() => setIsSuggestionsOpen(false), 200)}
+                    placeholder="Food, Travel, Bills"
+                  />
+                  {isSuggestionsOpen && suggestedCategories.length > 0 && (
+                    <ul className={styles.suggestionsList}>
+                      {suggestedCategories.map((cat) => (
+                        <li key={cat}>
+                          <button
+                            type="button"
+                            className={styles.suggestionItem}
+                            onClick={() => {
+                              setForm((current) => ({ ...current, category: cat }));
+                              setIsSuggestionsOpen(false);
+                            }}
+                          >
+                            {cat}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
 
-              <label className={styles.field}>
-                <span>Amount</span>
+              <div className={styles.field}>
+                <Label.Root htmlFor="amount">Amount</Label.Root>
                 <input
+                  id="amount"
                   value={form.amount}
                   onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}
                   placeholder="18.50"
                   inputMode="decimal"
                 />
-              </label>
+              </div>
 
-              <label className={styles.field}>
-                <span>Type</span>
-                <select
-                  className={styles.select}
+              <div className={styles.field}>
+                <Label.Root>Type</Label.Root>
+                <Select.Root
                   value={form.type}
-                  onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as "credit" | "debit" }))}
+                  onValueChange={(value) => setForm((current) => ({ ...current, type: value as "credit" | "debit" }))}
                 >
-                  <option value="debit">Expense (Debit)</option>
-                  <option value="credit">Income (Credit)</option>
-                </select>
-              </label>
+                  <Select.Trigger className={styles.select}>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Portal>
+                    <Select.Content className={`${styles.suggestionsList} ${styles.selectContent}`} position="popper" sideOffset={4}>
+                      <Select.Viewport>
+                        <Select.Item value="debit" className={styles.suggestionItem}>
+                          <Select.ItemText>Expense (Debit)</Select.ItemText>
+                        </Select.Item>
+                        <Select.Item value="credit" className={styles.suggestionItem}>
+                          <Select.ItemText>Income (Credit)</Select.ItemText>
+                        </Select.Item>
+                      </Select.Viewport>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
+              </div>
 
-              <label className={styles.field}>
-                <span>Created at</span>
+              <div className={styles.field}>
+                <Label.Root htmlFor="created_at">Created at</Label.Root>
                 <input
+                  id="created_at"
                   type="datetime-local"
                   value={form.created_at}
                   onChange={(event) => setForm((current) => ({ ...current, created_at: event.target.value }))}
                 />
-              </label>
+              </div>
 
               <div className={styles.formFooter}>
                 {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
@@ -313,9 +378,9 @@ export function ExpenseWorkspace({
                 </button>
               </div>
             </form>
-          </article>
-        </div>
-      ) : null}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </section>
   );
 }

@@ -15,15 +15,6 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-function toTitleCase(value: string) {
-  return value
-    .toLowerCase()
-    .split(" ")
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
 export function Dashboard({
   initialExpenses
 }: {
@@ -60,27 +51,6 @@ export function Dashboard({
       }, 0),
     [expenses, currentMonth, currentYear]
   );
-
-  const totalBalance = useMemo(
-    () =>
-      expenses.reduce((total, expense) => {
-        const amount = Number.parseFloat(expense.amount);
-        if (Number.isNaN(amount)) return total;
-        return total + (expense.type === "credit" ? amount : -amount);
-      }, 0),
-    [expenses]
-  );
-
-  const monthlyExpenseCount = useMemo(
-    () =>
-      expenses.filter((expense) => {
-        const createdAt = new Date(expense.created_at);
-        return createdAt.getMonth() === currentMonth && createdAt.getFullYear() === currentYear;
-      }).length,
-    [expenses, currentMonth, currentYear]
-  );
-
-  // Removed averageBalance as per request
 
   const thisMonthBalance = thisMonthIncome - thisMonthExpense;
 
