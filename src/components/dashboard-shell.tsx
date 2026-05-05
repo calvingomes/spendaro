@@ -1,5 +1,6 @@
 import styles from "./dashboard-shell.module.css";
 import Link from "next/link";
+import { LogoutButton } from "./logout-button";
 
 const stats = [
   { label: "This month", value: "$0.00" },
@@ -26,6 +27,7 @@ export function DashboardShell({ userEmail }: { userEmail: string }) {
             The app is scaffolded for Supabase auth, server routes, and future mobile shortcuts.
           </p>
           <Link href="/sign-in">Switch account</Link>
+          <LogoutButton />
         </div>
       </section>
 
