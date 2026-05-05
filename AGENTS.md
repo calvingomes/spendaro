@@ -13,11 +13,15 @@ The product goal is a clean, premium dashboard for tracking expenses with Google
 
 ## Current Product Direction
 The UI should feel very close to Vercel's product surfaces:
-- soft translucent panels
-- subtle blur and border treatment
+- matte dark surfaces
+- crisp low-contrast borders
 - restrained spacing and typography
 - minimal, premium dashboard feel
 - polished but not flashy
+
+Important:
+- Take design cues only (card/table/input/button style language).
+- Do not copy Vercel-specific product content, labels, navigation, or fake deployment/log data into Spendaro.
 
 Do not introduce Tailwind. Do not change the visual direction unless the user asks.
 

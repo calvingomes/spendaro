@@ -1,179 +1,125 @@
 .page {
   max-width: var(--container-xl);
   margin: 0 auto;
-  padding: 28px 20px 72px;
-}
-
-.hero {
-  margin-top: 10px;
-}
-
-.title {
-  margin: 0;
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  line-height: 1;
-  letter-spacing: -0.05em;
-}
-
-.panel,
-.statCard {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 18%),
-    var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-elevated);
-  backdrop-filter: blur(22px);
-  position: relative;
-  overflow: hidden;
-}
-
-.panel::before,
-.statCard::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at top left, rgba(139, 92, 246, 0.14), transparent 30%),
-    radial-gradient(circle at top right, rgba(20, 184, 166, 0.08), transparent 22%);
-}
-
-.panel > *,
-.statCard > * {
-  position: relative;
+  padding: 20px 16px 48px;
 }
 
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 18px;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .statCard {
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-3);
-  padding: 20px;
+  padding: 14px 16px;
+  background: var(--color-bg-surface);
+  min-height: 92px;
 }
 
 .statLabel {
   margin: 0;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
 }
 
 .statValue {
   display: block;
-  margin-top: 8px;
-  font-size: 28px;
-  letter-spacing: -0.04em;
-}
-
-.contentGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 16px;
-  margin-top: 16px;
-}
-
-.panel {
-  border-radius: var(--radius-4);
-  padding: 18px;
-  min-height: 340px;
-}
-
-.panelHeader {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: baseline;
-  margin-bottom: 16px;
-}
-
-.panelTitle {
-  margin: 0;
-  font-size: 18px;
-  letter-spacing: -0.03em;
-}
-
-.panelMeta {
-  color: var(--color-text-tertiary);
-  font-size: 13px;
-}
-
-.emptyState,
-.chartPlaceholder {
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-3);
-  min-height: 280px;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-secondary);
-  padding: 20px;
-  text-align: center;
+  margin-top: 6px;
+  font-size: clamp(1.55rem, 2.6vw, 1.9rem);
+  letter-spacing: -0.035em;
 }
 
 .topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 20px;
+  min-height: 44px;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 
 .brandMark {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  background:
-    linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(20, 184, 166, 1));
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #0070f3, #7c3aed);
 }
 
 .brandName {
   margin: 0;
-  font-size: 14px;
-  letter-spacing: 0.08em;
+  font-size: 20px;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
   color: var(--color-text);
+  font-weight: 520;
 }
 
 .topActions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .accountPill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  padding: 0 14px;
+  min-height: var(--control-height);
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-bg-control);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: var(--text-sm);
+  max-width: 34ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero {
+  margin-top: 4px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
 }
 
 @media (max-width: 900px) {
-  .contentGrid {
-    grid-template-columns: 1fr;
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 620px) {
   .statsGrid {
     grid-template-columns: 1fr;
   }
 
-  .topBar {
-    align-items: flex-start;
-    flex-direction: column;
+  .topActions {
+    width: 100%;
+  }
+
+  .accountPill {
+    flex: 1;
+    min-width: 0;
   }
 }

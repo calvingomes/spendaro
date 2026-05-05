@@ -232,7 +232,7 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
             <h2 className={styles.sectionTitle}>Recent transactions</h2>
           </div>
           <div className={styles.summaryPills}>
-            <span className={styles.summaryPill}>{expenses.length} items</span>
+            <span className={styles.summaryPill}>{expenses.length} entries</span>
             <span className={styles.summaryPill}>{formatCurrency(String(totalSpent))}</span>
           </div>
         </div>
@@ -240,26 +240,38 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
         {expenses.length === 0 ? (
           <div className={styles.emptyState}>No expenses yet. Add one on the left to get started.</div>
         ) : (
-          <div className={styles.list}>
-            {expenses.map((expense) => (
-              <article key={expense.id} className={styles.listItem}>
-                <div>
-                  <h3>{expense.label}</h3>
-                  <p>
-                    {expense.category} · {new Date(expense.created_at).toLocaleString()}
-                  </p>
-                </div>
-                <div className={styles.listActions}>
-                  <strong>{formatCurrency(expense.amount)}</strong>
-                  <button className={styles.ghostButton} type="button" onClick={() => handleEdit(expense)} disabled={isPending}>
-                    Edit
-                  </button>
-                  <button className={styles.ghostButton} type="button" onClick={() => handleDelete(expense.id)} disabled={isPending}>
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))}
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>Category</th>
+                  <th>Created</th>
+                  <th className={styles.numeric}>Amount</th>
+                  <th className={styles.numeric}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {expenses.map((expense) => (
+                  <tr key={expense.id}>
+                    <td className={styles.labelCell}>{expense.label}</td>
+                    <td>{expense.category}</td>
+                    <td>{new Date(expense.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
+                    <td className={styles.amountCell}>{formatCurrency(expense.amount)}</td>
+                    <td className={styles.numeric}>
+                      <div className={styles.actionsCell}>
+                        <button className={styles.tableButton} type="button" onClick={() => handleEdit(expense)} disabled={isPending}>
+                          Edit
+                        </button>
+                        <button className={styles.tableButton} type="button" onClick={() => handleDelete(expense.id)} disabled={isPending}>
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 

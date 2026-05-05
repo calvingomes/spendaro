@@ -2,33 +2,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: var(--control-height);
   border: 1px solid var(--color-border-strong);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)),
-    var(--color-bg-surface);
-  color: var(--color-text);
-  padding: 14px 18px;
-  border-radius: var(--radius-pill);
+  background: #f5f5f5;
+  color: #111;
+  padding: 0 14px;
+  border-radius: var(--radius-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .button:hover {
-  border-color: rgba(167, 139, 250, 0.42);
+  background: #fff;
 }
 
 .button:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.56);
+  outline: 2px solid rgba(255, 255, 255, 0.36);
   outline-offset: 2px;
 }
 
 .button:disabled {
-  opacity: 0.6;
+  opacity: 0.62;
   cursor: progress;
 }
 
 .error {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   color: var(--color-danger);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
