@@ -371,4 +371,12 @@
   .sectionTitle {
     font-size: 24px;
   }
+
+  .primaryButton {
+    width: 100%;
+  }
+
+  .formFooter {
+    margin-top: 20px;
+  }
 }
