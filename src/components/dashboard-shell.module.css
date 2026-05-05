@@ -1,0 +1,144 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.9fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.title {
+  margin: 10px 0 12px;
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 0.95;
+  max-width: 760px;
+}
+
+.copy {
+  margin: 0;
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.card,
+.panel,
+.statCard {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.card {
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.cardLabel {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cardTitle {
+  margin: 10px 0;
+  font-size: 28px;
+}
+
+.cardCopy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.statCard {
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.statLabel {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.statValue {
+  display: block;
+  margin-top: 10px;
+  font-size: 28px;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.panel {
+  border-radius: 24px;
+  padding: 20px;
+  min-height: 360px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 22px;
+}
+
+.panelMeta {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.emptyState,
+.chartPlaceholder {
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  padding: 20px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .hero,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
