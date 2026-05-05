@@ -10,5 +10,11 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/sign-in");
 
-  return <Dashboard userEmail={user.email ?? ""} />;
+  const { data: expenses } = await supabase
+    .from("expenses")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  return <Dashboard userEmail={user.email ?? ""} initialExpenses={expenses ?? []} />;
 }

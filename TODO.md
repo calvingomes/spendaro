@@ -22,13 +22,9 @@ This file tracks the current build plan and the remaining work.
 - [ ] Rework the global design system to match Vercel's dark UI language
 
 ## Next Up
-- [ ] Build expense entry form
-- [ ] Fetch and render the user’s expenses
-- [ ] Add edit expense flow
-- [ ] Add delete expense flow
 - [ ] Add analytics charts with Recharts
 - [ ] Add summary cards for spend totals and category breakdown
-- [ ] Add loading and empty states
+- [ ] Refine the expense workspace interactions and visual hierarchy
 
 ## Later
 - [ ] Add PWA support
