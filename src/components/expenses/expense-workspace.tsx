@@ -117,8 +117,8 @@ export function ExpenseWorkspace({
     setErrorMessage(null);
 
     const payload = {
-      label: form.label.trim(),
-      category: form.category.trim(),
+      label: form.label.trim().charAt(0).toUpperCase() + form.label.trim().slice(1).toLowerCase(),
+      category: form.category.trim().charAt(0).toUpperCase() + form.category.trim().slice(1).toLowerCase(),
       amount: parseAmount(form.amount),
       type: form.type,
       created_at: form.created_at ? new Date(form.created_at).toISOString() : undefined
