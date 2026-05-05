@@ -142,3 +142,11 @@ strong {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
+.positive {
+  color: var(--color-green) !important;
+}
+
+.negative {
+  color: var(--color-red) !important;
+}

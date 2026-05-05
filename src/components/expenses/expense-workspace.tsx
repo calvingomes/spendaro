@@ -64,15 +64,7 @@ export function ExpenseWorkspace({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const totalBalance = useMemo(
-    () =>
-      expenses.reduce((total, expense) => {
-        const amount = parseAmount(expense.amount);
-        if (Number.isNaN(amount)) return total;
-        return total + (expense.type === "credit" ? amount : -amount);
-      }, 0),
-    [expenses]
-  );
+  // removed totalBalance calculation
 
   const resetForm = () => {
     setForm({
@@ -199,9 +191,13 @@ export function ExpenseWorkspace({
           </div>
           <div className={styles.summaryPills}>
             <span className={styles.summaryPill}>{expenses.length} entries</span>
-            <span className={styles.summaryPill}>
-              Net: <span className={totalBalance >= 0 ? styles.positive : styles.negative}>{formatCurrency(String(totalBalance))}</span>
-            </span>
+            <button
+              className={styles.addPill}
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("spendaro:add-expense"))}
+            >
+              Add expense
+            </button>
           </div>
         </div>
 
@@ -223,7 +219,7 @@ export function ExpenseWorkspace({
                 {expenses.map((expense) => (
                   <tr key={expense.id}>
                     <td className={styles.labelCell}>{expense.label}</td>
-                    <td className={expense.type === "credit" ? styles.positive : styles.negative}>
+                    <td className={`${styles.amountCell} ${expense.type === "credit" ? "positive" : "negative"}`}>
                       {expense.type === "credit" ? "+" : "-"} {formatCurrency(expense.amount)}
                     </td>
                     <td>{expense.category}</td>
@@ -311,10 +307,10 @@ export function ExpenseWorkspace({
               </label>
 
               <div className={styles.formFooter}>
+                {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
                 <button className={styles.primaryButton} type="submit" disabled={isPending}>
                   {isPending ? "Saving..." : editingId ? "Save changes" : "Add expense"}
                 </button>
-                {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
               </div>
             </form>
           </article>
