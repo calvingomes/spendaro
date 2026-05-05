@@ -29,6 +29,6 @@
 
 .error {
   margin: 10px 0 0;
-  color: var(--color-danger);
+  color: var(--color-red);
   font-size: var(--text-sm);
 }
