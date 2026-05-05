@@ -206,20 +206,20 @@ export function ExpenseWorkspace({
               <thead>
                 <tr>
                   <th>Label</th>
+                  <th>Amount</th>
                   <th>Category</th>
                   <th>Created</th>
-                  <th className={styles.numeric}>Amount</th>
-                  <th className={styles.numeric}>Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {expenses.map((expense) => (
                   <tr key={expense.id}>
                     <td className={styles.labelCell}>{expense.label}</td>
+                    <td>{formatCurrency(expense.amount)}</td>
                     <td>{expense.category}</td>
                     <td>{new Date(expense.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
-                    <td className={styles.amountCell}>{formatCurrency(expense.amount)}</td>
-                    <td className={styles.numeric}>
+                    <td>
                       <div className={styles.actionsCell}>
                         <button className={styles.tableButton} type="button" onClick={() => handleEdit(expense)} disabled={isPending}>
                           Edit
