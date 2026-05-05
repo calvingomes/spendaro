@@ -1,4 +1,5 @@
 import styles from "./dashboard-shell.module.css";
+import Link from "next/link";
 
 const stats = [
   { label: "This month", value: "$0.00" },
@@ -6,7 +7,7 @@ const stats = [
   { label: "Top category", value: "None yet" }
 ];
 
-export function DashboardShell() {
+export function DashboardShell({ userEmail }: { userEmail: string }) {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
@@ -14,7 +15,8 @@ export function DashboardShell() {
           <p className={styles.kicker}>Spendaro</p>
           <h1 className={styles.title}>Track expenses with a dashboard built for speed.</h1>
           <p className={styles.copy}>
-            Sign in with Google, add an expense in seconds, and watch the analytics update in real time.
+            Signed in as <strong>{userEmail}</strong>. Add an expense in seconds and watch the analytics update in real
+            time.
           </p>
         </div>
         <div className={styles.card}>
@@ -23,6 +25,7 @@ export function DashboardShell() {
           <p className={styles.cardCopy}>
             The app is scaffolded for Supabase auth, server routes, and future mobile shortcuts.
           </p>
+          <Link href="/sign-in">Switch account</Link>
         </div>
       </section>
 
@@ -39,7 +42,7 @@ export function DashboardShell() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <h3 className={styles.panelTitle}>Recent expenses</h3>
-            <span className={styles.panelMeta}>Empty state for now</span>
+            <span className={styles.panelMeta}>Ready for Supabase data</span>
           </div>
           <div className={styles.emptyState}>Your transactions will appear here once we wire in Supabase.</div>
         </article>
@@ -50,7 +53,7 @@ export function DashboardShell() {
             <span className={styles.panelMeta}>Ready for charts</span>
           </div>
           <div className={styles.chartPlaceholder}>
-            Charts for category mix and spending trends will live here in phase 3.
+            Charts for category mix and spending trends will live here in the next phase.
           </div>
         </article>
       </section>
