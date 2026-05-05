@@ -45,7 +45,13 @@ function formatCurrency(value: string) {
   }).format(amount);
 }
 
-export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense[] }) {
+export function ExpenseWorkspace({
+  initialExpenses,
+  onExpensesChange
+}: {
+  initialExpenses: Expense[];
+  onExpensesChange?: (expenses: Expense[]) => void;
+}) {
   const [expenses, setExpenses] = useState(initialExpenses);
   const [form, setForm] = useState<ExpenseFormState>(() => ({
     ...emptyForm,
@@ -64,14 +70,6 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
       }, 0),
     [expenses]
   );
-
-  const categories = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const expense of expenses) {
-      counts.set(expense.category, (counts.get(expense.category) ?? 0) + 1);
-    }
-    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
-  }, [expenses]);
 
   const resetForm = () => {
     setForm({
@@ -95,6 +93,10 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
     window.addEventListener("spendaro:add-expense", openModal);
     return () => window.removeEventListener("spendaro:add-expense", openModal);
   }, []);
+
+  useEffect(() => {
+    onExpensesChange?.(expenses);
+  }, [expenses, onExpensesChange]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -234,16 +236,6 @@ export function ExpenseWorkspace({ initialExpenses }: { initialExpenses: Expense
           </div>
         )}
 
-        <div className={styles.insights}>
-          <div className={styles.insightCard}>
-            <span className={styles.insightLabel}>Top category</span>
-            <strong>{categories[0]?.[0] ?? "None yet"}</strong>
-          </div>
-          <div className={styles.insightCard}>
-            <span className={styles.insightLabel}>Total spent</span>
-            <strong>{formatCurrency(String(totalSpent))}</strong>
-          </div>
-        </div>
       </article>
 
       {isModalOpen ? (

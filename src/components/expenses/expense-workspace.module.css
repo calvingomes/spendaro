@@ -225,29 +225,6 @@
   border-radius: 7px;
 }
 
-.insights {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.insightCard {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2);
-  padding: 12px;
-  background: var(--color-bg-control);
-  display: grid;
-  gap: 5px;
-}
-
-.insightLabel {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-text-tertiary);
-}
-
 .modalOverlay {
   position: fixed;
   inset: 0;

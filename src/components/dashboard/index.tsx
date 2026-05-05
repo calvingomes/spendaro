@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import styles from "./dashboard.module.css";
 import { SignOutButton } from "../auth/sign-out-button";
 import { AddExpenseButton } from "./add-expense-button";
@@ -12,39 +15,71 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+function toTitleCase(value: string) {
+  return value
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function Dashboard({
   initialExpenses
 }: {
   initialExpenses: Expense[];
 }) {
+  const [expenses, setExpenses] = useState(initialExpenses);
   const now = new Date();
-  const thisMonthSpent = initialExpenses.reduce((total, expense) => {
-    const createdAt = new Date(expense.created_at);
-    if (createdAt.getMonth() !== now.getMonth() || createdAt.getFullYear() !== now.getFullYear()) {
-      return total;
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const thisMonthSpent = useMemo(
+    () =>
+      expenses.reduce((total, expense) => {
+        const createdAt = new Date(expense.created_at);
+        if (createdAt.getMonth() !== currentMonth || createdAt.getFullYear() !== currentYear) {
+          return total;
+        }
+
+        const amount = Number.parseFloat(expense.amount);
+        return total + (Number.isNaN(amount) ? 0 : amount);
+      }, 0),
+    [expenses, currentMonth, currentYear]
+  );
+
+  const totalSpent = useMemo(
+    () =>
+      expenses.reduce((total, expense) => {
+        const amount = Number.parseFloat(expense.amount);
+        return total + (Number.isNaN(amount) ? 0 : amount);
+      }, 0),
+    [expenses]
+  );
+
+  const monthlyExpenseCount = useMemo(
+    () =>
+      expenses.filter((expense) => {
+        const createdAt = new Date(expense.created_at);
+        return createdAt.getMonth() === currentMonth && createdAt.getFullYear() === currentYear;
+      }).length,
+    [expenses, currentMonth, currentYear]
+  );
+
+  const averageSpend = monthlyExpenseCount > 0 ? thisMonthSpent / monthlyExpenseCount : 0;
+
+  const topCategory = useMemo(() => {
+    const categoryCount = new Map<string, number>();
+    for (const expense of expenses) {
+      categoryCount.set(expense.category, (categoryCount.get(expense.category) ?? 0) + 1);
     }
 
-    const amount = Number.parseFloat(expense.amount);
-    return total + (Number.isNaN(amount) ? 0 : amount);
-  }, 0);
-
-  const totalSpent = initialExpenses.reduce((total, expense) => {
-    const amount = Number.parseFloat(expense.amount);
-    return total + (Number.isNaN(amount) ? 0 : amount);
-  }, 0);
-
-  const averageSpend = initialExpenses.length > 0 ? totalSpent / initialExpenses.length : 0;
-
-  const categoryCount = new Map<string, number>();
-  for (const expense of initialExpenses) {
-    categoryCount.set(expense.category, (categoryCount.get(expense.category) ?? 0) + 1);
-  }
-
-  const topCategory = [...categoryCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "None yet";
+    const category = [...categoryCount.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+    return category ? toTitleCase(category) : "None yet";
+  }, [expenses]);
 
   const stats = [
     { label: "This month", value: formatCurrency(thisMonthSpent) },
-    { label: "Average spend", value: formatCurrency(averageSpend) },
+    { label: "Avg this month", value: formatCurrency(averageSpend) },
     { label: "Top category", value: topCategory }
   ];
 
@@ -78,7 +113,7 @@ export function Dashboard({
         ))}
       </section>
 
-      <ExpenseWorkspace initialExpenses={initialExpenses} />
+      <ExpenseWorkspace initialExpenses={initialExpenses} onExpensesChange={setExpenses} />
     </main>
   );
 }
