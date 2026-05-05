@@ -3,11 +3,18 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Spendaro",
-  description: "Simple expense tracking dashboard with Supabase auth."
+  description: "Personal expense tracker.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Spendaro",
+  },
 };
 
 export const viewport = {
-  themeColor: "#030712"
+  themeColor: "#000000",
+  initialScale: 1,
+  width: "device-width",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -6,7 +6,7 @@ Spendaro is a simple personal expense tracker built with:
 - Supabase for auth and database
 - Bun for package management and scripts
 - CSS Modules for styling
-- Radix UI primitives later for accessible interactive components
+- Radix UI primitives for accessible interactive components
 - Recharts for analytics
 
 The product goal is a clean, premium dashboard for tracking expenses with Google sign-in, fast entry, and lightweight analytics.
@@ -67,6 +67,7 @@ Schema fields:
 - `label`
 - `category`
 - `amount`
+- `type` (credit | debit)
 - `created_at`
 - `updated_at`
 
@@ -84,6 +85,7 @@ Expected create payload:
 - `label`
 - `category`
 - `amount`
+- `type` (credit | debit)
 - `created_at` optional, defaults to now if missing
 
 ## Implementation Notes
@@ -109,7 +111,7 @@ Use Bun:
 - Avoid overdesigning charts or controls in early phases.
 
 ## Current Build Status
-The project has been scaffolded and the current phase focuses on:
-- stabilizing auth
-- getting dashboard rendering reliable
-- moving into expense CRUD and analytics
+The core architecture is solid with Radix UI and the Credit/Debit system fully integrated. The current phase focuses on:
+- Analytics charts with Recharts
+- Mobile-first PWA optimizations
+- Export and sharing features

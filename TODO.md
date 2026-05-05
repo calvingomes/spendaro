@@ -9,12 +9,17 @@
 - [x] Global dark design system
 - [x] Shared folder structure for CSS modules
 - [x] Modal-based add expense flow from dashboard header
+- [x] Credit/Debit (Income/Expense) support
+- [x] Radix UI integration (Dialog, Select, Label)
+- [x] Self-learning category engine with dynamic suggestions
+- [x] Dashboard stats (Income, Expense, Net Balance)
+- [x] Mobile-first UI optimizations
 
 ## Next
-- [ ] Analytics charts and summary cards
-- [ ] Final UI polish pass
-- [ ] PWA support
+- [ ] Analytics charts (Recharts integration)
+- [ ] PWA support (Manifest, Service Worker)
 - [ ] iPhone Shortcut support
+- [ ] Export to CSV/PDF
 
 ## Later
 - [ ] Offline support
