@@ -1,5 +1,5 @@
-import styles from "./dashboard-shell.module.css";
 import Link from "next/link";
+import styles from "./dashboard.module.css";
 import { LogoutButton } from "./logout-button";
 
 const stats = [
@@ -8,7 +8,7 @@ const stats = [
   { label: "Top category", value: "None yet" }
 ];
 
-export function DashboardShell({ userEmail }: { userEmail: string }) {
+export function Dashboard({ userEmail }: { userEmail: string }) {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>

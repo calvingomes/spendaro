@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Dashboard } from "@/components/dashboard";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -10,5 +10,5 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/sign-in");
 
-  return <DashboardShell userEmail={user.email ?? ""} />;
+  return <Dashboard userEmail={user.email ?? ""} />;
 }
