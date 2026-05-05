@@ -1,5 +1,5 @@
 import styles from "./sign-in.module.css";
-import { SignInButton } from "./sign-in-button";
+import { SignInButton } from "@/components/auth/sign-in-button";
 
 export default function SignInPage() {
   return (

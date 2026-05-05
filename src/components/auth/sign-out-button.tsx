@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import styles from "./logout-button.module.css";
+import styles from "./sign-out-button.module.css";
 
-export function LogoutButton() {
+export function SignOutButton() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     setIsLoading(true);
 
     try {
@@ -23,8 +23,8 @@ export function LogoutButton() {
   };
 
   return (
-    <button className={styles.button} type="button" onClick={handleLogout} disabled={isLoading}>
-      {isLoading ? "Logging out..." : "Log out"}
+    <button className={styles.button} type="button" onClick={handleSignOut} disabled={isLoading}>
+      {isLoading ? "Signing out..." : "Sign out"}
     </button>
   );
 }

@@ -2,6 +2,7 @@
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useState } from "react";
+import styles from "./sign-in-button.module.css";
 
 export function SignInButton() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -37,10 +38,10 @@ export function SignInButton() {
 
   return (
     <div>
-      <button type="button" onClick={handleClick} disabled={isLoading}>
+      <button className={styles.button} type="button" onClick={handleClick} disabled={isLoading}>
         {isLoading ? "Connecting..." : "Continue with Google"}
       </button>
-      {errorMessage ? <p>{errorMessage}</p> : null}
+      {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
     </div>
   );
 }
