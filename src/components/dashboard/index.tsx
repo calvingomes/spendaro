@@ -57,7 +57,11 @@ export function Dashboard({
   const stats = [
     { label: "Income this month", value: formatCurrency(thisMonthIncome) },
     { label: "Expense this month", value: formatCurrency(thisMonthExpense) },
-    { label: "Net balance", value: formatCurrency(thisMonthBalance) }
+    { 
+      label: "Net balance", 
+      value: formatCurrency(thisMonthBalance),
+      colorClass: thisMonthBalance >= 0 ? "positive" : "negative"
+    }
   ];
 
   return (
@@ -80,7 +84,7 @@ export function Dashboard({
         {stats.map((stat) => (
           <article key={stat.label} className={styles.statCard}>
             <p className={styles.statLabel}>{stat.label}</p>
-            <strong className={styles.statValue}>{stat.value}</strong>
+            <strong className={`${styles.statValue} ${stat.colorClass || ""}`}>{stat.value}</strong>
           </article>
         ))}
       </section>
