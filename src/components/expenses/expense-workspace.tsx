@@ -6,7 +6,7 @@ import type { Expense } from "@/lib/types";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import * as Label from "@radix-ui/react-label";
-import { Plus, ArrowUpRight, ArrowDownLeft, Pencil, Trash2, X, ChevronDown } from "lucide-react";
+import { Plus, ArrowUpRight, ArrowDownLeft, Pencil, Trash2, X, ChevronDown, Search } from "lucide-react";
 import { ExpenseAnalytics } from "./expense-analytics";
 
 type ExpenseFormState = {
@@ -218,6 +218,7 @@ export function ExpenseWorkspace({
           </div>
           <div className={styles.sectionActions}>
             <div className={styles.searchBox}>
+              <Search className={styles.searchIcon} />
               <input 
                 type="text" 
                 placeholder="Search Label or Category..." 
