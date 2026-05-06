@@ -6,6 +6,7 @@ import type { Expense } from "@/lib/types";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import * as Label from "@radix-ui/react-label";
+import { Plus, ArrowUpRight, ArrowDownLeft, Pencil, Trash2 } from "lucide-react";
 import { ExpenseAnalytics } from "./expense-analytics";
 
 type ExpenseFormState = {
@@ -222,12 +223,13 @@ export function ExpenseWorkspace({
             <div className={styles.searchBox}>
               <input 
                 type="text" 
-                placeholder="Search label or category..." 
+                placeholder="Search..." 
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+
             <button
               className={styles.addPill}
               type="button"
@@ -236,7 +238,8 @@ export function ExpenseWorkspace({
                 setIsModalOpen(true);
               }}
             >
-              Add expense
+              <Plus className={styles.tableIcon} />
+              <span className={styles.btnText}>Add expense</span>
             </button>
           </div>
         </div>
@@ -262,17 +265,26 @@ export function ExpenseWorkspace({
                   <tr key={expense.id}>
                     <td className={styles.labelCell}>{expense.label}</td>
                     <td className={`${styles.amountCell} ${expense.type === "credit" ? "positive" : "negative"}`}>
-                      {expense.type === "credit" ? "+" : "-"} {formatCurrency(expense.amount)}
+                      <div className={styles.amountContent}>
+                        {expense.type === "credit" ? (
+                          <ArrowUpRight className={styles.amountIcon} />
+                        ) : (
+                          <ArrowDownLeft className={styles.amountIcon} />
+                        )}
+                        {formatCurrency(expense.amount)}
+                      </div>
                     </td>
                     <td>{expense.category}</td>
                     <td>{new Date(expense.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
                     <td>
                       <div className={styles.actionsCell}>
-                        <button className={styles.tableButton} type="button" onClick={() => handleEdit(expense)} disabled={isPending}>
-                          Edit
+                        <button className={styles.tableButton} type="button" onClick={() => handleEdit(expense)} disabled={isPending} title="Edit">
+                          <Pencil className={styles.tableIcon} />
+                          <span className={styles.btnText}>Edit</span>
                         </button>
-                        <button className={styles.tableButton} type="button" onClick={() => handleDelete(expense.id)} disabled={isPending}>
-                          Delete
+                        <button className={styles.tableButton} type="button" onClick={() => handleDelete(expense.id)} disabled={isPending} title="Delete">
+                          <Trash2 className={styles.tableIcon} />
+                          <span className={styles.btnText}>Delete</span>
                         </button>
                       </div>
                     </td>
