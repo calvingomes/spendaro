@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import styles from "./dashboard.module.css";
 import { SignOutButton } from "../auth/sign-out-button";
 import { AddExpenseButton } from "./add-expense-button";
+import { ThemeToggle } from "../theme-toggle";
 import { ExpenseWorkspace } from "../expenses/expense-workspace";
 import type { Expense } from "@/lib/types";
 
@@ -65,6 +66,7 @@ export function Dashboard({
         <div className={styles.topActions}>
           <AddExpenseButton />
           <SignOutButton />
+          <ThemeToggle />
         </div>
       </header>
 

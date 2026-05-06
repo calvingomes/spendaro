@@ -110,8 +110,8 @@ export function ExpenseModal({
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className={styles.overlay} />
-        <Dialog.Content className={styles.modal}>
+        <Dialog.Overlay className={styles.modalOverlay} />
+        <Dialog.Content className={styles.modalCard}>
           <Dialog.Title className={styles.modalTitle}>
             {editingExpense ? "Edit transaction" : "New transaction"}
           </Dialog.Title>
