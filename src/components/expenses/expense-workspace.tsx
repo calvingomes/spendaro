@@ -279,10 +279,6 @@ export function ExpenseWorkspace({
                           <Pencil className={styles.tableIcon} />
                           <span className={styles.btnText}>Edit</span>
                         </button>
-                        <button className={styles.tableButton} type="button" onClick={() => handleDelete(expense.id)} disabled={isPending} title="Delete">
-                          <Trash2 className={styles.tableIcon} />
-                          <span className={styles.btnText}>Delete</span>
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -408,18 +404,34 @@ export function ExpenseWorkspace({
 
               <div className={styles.formFooter}>
                 {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
-                <button className={styles.primaryButton} type="submit" disabled={isPending}>
-                  {isPending ? (
-                    "Saving..."
-                  ) : editingId ? (
-                    "Save changes"
-                  ) : (
-                    <>
-                      <Plus className={styles.tableIcon} />
-                      Add expense
-                    </>
+                <div className={styles.footerActions}>
+                  {editingId && (
+                    <button 
+                      className={styles.deleteButton} 
+                      type="button" 
+                      onClick={() => handleDelete(editingId)}
+                      disabled={isPending}
+                    >
+                      <Trash2 className={styles.tableIcon} />
+                      Delete
+                    </button>
                   )}
-                </button>
+                  <button className={styles.primaryButton} type="submit" disabled={isPending}>
+                    {isPending ? (
+                      "Saving..."
+                    ) : editingId ? (
+                      <>
+                        <Pencil className={styles.tableIcon} />
+                        Save changes
+                      </>
+                    ) : (
+                      <>
+                        <Plus className={styles.tableIcon} />
+                        Add expense
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </Dialog.Content>
