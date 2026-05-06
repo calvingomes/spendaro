@@ -109,9 +109,18 @@ export function ExpenseWorkspace({
     return () => window.removeEventListener("spendaro:add-expense", openModal);
   }, []);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
     onExpensesChange?.(expenses);
   }, [expenses, onExpensesChange]);
+
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter((e) => 
+      e.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [expenses, searchTerm]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -209,8 +218,16 @@ export function ExpenseWorkspace({
             <p className={styles.sectionKicker}>Expense list</p>
             <h2 className={styles.sectionTitle}>Recent transactions</h2>
           </div>
-          <div className={styles.summaryPills}>
-            <span className={styles.summaryPill}>{expenses.length} entries</span>
+          <div className={styles.sectionActions}>
+            <div className={styles.searchBox}>
+              <input 
+                type="text" 
+                placeholder="Search label or category..." 
+                className={styles.searchInput}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
             <button
               className={styles.addPill}
               type="button"
@@ -224,8 +241,10 @@ export function ExpenseWorkspace({
           </div>
         </div>
 
-        {expenses.length === 0 ? (
-          <div className={styles.emptyState}>No expenses yet. Add one on the left to get started.</div>
+        {filteredExpenses.length === 0 ? (
+          <div className={styles.empty}>
+            <p>No transactions found.</p>
+          </div>
         ) : (
           <div className={styles.tableWrap}>
             <table className={styles.table}>
@@ -239,7 +258,7 @@ export function ExpenseWorkspace({
                 </tr>
               </thead>
               <tbody>
-                {expenses.map((expense) => (
+                {filteredExpenses.map((expense) => (
                   <tr key={expense.id}>
                     <td className={styles.labelCell}>{expense.label}</td>
                     <td className={`${styles.amountCell} ${expense.type === "credit" ? "positive" : "negative"}`}>

@@ -68,7 +68,7 @@ export function Dashboard({
     <main className={styles.page}>
       <header className={styles.topBar}>
         <div className={styles.brand}>
-          <span className={styles.brandMark} aria-hidden="true" />
+          <img src="/icons/icon-192x192.png" alt="Spendaro Logo" className={styles.brandLogo} />
           <div>
             <p className={styles.brandName}>Spendaro</p>
           </div>
