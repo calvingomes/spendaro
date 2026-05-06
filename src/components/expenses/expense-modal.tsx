@@ -115,6 +115,9 @@ export function ExpenseModal({
           <Dialog.Title className={styles.modalTitle}>
             {editingExpense ? "Edit transaction" : "New transaction"}
           </Dialog.Title>
+          <Dialog.Description className={styles.visuallyHidden}>
+            Fill out the form below to {editingExpense ? "update your" : "add a new"} transaction.
+          </Dialog.Description>
           <Dialog.Close className={styles.closeButton}>
             <X size={16} />
           </Dialog.Close>
