@@ -1,5 +1,5 @@
 import styles from "./sign-in.module.css";
-import { SignInButton } from "@/components/auth/sign-in-button";
+import { SignInButton } from "@/components/buttons/sign-in-button/sign-in-button";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 

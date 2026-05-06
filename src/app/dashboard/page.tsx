@@ -1,20 +1,16 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Dashboard } from "@/components/dashboard";
+import { Dashboard } from "@/components/dashboard-view/dashboard";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  
+  const [{ data: { user } }, { data: expenses }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("expenses").select("*").order("created_at", { ascending: false })
+  ]);
 
   if (!user) redirect("/sign-in");
-
-  const { data: expenses } = await supabase
-    .from("expenses")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
 
   return <Dashboard initialExpenses={expenses ?? []} />;
 }

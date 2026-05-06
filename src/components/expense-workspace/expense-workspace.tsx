@@ -3,9 +3,9 @@
 import { useEffect, useState, useTransition } from "react";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
-import { ExpenseAnalytics } from "./expense-analytics";
-import { ExpenseList } from "./expense-list";
-import { ExpenseModal } from "./expense-modal";
+import { ExpenseAnalytics } from "../expense-analytics/expense-analytics";
+import { ExpenseList } from "../expense-list/expense-list";
+import { ExpenseModal } from "../expense-modal/expense-modal";
 
 export function ExpenseWorkspace({
   initialExpenses,

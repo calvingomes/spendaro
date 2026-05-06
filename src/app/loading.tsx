@@ -1,9 +1,5 @@
-import styles from "./loading.module.css";
+import { LoadingContent } from "@/components/loading-content/loading-content";
 
 export default function Loading() {
-  return (
-    <main className={styles.container}>
-      <div className={styles.loader} aria-label="Loading Spendaro..." />
-    </main>
-  );
+  return <LoadingContent />;
 }
