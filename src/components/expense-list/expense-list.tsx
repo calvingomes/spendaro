@@ -1,19 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, ArrowUpRight, ArrowDownLeft, Pencil, Search } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Pencil, Search } from "lucide-react";
 import styles from "./expense-list.module.css";
 import { formatCurrency } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
 
 interface ExpenseListProps {
   expenses: Expense[];
-  onAdd: () => void;
   onEdit: (expense: Expense) => void;
   isPending: boolean;
 }
 
-export function ExpenseList({ expenses, onAdd, onEdit, isPending }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredExpenses = useMemo(() => {

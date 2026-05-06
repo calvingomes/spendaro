@@ -94,10 +94,6 @@ export function ExpenseWorkspace({
     <section className={styles.workspace}>
       <ExpenseList 
         expenses={expenses} 
-        onAdd={() => {
-          setEditingExpense(null);
-          setIsModalOpen(true);
-        }}
         onEdit={handleEdit}
         isPending={isPending}
       />
