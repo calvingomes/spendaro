@@ -21,46 +21,35 @@ export function Dashboard({
   initialExpenses: Expense[];
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  const thisMonthIncome = useMemo(
+  const totalIncome = useMemo(
     () =>
       expenses.reduce((total, expense) => {
-        const createdAt = new Date(expense.created_at);
-        if (createdAt.getMonth() !== currentMonth || createdAt.getFullYear() !== currentYear || expense.type !== "credit") {
-          return total;
-        }
-
+        if (expense.type !== "credit") return total;
         const amount = Number.parseFloat(expense.amount);
         return total + (Number.isNaN(amount) ? 0 : amount);
       }, 0),
-    [expenses, currentMonth, currentYear]
+    [expenses]
   );
 
-  const thisMonthExpense = useMemo(
+  const totalExpense = useMemo(
     () =>
       expenses.reduce((total, expense) => {
-        const createdAt = new Date(expense.created_at);
-        if (createdAt.getMonth() !== currentMonth || createdAt.getFullYear() !== currentYear || expense.type !== "debit") {
-          return total;
-        }
-
+        if (expense.type !== "debit") return total;
         const amount = Number.parseFloat(expense.amount);
         return total + (Number.isNaN(amount) ? 0 : amount);
       }, 0),
-    [expenses, currentMonth, currentYear]
+    [expenses]
   );
 
-  const thisMonthBalance = thisMonthIncome - thisMonthExpense;
+  const netBalance = totalIncome - totalExpense;
 
   const stats = [
-    { label: "Income this month", value: formatCurrency(thisMonthIncome) },
-    { label: "Expense this month", value: formatCurrency(thisMonthExpense) },
+    { label: "Overall Income", value: formatCurrency(totalIncome) },
+    { label: "Overall Expense", value: formatCurrency(totalExpense) },
     { 
       label: "Net balance", 
-      value: formatCurrency(thisMonthBalance),
-      colorClass: thisMonthBalance >= 0 ? "positive" : "negative"
+      value: formatCurrency(netBalance),
+      colorClass: netBalance >= 0 ? "positive" : "negative"
     }
   ];
 
