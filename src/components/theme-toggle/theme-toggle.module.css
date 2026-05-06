@@ -18,8 +18,4 @@
   color: var(--color-text);
 }
 
-@media (max-width: 720px) {
-  .toggle {
-    display: none;
-  }
-}
+

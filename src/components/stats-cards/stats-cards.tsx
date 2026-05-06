@@ -1,3 +1,4 @@
+/* eslint-disable css-modules/no-unused-class */
 "use client";
 
 import { useMemo } from "react";
@@ -50,7 +51,7 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
       {stats.map((stat) => (
         <article key={stat.label} className={styles.statCard}>
           <p className={styles.statLabel}>{stat.label}</p>
-          <strong className={`${styles.statValue} ${stat.colorClass || ""}`}>{stat.value}</strong>
+          <strong className={`${styles.statValue} ${stat.colorClass ? styles[stat.colorClass] : ""}`}>{stat.value}</strong>
         </article>
       ))}
     </section>

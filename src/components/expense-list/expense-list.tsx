@@ -27,7 +27,7 @@ export function ExpenseList({ expenses, onAdd, onEdit, isPending }: ExpenseListP
     <article className={styles.listCard}>
       <div className={styles.sectionHeader}>
         <div>
-          <p className={styles.sectionKicker}>Expense list</p>
+          <p className={styles.sectionKicker}>Activity</p>
           <h2 className={styles.sectionTitle}>Recent transactions</h2>
         </div>
         <div className={styles.sectionActions}>
@@ -41,15 +41,6 @@ export function ExpenseList({ expenses, onAdd, onEdit, isPending }: ExpenseListP
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <button
-            className={styles.addPill}
-            type="button"
-            onClick={onAdd}
-          >
-            <Plus className={styles.tableIcon} />
-            <span className={styles.btnText}>Add expense</span>
-          </button>
         </div>
       </div>
 
@@ -73,7 +64,7 @@ export function ExpenseList({ expenses, onAdd, onEdit, isPending }: ExpenseListP
               {filteredExpenses.map((expense) => (
                 <tr key={expense.id}>
                   <td className={styles.labelCell}>{expense.label}</td>
-                  <td className={`${styles.amountCell} ${expense.type === "credit" ? "positive" : "negative"}`}>
+                  <td className={`${styles.amountCell} ${expense.type === "credit" ? styles.positive : styles.negative}`}>
                     <div className={styles.amountContent}>
                       {expense.type === "credit" ? (
                         <ArrowUpRight className={styles.amountIcon} />
@@ -89,7 +80,7 @@ export function ExpenseList({ expenses, onAdd, onEdit, isPending }: ExpenseListP
                     <div className={styles.actionsCell}>
                       <button className={styles.tableButton} type="button" onClick={() => onEdit(expense)} disabled={isPending} title="Edit">
                         <Pencil className={styles.tableIcon} />
-                        <span className={styles.btnText}>Edit</span>
+                        <span>Edit</span>
                       </button>
                     </div>
                   </td>

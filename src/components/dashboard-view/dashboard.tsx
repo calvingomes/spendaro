@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import styles from "./dashboard.module.css";
 import { SignOutButton } from "@/components/buttons/sign-out-button/sign-out-button";
@@ -20,15 +21,15 @@ export function Dashboard({
     <main className={styles.page}>
       <header className={styles.topBar}>
         <div className={styles.brand}>
-          <img src="/icons/icon-192x192.png" alt="Spendaro Logo" className={styles.brandLogo} />
+          <Image src="/icons/icon-192x192.png" alt="Spendaro Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
           <div>
             <p className={styles.brandName}>Spendaro</p>
           </div>
         </div>
         <div className={styles.topActions}>
           <AddExpenseButton />
-          <SignOutButton />
           <ThemeToggle />
+          <SignOutButton />
         </div>
       </header>
 

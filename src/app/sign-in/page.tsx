@@ -1,3 +1,4 @@
+import Image from "next/image";
 import styles from "./sign-in.module.css";
 import { SignInButton } from "@/components/buttons/sign-in-button/sign-in-button";
 import { redirect } from "next/navigation";
@@ -13,7 +14,7 @@ export default async function SignInPage() {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <img src="/icons/icon-192x192.png" alt="Spendaro Logo" className={styles.logo} />
+        <Image src="/icons/icon-192x192.png" alt="Spendaro Logo" width={64} height={64} className={styles.logo} unoptimized />
         <h1 className={styles.title}>Sign in to Spendaro</h1>
         <SignInButton />
       </section>

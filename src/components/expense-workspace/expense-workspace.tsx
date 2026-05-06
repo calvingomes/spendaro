@@ -37,7 +37,7 @@ export function ExpenseWorkspace({
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (payload: any) => {
+  const handleSubmit = async (payload: Partial<Expense>) => {
     return new Promise<void>((resolve, reject) => {
       startTransition(async () => {
         try {

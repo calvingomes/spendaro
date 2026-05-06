@@ -28,7 +28,7 @@ const emptyForm: ExpenseFormState = {
 interface ExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (payload: any) => Promise<void>;
+  onSubmit: (payload: Partial<Expense>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   editingExpense: Expense | null;
   isPending: boolean;
@@ -90,7 +90,7 @@ export function ExpenseModal({
     const payload = {
       label: form.label.trim().charAt(0).toUpperCase() + form.label.trim().slice(1).toLowerCase(),
       category: form.category.trim().charAt(0).toUpperCase() + form.category.trim().slice(1).toLowerCase(),
-      amount: parseAmount(form.amount),
+      amount: parseAmount(form.amount).toString(),
       type: form.type,
       created_at: form.created_at ? new Date(form.created_at).toISOString() : undefined
     };
@@ -185,7 +185,7 @@ export function ExpenseModal({
                 value={form.type}
                 onValueChange={(value: "credit" | "debit") => setForm((current) => ({ ...current, type: value }))}
               >
-                <Select.Trigger className={`${styles.select} ${form.type === "credit" ? "positive" : "negative"}`}>
+                <Select.Trigger className={`${styles.select} ${form.type === "credit" ? styles.positive : styles.negative}`}>
                   <Select.Value />
                   <Select.Icon>
                     <ChevronDown className={styles.selectIcon} />
