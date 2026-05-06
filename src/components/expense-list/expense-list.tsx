@@ -15,6 +15,8 @@ interface ExpenseListProps {
 export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [visibleCount, setVisibleCount] = useState(50);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
+
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((e) => 
@@ -71,7 +73,11 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
             </thead>
             <tbody>
               {displayedExpenses.map((expense) => (
-                <tr key={expense.id}>
+                <tr 
+                  key={expense.id} 
+                  className={activeCardId === expense.id ? styles.activeCard : ""}
+                  onClick={() => setActiveCardId(activeCardId === expense.id ? null : expense.id)}
+                >
                   <td className={styles.labelCell}>{expense.label}</td>
                   <td className={`${styles.amountCell} ${expense.type === "credit" ? styles.positive : styles.negative}`}>
                     <div className={styles.amountContent}>
@@ -83,9 +89,9 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
                       {formatCurrency(expense.amount)}
                     </div>
                   </td>
-                  <td>{expense.category}</td>
-                  <td>{new Date(expense.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</td>
-                  <td>
+                  <td className={styles.categoryCell}>{expense.category}</td>
+                  <td className={styles.dateCell}>{new Date(expense.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</td>
+                  <td className={styles.actionsCellWrap}>
                     <div className={styles.actionsCell}>
                       <button className={styles.tableButton} type="button" onClick={() => onEdit(expense)} disabled={isPending} title="Edit">
                         <Pencil className={styles.tableIcon} />

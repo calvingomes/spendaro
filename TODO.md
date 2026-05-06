@@ -21,6 +21,7 @@
 - [x] PWA support (Manifest, Service Worker)
 
 ## Next
+- [ ] Table filters
 - [ ] Export to CSV/PDF
 
 ## Later
