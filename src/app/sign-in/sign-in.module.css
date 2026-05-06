@@ -6,42 +6,29 @@
 }
 
 .card {
-  width: min(100%, 460px);
+  width: min(100%, 400px);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-3);
-  padding: 24px;
+  padding: 40px 24px;
   box-shadow: var(--shadow-elevated);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.kicker {
-  margin: 0;
-  color: var(--color-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-  font-size: 12px;
-  font-weight: 500;
+.logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-2);
+  margin-bottom: 20px;
 }
 
 .title {
-  margin: 12px 0 10px;
-  font-size: clamp(1.8rem, 4vw, 2.2rem);
-  line-height: 1.05;
-  max-width: 18ch;
-  letter-spacing: -0.03em;
-}
-
-.copy,
-.finePrint {
-  color: var(--color-text-secondary);
-  line-height: 1.45;
-}
-
-.copy {
-  margin: 0 0 20px;
-}
-
-.finePrint {
-  margin: 14px 0 0;
-  font-size: 13px;
+  margin: 0 0 32px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }

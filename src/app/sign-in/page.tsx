@@ -13,11 +13,9 @@ export default async function SignInPage() {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <p className={styles.kicker}>Spendaro</p>
-        <h1 className={styles.title}>Sign in to your expense dashboard</h1>
-        <p className={styles.copy}>Use Google to access your private dashboard and track spending securely.</p>
+        <img src="/icons/icon-192x192.png" alt="Spendaro Logo" className={styles.logo} />
+        <h1 className={styles.title}>Sign in to Spendaro</h1>
         <SignInButton />
-        <p className={styles.finePrint}>By continuing, you’ll be signed into your personal workspace.</p>
       </section>
     </main>
   );
