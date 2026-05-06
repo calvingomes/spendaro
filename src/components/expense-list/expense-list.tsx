@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Plus, ArrowUpRight, ArrowDownLeft, Pencil, Search } from "lucide-react";
 import styles from "./expense-list.module.css";
-import { formatCurrency } from "../../utils/expense-utils";
+import { formatCurrency } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
 
 interface ExpenseListProps {

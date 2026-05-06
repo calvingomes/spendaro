@@ -6,7 +6,7 @@ import * as Select from "@radix-ui/react-select";
 import * as Label from "@radix-ui/react-label";
 import { Plus, Pencil, Trash2, X, ChevronDown } from "lucide-react";
 import styles from "./expense-modal.module.css";
-import { DEFAULT_CATEGORIES, formatDateForInput, parseAmount } from "../../utils/expense-utils";
+import { DEFAULT_CATEGORIES, formatDateForInput, parseAmount } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
 
 type ExpenseFormState = {
