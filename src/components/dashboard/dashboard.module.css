@@ -52,11 +52,11 @@
   gap: 9px;
 }
 
-.brandMark {
-  width: 11px;
-  height: 11px;
-  border-radius: 3px;
-  background: linear-gradient(135deg, #0070f3, #7c3aed);
+.brandLogo {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 
 .brandName {
