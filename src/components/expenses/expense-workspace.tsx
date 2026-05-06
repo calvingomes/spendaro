@@ -27,17 +27,14 @@ const emptyForm: ExpenseFormState = {
 
 const DEFAULT_CATEGORIES = ["Food", "Travel", "Bills", "Entertainment", "Shopping", "Health", "Subscriptions", "Salary", "Gift", "Investment"];
 
-function formatDateTimeLocal(date: Date) {
+function formatDateForInput(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
   const pad = (value: number) => String(value).padStart(2, "0");
   return [
-    date.getFullYear(),
-    pad(date.getMonth() + 1),
-    pad(date.getDate())
-  ].join("-") + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function formatDateForInput(value: string) {
-  return value ? formatDateTimeLocal(new Date(value)) : "";
+    d.getFullYear(),
+    pad(d.getMonth() + 1),
+    pad(d.getDate())
+  ].join("-");
 }
 
 function parseAmount(value: string) {
@@ -64,7 +61,7 @@ export function ExpenseWorkspace({
   const [expenses, setExpenses] = useState(initialExpenses);
   const [form, setForm] = useState<ExpenseFormState>(() => ({
     ...emptyForm,
-    created_at: formatDateTimeLocal(new Date())
+    created_at: formatDateForInput(new Date())
   }));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -90,7 +87,7 @@ export function ExpenseWorkspace({
   const resetForm = () => {
     setForm({
       ...emptyForm,
-      created_at: formatDateTimeLocal(new Date())
+      created_at: formatDateForInput(new Date())
     });
     setEditingId(null);
     setErrorMessage(null);
@@ -100,7 +97,7 @@ export function ExpenseWorkspace({
     const openModal = () => {
       setForm({
         ...emptyForm,
-        created_at: formatDateTimeLocal(new Date())
+        created_at: formatDateForInput(new Date())
       });
       setEditingId(null);
       setErrorMessage(null);
@@ -223,7 +220,7 @@ export function ExpenseWorkspace({
             <div className={styles.searchBox}>
               <input 
                 type="text" 
-                placeholder="Search..." 
+                placeholder="Search Label or Category..." 
                 className={styles.searchInput}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -275,7 +272,7 @@ export function ExpenseWorkspace({
                       </div>
                     </td>
                     <td>{expense.category}</td>
-                    <td>{new Date(expense.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td>
+                    <td>{new Date(expense.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</td>
                     <td>
                       <div className={styles.actionsCell}>
                         <button className={styles.tableButton} type="button" onClick={() => handleEdit(expense)} disabled={isPending} title="Edit">
@@ -403,7 +400,7 @@ export function ExpenseWorkspace({
                 <Label.Root htmlFor="created_at">Created at</Label.Root>
                 <input
                   id="created_at"
-                  type="datetime-local"
+                  type="date"
                   value={form.created_at}
                   onChange={(event) => setForm((current) => ({ ...current, created_at: event.target.value }))}
                 />
