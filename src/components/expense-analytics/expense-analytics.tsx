@@ -1,17 +1,12 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import {
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
   Tooltip,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
 } from "recharts";
 import styles from "./expense-analytics.module.css";
 import type { Expense } from "@/lib/types";
@@ -27,7 +22,7 @@ const COLORS = [
 ];
 
 export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
-  // 1. Data for Category Pie Chart (Expenses only)
+  // Data for Category Pie Chart (Expenses only)
   const categoryData = useMemo(() => {
     const map = new Map<string, number>();
     expenses
@@ -40,46 +35,6 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
   }, [expenses]);
-
-  // 2. Data for Daily Trend (Current Month)
-  const trendData = useMemo(() => {
-    const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const map = new Map<number, number>();
-
-    // Initialize all days of the month
-    for (let i = 1; i <= daysInMonth; i++) {
-      map.set(i, 0);
-    }
-
-    expenses
-      .filter((e) => {
-        const date = new Date(e.created_at);
-        return (
-          e.type === "debit" &&
-          date.getMonth() === now.getMonth() &&
-          date.getFullYear() === now.getFullYear()
-        );
-      })
-      .forEach((e) => {
-        const day = new Date(e.created_at).getDate();
-        map.set(day, (map.get(day) ?? 0) + Number.parseFloat(e.amount));
-      });
-
-    return [...map.entries()].map(([day, amount]) => ({
-      day: day.toString(),
-      amount,
-    }));
-  }, [expenses]);
-
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 720);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   if (expenses.length === 0) return null;
 
@@ -133,55 +88,6 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
             ))}
           </div>
         </article>
-
-        {/* Daily Trend - Desktop Only */}
-        {!isMobile && (
-          <article className={styles.card}>
-            <div className={styles.header}>
-              <p className={styles.kicker}>Insights</p>
-              <h3 className={styles.title}>Monthly spending trend</h3>
-            </div>
-            <div className={styles.chartWrap}>
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <AreaChart data={trendData}>
-                  <defs>
-                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-text)" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="var(--color-text)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
-                  <XAxis
-                    dataKey="day"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: "var(--color-text-tertiary)" }}
-                  />
-                  <YAxis
-                    hide
-                    domain={['auto', 'auto']}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--color-bg-surface-raised)",
-                      border: "1px solid var(--color-border-strong)",
-                      borderRadius: "8px",
-                      color: "var(--color-text)",
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="var(--color-text)"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorAmount)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </article>
-        )}
       </div>
     </section>
   );
