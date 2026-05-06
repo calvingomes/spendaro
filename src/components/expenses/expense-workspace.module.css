@@ -408,6 +408,10 @@
     width: 100%;
   }
 
+  .addPill {
+    display: none;
+  }
+
   .formFooter {
     margin-top: 20px;
   }
