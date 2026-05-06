@@ -126,7 +126,7 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
         </article>
 
         {/* Daily Trend */}
-        <article className={styles.card}>
+        <article className={`${styles.card} ${styles.trendCard}`}>
           <div className={styles.header}>
             <p className={styles.kicker}>Insights</p>
             <h3 className={styles.title}>Monthly spending trend</h3>

@@ -66,6 +66,10 @@
 }
 
 @media (max-width: 720px) {
+  .trendCard {
+    display: none;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
