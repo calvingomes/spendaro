@@ -14,6 +14,7 @@ interface ExpenseListProps {
 
 export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [visibleCount, setVisibleCount] = useState(50);
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((e) => 
@@ -21,6 +22,15 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
       e.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [expenses, searchTerm]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      setVisibleCount((prev) => Math.min(prev + 50, filteredExpenses.length));
+    }
+  };
+
+  const displayedExpenses = filteredExpenses.slice(0, visibleCount);
 
   return (
     <article className={styles.listCard}>
@@ -48,7 +58,7 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
           <p>No transactions found.</p>
         </div>
       ) : (
-        <div className={styles.tableWrap}>
+        <div className={styles.tableWrap} onScroll={handleScroll}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -60,7 +70,7 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredExpenses.map((expense) => (
+              {displayedExpenses.map((expense) => (
                 <tr key={expense.id}>
                   <td className={styles.labelCell}>{expense.label}</td>
                   <td className={`${styles.amountCell} ${expense.type === "credit" ? styles.positive : styles.negative}`}>

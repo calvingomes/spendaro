@@ -138,7 +138,9 @@
 .tableWrap {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2);
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-height: 350px;
   margin-top: 20px;
 }
 
