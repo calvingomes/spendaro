@@ -6,7 +6,7 @@ import type { Expense } from "@/lib/types";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import * as Label from "@radix-ui/react-label";
-import { Plus, ArrowUpRight, ArrowDownLeft, Pencil, Trash2 } from "lucide-react";
+import { Plus, ArrowUpRight, ArrowDownLeft, Pencil, Trash2, X, ChevronDown } from "lucide-react";
 import { ExpenseAnalytics } from "./expense-analytics";
 
 type ExpenseFormState = {
@@ -303,17 +303,17 @@ export function ExpenseWorkspace({
           <Dialog.Overlay className={styles.modalOverlay} />
           <Dialog.Content className={styles.modalCard}>
             <div className={styles.sectionHeader}>
+              <Dialog.Close asChild>
+                <button className={styles.closeButton} aria-label="Close">
+                  <X className={styles.tableIcon} />
+                </button>
+              </Dialog.Close>
               <div>
                 <Dialog.Title className={styles.modalTitle}>{editingId ? "Update transaction" : "Capture expense"}</Dialog.Title>
                 <Dialog.Description className={styles.sectionKicker}>
                   {editingId ? "Edit expense" : "Add expense"}
                 </Dialog.Description>
               </div>
-              <Dialog.Close asChild>
-                <button className={styles.ghostButton} type="button" disabled={isPending}>
-                  Close
-                </button>
-              </Dialog.Close>
             </div>
 
             <form className={styles.form} onSubmit={handleSubmit}>
@@ -339,6 +339,7 @@ export function ExpenseWorkspace({
                     onBlur={() => setTimeout(() => setIsSuggestionsOpen(false), 200)}
                     placeholder="Food, Travel, Bills"
                   />
+                  <ChevronDown className={styles.selectIcon} />
                   {isSuggestionsOpen && suggestedCategories.length > 0 && (
                     <ul className={styles.suggestionsList}>
                       {suggestedCategories.map((cat) => (
@@ -379,6 +380,9 @@ export function ExpenseWorkspace({
                 >
                   <Select.Trigger className={`${styles.select} ${form.type === "credit" ? "positive" : "negative"}`}>
                     <Select.Value />
+                    <Select.Icon>
+                      <ChevronDown className={styles.selectIcon} />
+                    </Select.Icon>
                   </Select.Trigger>
                   <Select.Portal>
                     <Select.Content className={`${styles.suggestionsList} ${styles.selectContent}`} position="popper" sideOffset={4}>
@@ -408,7 +412,16 @@ export function ExpenseWorkspace({
               <div className={styles.formFooter}>
                 {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
                 <button className={styles.primaryButton} type="submit" disabled={isPending}>
-                  {isPending ? "Saving..." : editingId ? "Save changes" : "Add expense"}
+                  {isPending ? (
+                    "Saving..."
+                  ) : editingId ? (
+                    "Save changes"
+                  ) : (
+                    <>
+                      <Plus className={styles.tableIcon} />
+                      Add expense
+                    </>
+                  )}
                 </button>
               </div>
             </form>
