@@ -27,3 +27,4 @@
 ## Later
 - [ ] Offline support
 - [ ] Budgets and recurring expenses
+- [ ] Server-side pagination & Analytics RPC
