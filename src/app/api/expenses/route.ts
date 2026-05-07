@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -61,6 +62,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  revalidatePath("/dashboard");
   return NextResponse.json({ expense: data }, { status: 201 });
 }
 
@@ -104,6 +106,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  revalidatePath("/dashboard");
   return NextResponse.json({ expense: data });
 }
 
@@ -130,5 +133,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  revalidatePath("/dashboard");
   return NextResponse.json({ ok: true });
 }
