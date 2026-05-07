@@ -104,20 +104,9 @@
     border-bottom: none;
     border-left: none;
     border-right: none;
-    padding: 24px 24px 34px;
+    padding: 24px 24px calc(34px + 300px);
+    margin-bottom: -300px;
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    overflow: visible;
-  }
-
-  .modalCard::after {
-    content: "";
-    position: absolute;
-    top: 99%;
-    left: 0;
-    right: 0;
-    height: 100vh;
-    background: var(--color-bg-surface);
-    pointer-events: none;
   }
 
   .closeButton {

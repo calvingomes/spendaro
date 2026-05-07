@@ -300,6 +300,7 @@
   height: 100%;
   opacity: 0;
   cursor: pointer;
+  pointer-events: none;
 }
 
 /* Footer / Submit */
@@ -378,4 +379,10 @@
 .tableIcon {
   width: 14px;
   height: 14px;
+}
+
+@media (max-width: 640px) {
+  .hiddenDateInput {
+    pointer-events: auto;
+  }
 }

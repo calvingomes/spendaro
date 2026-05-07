@@ -313,7 +313,11 @@ export function ExpenseModal({
         </div>
 
         {/* Field 5: Unobtrusive Date selector link */}
-        <div className={styles.dateLinkContainer}>
+        <div 
+          className={styles.dateLinkContainer} 
+          onClick={() => dateInputRef.current?.showPicker()}
+          style={{ cursor: "pointer" }}
+        >
           <div className={styles.dateLink}>
             <span className={styles.dateValue}>{formatDateDisplay(form.created_at)}</span>
             <span className={styles.changeAction}> · change</span>
@@ -344,7 +348,7 @@ export function ExpenseModal({
             )}
             <button className={styles.primaryButton} type="submit" disabled={isPending}>
               {isPending ? (
-                "Saving..."
+                "Saving"
               ) : editingExpense ? (
                 <>
                   <Pencil className={styles.tableIcon} />
