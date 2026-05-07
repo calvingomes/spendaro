@@ -12,7 +12,10 @@
 
 .modalOverlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--vv-height, 100dvh);
   background: rgba(0, 0, 0, 0.4);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
@@ -27,11 +30,21 @@
   color: var(--color-text);
 }
 
-.modalCard {
+.modalWrapper {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--vv-height, 100dvh);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.modalCard {
+  position: relative;
   width: calc(100% - 32px);
   max-width: 500px;
   background: var(--color-bg-surface);
@@ -39,15 +52,15 @@
   border-radius: var(--radius-3);
   padding: 0;
   overflow: hidden;
-  z-index: 1001;
   box-shadow: var(--shadow-elevated), 0 20px 40px rgba(0, 0, 0, 0.3);
   outline: none;
+  pointer-events: auto;
   animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modalScrollArea {
   padding: 32px;
-  max-height: calc(100vh - 64px);
+  max-height: calc(var(--vv-height, 100dvh) - 64px);
   overflow-y: auto;
 }
 
@@ -79,11 +92,11 @@
 
 @keyframes scaleIn {
   from {
-    transform: translate(-50%, -45%) scale(0.95);
+    transform: scale(0.95);
     opacity: 0;
   }
   to {
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
     opacity: 1;
   }
 }
@@ -98,13 +111,11 @@
 }
 
 @media (max-width: 640px) {
+  .modalWrapper {
+    align-items: flex-end;
+  }
+
   .modalCard {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    top: auto;
-    transform: none;
     width: 100%;
     max-width: 100%;
     border-radius: 20px 20px 0 0;
