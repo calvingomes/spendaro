@@ -8,22 +8,22 @@ export async function createSupabaseServerClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      global: {
+        fetch: (url: string | URL | globalThis.Request, options?: RequestInit) => {
+          return fetch(url, { ...options, cache: "no-store" });
+        }
+      },
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
+        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
           try {
-            cookieStore.set({ name, value, ...options });
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set({ name, value, ...options });
+            });
           } catch {
-            // The `set` method was called from a Server Component.
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: "", ...options, maxAge: 0 });
-          } catch {
-            // The `remove` method was called from a Server Component.
+            // The `setAll` method was called from a Server Component.
           }
         }
       }
