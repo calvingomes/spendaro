@@ -1,4 +1,4 @@
-export const DEFAULT_CATEGORIES = ["Food", "Travel", "Bills", "Entertainment", "Shopping", "Health", "Subscriptions", "Salary", "Gift", "Investment"];
+export const DEFAULT_CATEGORIES = ["Food", "Travel", "Bills", "Entertainment", "Shopping", "Subscriptions", "Salary", "Investment"];
 
 export function formatDateForInput(date: Date | string) {
   const d = typeof date === "string" ? new Date(date) : date;
@@ -22,4 +22,10 @@ export function formatCurrency(value: string) {
     currency: "INR",
     maximumFractionDigits: 2
   }).format(amount);
+}
+
+export function normalizeText(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }

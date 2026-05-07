@@ -19,6 +19,7 @@
 - [x] Production-ready linting (0 warnings, 0 errors)
 - [x] Advanced date filtering for analytics
 - [x] PWA support (Manifest, Service Worker)
+- [x] Redesigned, state-of-the-art transactional modal with monochrome adaptive categories, subpixel-centered Amount fields, and smooth sliding active toggles
 
 ## Next
 - [ ] Table filters

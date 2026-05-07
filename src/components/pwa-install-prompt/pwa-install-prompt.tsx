@@ -133,7 +133,7 @@ export function PwaInstallPrompt() {
           <div className={styles.iosInstructions}>
             <div className={styles.instructionStep}>
               <span className={styles.stepNumber}>1</span>
-              <p>Tap the menu icon <MoreVertical className={styles.inlineIcon} /> in Chrome's top right.</p>
+              <p>Tap the menu icon <MoreVertical className={styles.inlineIcon} /> in Chrome&apos;s top right.</p>
             </div>
             <div className={styles.instructionStep}>
               <span className={styles.stepNumber}>2</span>

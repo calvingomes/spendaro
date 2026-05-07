@@ -69,6 +69,7 @@
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -99,6 +100,7 @@ button,
 input,
 select {
   font: inherit;
+  outline: none;
 }
 
 button {

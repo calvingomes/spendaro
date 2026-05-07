@@ -33,30 +33,31 @@
   left: 50%;
   transform: translate(-50%, -50%);
   width: calc(100% - 32px);
-  max-width: 600px;
+  max-width: 500px;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-3);
   padding: 32px;
   z-index: 1001;
-  box-shadow: var(--shadow-modal);
+  box-shadow: var(--shadow-elevated), 0 20px 40px rgba(0, 0, 0, 0.3);
   outline: none;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .closeButton {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: 28px;
   aspect-ratio: 1 / 1;
   padding: 0;
   min-height: 0;
-  background: var(--color-bg-subtle);
+  background: transparent;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-1);
+  border-radius: 50%;
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -64,13 +65,51 @@
 }
 
 .closeButton:hover {
-  background: var(--color-bg-surface-raised);
+  background: var(--color-bg-subtle);
   border-color: var(--color-border-strong);
   color: var(--color-text);
 }
 
+@keyframes scaleIn {
+  from {
+    transform: translate(-50%, -45%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 640px) {
   .modalCard {
-    padding: 24px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    padding: 24px 24px 34px;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .closeButton {
+    top: 20px;
+    right: 20px;
   }
 }
