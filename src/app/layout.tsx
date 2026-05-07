@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,10 @@ export const viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-theme="dark">
-      <body>{children}</body>
+      <body>
+        {children}
+        <PwaInstallPrompt />
+      </body>
     </html>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import * as Label from "@radix-ui/react-label";
-import { Plus, Pencil, Trash2, X, ChevronDown } from "lucide-react";
+import { Modal } from "@/components/ui/modal/modal";
+import { Plus, Pencil, Trash2, ChevronDown } from "lucide-react";
 import styles from "./expense-modal.module.css";
 import { DEFAULT_CATEGORIES, formatDateForInput, parseAmount } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
@@ -108,19 +108,12 @@ export function ExpenseModal({
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <Dialog.Portal>
-        <Dialog.Overlay className={styles.modalOverlay} />
-        <Dialog.Content className={styles.modalCard}>
-          <Dialog.Title className={styles.modalTitle}>
-            {editingExpense ? "Edit transaction" : "New transaction"}
-          </Dialog.Title>
-          <Dialog.Description className={styles.visuallyHidden}>
-            Fill out the form below to {editingExpense ? "update your" : "add a new"} transaction.
-          </Dialog.Description>
-          <Dialog.Close className={styles.closeButton}>
-            <X size={16} />
-          </Dialog.Close>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={editingExpense ? "Edit transaction" : "New transaction"}
+      description={`Fill out the form below to ${editingExpense ? "update your" : "add a new"} transaction.`}
+    >
 
           <form className={styles.form} onSubmit={handleSubmit}>
             <div className={styles.field}>
@@ -248,8 +241,6 @@ export function ExpenseModal({
               </div>
             </div>
           </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+    </Modal>
   );
 }
