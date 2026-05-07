@@ -106,6 +106,18 @@
     border-right: none;
     padding: 24px 24px 34px;
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: visible;
+  }
+
+  .modalCard::after {
+    content: "";
+    position: absolute;
+    top: 99%;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    background: var(--color-bg-surface);
+    pointer-events: none;
   }
 
   .closeButton {
