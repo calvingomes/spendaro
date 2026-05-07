@@ -28,8 +28,8 @@ export function ExpenseWorkspace({
       setEditingExpense(null);
       setIsModalOpen(true);
     };
-    window.addEventListener("spendaro:add-expense", openModal);
-    return () => window.removeEventListener("spendaro:add-expense", openModal);
+    window.addEventListener("xpenses:add-expense", openModal);
+    return () => window.removeEventListener("xpenses:add-expense", openModal);
   }, []);
 
   const handleEdit = (expense: Expense) => {

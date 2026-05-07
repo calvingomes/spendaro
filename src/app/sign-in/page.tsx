@@ -14,8 +14,8 @@ export default async function SignInPage() {
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <Image src="/icons/icon-192x192.png" alt="Spendaro Logo" width={64} height={64} className={styles.logo} unoptimized />
-        <h1 className={styles.title}>Sign in to Spendaro</h1>
+        <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={64} height={64} className={styles.logo} unoptimized />
+        <h1 className={styles.title}>Sign in to Xpenses</h1>
         <SignInButton />
       </section>
     </main>

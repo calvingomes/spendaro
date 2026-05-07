@@ -3,7 +3,7 @@ import styles from "./loading.module.css";
 export function LoadingContent() {
   return (
     <main className={styles.container}>
-      <div className={styles.loader} aria-label="Loading Spendaro..." />
+      <div className={styles.loader} aria-label="Loading Xpenses..." />
     </main>
   );
 }

@@ -3,12 +3,12 @@ import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-pr
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Spendaro",
+  title: "Xpenses",
   description: "Personal expense tracker.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Spendaro",
+    title: "Xpenses",
   },
 };
 

@@ -7,7 +7,7 @@ export function AddExpenseButton() {
     <button
       className={styles.addButton}
       type="button"
-      onClick={() => window.dispatchEvent(new CustomEvent("spendaro:add-expense"))}
+      onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense"))}
     >
       Add expense
     </button>

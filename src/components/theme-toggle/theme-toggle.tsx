@@ -8,7 +8,7 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("spendaro-theme") as "light" | "dark";
+    const savedTheme = localStorage.getItem("xpenses-theme") as "light" | "dark";
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.setAttribute("data-theme", savedTheme);
@@ -19,7 +19,7 @@ export function ThemeToggle() {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("spendaro-theme", newTheme);
+    localStorage.setItem("xpenses-theme", newTheme);
   };
 
   return (

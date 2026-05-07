@@ -1,7 +1,7 @@
-# Spendaro Project Context
+# Xpenses Project Context
 
 ## What This Is
-Spendaro is a simple personal expense tracker built with:
+Xpenses is a simple personal expense tracker built with:
 - Next.js App Router
 - Supabase for auth and database
 - Bun for package management and scripts
@@ -21,7 +21,7 @@ The UI should feel very close to Vercel's product surfaces:
 
 Important:
 - Take design cues only (card/table/input/button style language).
-- Do not copy Vercel-specific product content, labels, navigation, or fake deployment/log data into Spendaro.
+- Do not copy Vercel-specific product content, labels, navigation, or fake deployment/log data into Xpenses.
 
 Do not introduce Tailwind. Do not change the visual direction unless the user asks.
 

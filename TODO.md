@@ -1,4 +1,4 @@
-# Spendaro TODO
+# Xpenses TODO
 
 ## Done
 - [x] Project scaffold and Supabase setup

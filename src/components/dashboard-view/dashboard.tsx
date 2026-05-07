@@ -21,9 +21,9 @@ export function Dashboard({
     <main className={styles.page}>
       <header className={styles.topBar}>
         <div className={styles.brand}>
-          <Image src="/icons/icon-192x192.png" alt="Spendaro Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
+          <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
           <div>
-            <p className={styles.brandName}>Spendaro</p>
+            <p className={styles.brandName}>Xpenses</p>
           </div>
         </div>
         <div className={styles.topActions}>

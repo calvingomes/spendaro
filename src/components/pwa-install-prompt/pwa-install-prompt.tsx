@@ -29,7 +29,7 @@ export function PwaInstallPrompt() {
     if (isStandalone) return;
 
     // 2. Check if prompt was dismissed in this session
-    const isDismissed = sessionStorage.getItem("spendaro_pwa_dismissed") === "true";
+    const isDismissed = sessionStorage.getItem("xpenses_pwa_dismissed") === "true";
     if (isDismissed) return;
 
     // 3. Detect iOS & Android
@@ -66,7 +66,7 @@ export function PwaInstallPrompt() {
   }, []);
 
   const handleDismiss = () => {
-    sessionStorage.setItem("spendaro_pwa_dismissed", "true");
+    sessionStorage.setItem("xpenses_pwa_dismissed", "true");
     setShowPrompt(false);
   };
 
@@ -78,7 +78,7 @@ export function PwaInstallPrompt() {
     
     const choiceResult = await deferredPrompt.userChoice;
     if (choiceResult.outcome === "accepted") {
-      sessionStorage.setItem("spendaro_pwa_dismissed", "true");
+      sessionStorage.setItem("xpenses_pwa_dismissed", "true");
     }
     
     setDeferredPrompt(null);
@@ -89,13 +89,13 @@ export function PwaInstallPrompt() {
     <Modal 
       isOpen={showPrompt} 
       onClose={handleDismiss} 
-      title="Install Spendaro"
-      description="Add Spendaro to your device for quick, native-feeling expense tracking."
+      title="Install Xpenses"
+      description="Add Xpenses to your device for quick, native-feeling expense tracking."
     >
       {isIOS ? (
         <div className={styles.promptContent}>
           <p className={styles.promptText}>
-            Add Spendaro to your home screen for quick access:
+            Add Xpenses to your home screen for quick access:
           </p>
           <div className={styles.iosInstructions}>
             <div className={styles.instructionStep}>
@@ -114,7 +114,7 @@ export function PwaInstallPrompt() {
       ) : deferredPrompt ? (
         <div className={styles.promptContent}>
           <p className={styles.promptText}>
-            Install Spendaro on your device to track expenses faster, directly from your home screen.
+            Install Xpenses on your device to track expenses faster, directly from your home screen.
           </p>
           <div className={styles.buttonGroup}>
             <button className={styles.actionButton} onClick={handleInstallClick} type="button">
@@ -128,7 +128,7 @@ export function PwaInstallPrompt() {
       ) : isAndroid ? (
         <div className={styles.promptContent}>
           <p className={styles.promptText}>
-            Add Spendaro to your home screen for quick access:
+            Add Xpenses to your home screen for quick access:
           </p>
           <div className={styles.iosInstructions}>
             <div className={styles.instructionStep}>
