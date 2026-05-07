@@ -301,14 +301,10 @@ export function ExpenseModal({
 
         {/* Field 5: Unobtrusive Date selector link */}
         <div className={styles.dateLinkContainer}>
-          <button
-            type="button"
-            className={styles.dateLink}
-            onClick={() => dateInputRef.current?.showPicker()}
-          >
+          <div className={styles.dateLink}>
             <span className={styles.dateValue}>{formatDateDisplay(form.created_at)}</span>
             <span className={styles.changeAction}> · change</span>
-          </button>
+          </div>
           <input
             ref={dateInputRef}
             type="date"
