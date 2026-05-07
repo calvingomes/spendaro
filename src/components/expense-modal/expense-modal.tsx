@@ -74,12 +74,22 @@ export function ExpenseModal({
     }
   }, [isOpen, editingExpense]);
 
-  // Autofocus the inline category input when opened
+  // Autofocus and scroll the inline category input when opened
   useEffect(() => {
     if (showAddCategory && newCategoryInputRef.current) {
       newCategoryInputRef.current.focus();
+      setTimeout(() => {
+        newCategoryInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 150);
     }
   }, [showAddCategory]);
+
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    const target = e.target;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+  };
 
   // Dynamic list of categories (newly added ones + unique historical + defaults)
   const allCategories = useMemo(() => {
@@ -182,6 +192,7 @@ export function ExpenseModal({
                 inputMode="decimal"
                 className={styles.largeAmountInput}
                 value={form.amount}
+                onFocus={handleInputFocus}
                 onChange={(e) => {
                   const val = e.target.value;
                   if (val === "" || /^[0-9]*\.?[0-9]*$/.test(val)) {
@@ -203,6 +214,7 @@ export function ExpenseModal({
             type="text"
             className={styles.textInput}
             value={form.label}
+            onFocus={handleInputFocus}
             onChange={(e) => setForm((curr) => ({ ...curr, label: e.target.value }))}
             placeholder="e.g. Starbucks, Coffee, Salary"
             required
@@ -221,6 +233,7 @@ export function ExpenseModal({
                   type="text"
                   placeholder="New..."
                   value={newCategory}
+                  onFocus={handleInputFocus}
                   onChange={(e) => setNewCategory(e.target.value)}
                   className={styles.inlineCategoryInput}
                   onKeyDown={(e) => {
