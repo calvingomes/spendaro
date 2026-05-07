@@ -18,14 +18,16 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
       <Dialog.Portal>
         <Dialog.Overlay className={styles.modalOverlay} />
         <Dialog.Content className={styles.modalCard}>
-          <Dialog.Title className={styles.modalTitle}>{title}</Dialog.Title>
-          <Dialog.Description className={styles.visuallyHidden}>
-            {description ?? `Modal content for ${title}`}
-          </Dialog.Description>
-          <Dialog.Close className={styles.closeButton}>
-            <X size={16} />
-          </Dialog.Close>
-          {children}
+          <div className={styles.modalScrollArea}>
+            <Dialog.Title className={styles.modalTitle}>{title}</Dialog.Title>
+            <Dialog.Description className={styles.visuallyHidden}>
+              {description ?? `Modal content for ${title}`}
+            </Dialog.Description>
+            <Dialog.Close className={styles.closeButton}>
+              <X size={16} />
+            </Dialog.Close>
+            {children}
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

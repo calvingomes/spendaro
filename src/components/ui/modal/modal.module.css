@@ -37,11 +37,18 @@
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-3);
-  padding: 32px;
+  padding: 0;
+  overflow: hidden;
   z-index: 1001;
   box-shadow: var(--shadow-elevated), 0 20px 40px rgba(0, 0, 0, 0.3);
   outline: none;
   animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modalScrollArea {
+  padding: 32px;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
 }
 
 .closeButton {
@@ -104,9 +111,16 @@
     border-bottom: none;
     border-left: none;
     border-right: none;
-    padding: 24px 24px calc(34px + 300px);
-    margin-bottom: -300px;
+    padding: 0 0 100vh 0;
+    margin-bottom: -100vh;
+    overflow: visible;
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .modalScrollArea {
+    padding: 24px 24px 34px;
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
   }
 
   .closeButton {
