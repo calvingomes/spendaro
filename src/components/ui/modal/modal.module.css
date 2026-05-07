@@ -111,16 +111,33 @@
     border-bottom: none;
     border-left: none;
     border-right: none;
-    padding: 0 0 100vh 0;
-    margin-bottom: -100vh;
-    overflow: visible;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    max-height: calc(var(--vv-height, 100dvh) - 20px);
+    display: flex;
+    flex-direction: column;
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  .modalCard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: -100vh;
+    background: var(--color-bg-surface);
+    border-radius: 20px 20px 0 0;
+    z-index: -1;
+    box-shadow: var(--shadow-elevated), 0 -10px 40px rgba(0, 0, 0, 0.3);
+  }
+
   .modalScrollArea {
-    padding: 24px 24px 34px;
-    max-height: calc(100dvh - 20px);
+    padding: 24px 24px calc(24px + env(safe-area-inset-bottom, 10px));
+    flex: 1 1 auto;
     overflow-y: auto;
+    max-height: none;
   }
 
   .closeButton {

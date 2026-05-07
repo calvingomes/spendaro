@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import styles from "./modal.module.css";
@@ -13,6 +14,19 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, description, children }: ModalProps) {
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+
+    const updateViewport = () => {
+      document.documentElement.style.setProperty("--vv-height", `${window.visualViewport!.height}px`);
+    };
+
+    window.visualViewport.addEventListener("resize", updateViewport);
+    updateViewport(); // Initial set
+
+    return () => window.visualViewport?.removeEventListener("resize", updateViewport);
+  }, [isOpen]);
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
