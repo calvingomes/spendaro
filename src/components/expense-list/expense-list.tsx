@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpRight, ArrowDownLeft, Pencil, Search } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Pencil, Search, ChevronDown } from "lucide-react";
 import styles from "./expense-list.module.css";
-import { formatCurrency } from "@/utils/expense-utils";
+import { formatCurrency, formatDateForInput } from "@/utils/expense-utils";
+import { isDateInRange, type DateRange } from "@/utils/date-utils";
 import type { Expense } from "@/lib/types";
 
 interface ExpenseListProps {
@@ -14,16 +15,22 @@ interface ExpenseListProps {
 
 export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [range, setRange] = useState<DateRange>("overall");
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
   const [visibleCount, setVisibleCount] = useState(50);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
+  const today = useMemo(() => formatDateForInput(new Date()), []);
 
   const filteredExpenses = useMemo(() => {
-    return expenses.filter((e) => 
-      e.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      e.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [expenses, searchTerm]);
+    return expenses
+      .filter((e) => isDateInRange(new Date(e.created_at), range, customStart, customEnd))
+      .filter((e) => 
+        e.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+  }, [expenses, searchTerm, range, customStart, customEnd]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
@@ -37,11 +44,48 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   return (
     <article className={styles.listCard}>
       <div className={styles.sectionHeader}>
-        <div>
-          <p className={styles.sectionKicker}>Activity</p>
-          <h2 className={styles.sectionTitle}>Recent transactions</h2>
+        <div className={styles.headerMain}>
+          <div className={styles.titleGroup}>
+            <p className={styles.sectionKicker}>Activity</p>
+            <h2 className={styles.sectionTitle}>Recent transactions</h2>
+          </div>
+          <div className={styles.selectWrapper}>
+            <select 
+              className={styles.rangeSelect}
+              value={range}
+              onChange={(e) => setRange(e.target.value as DateRange)}
+            >
+              <option value="this-month">This month</option>
+              <option value="last-month">Last month</option>
+              <option value="last-3-months">Last 3 months</option>
+              <option value="overall">Overall</option>
+              <option value="custom">Custom range</option>
+            </select>
+            <ChevronDown className={styles.selectArrow} />
+          </div>
         </div>
+        
         <div className={styles.sectionActions}>
+          {range === "custom" && (
+            <div className={styles.customDates}>
+              <input 
+                type="date" 
+                value={customStart} 
+                onChange={(e) => setCustomStart(e.target.value)}
+                max={today}
+                className={styles.dateInput}
+              />
+              <span className={styles.dateSeparator}>to</span>
+              <input 
+                type="date" 
+                value={customEnd} 
+                onChange={(e) => setCustomEnd(e.target.value)}
+                min={customStart}
+                max={today}
+                className={styles.dateInput}
+              />
+            </div>
+          )}
           <div className={styles.searchBox}>
             <Search className={styles.searchIcon} />
             <input 

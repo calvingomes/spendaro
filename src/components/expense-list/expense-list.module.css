@@ -8,9 +8,15 @@
 .sectionHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 14px;
+}
+
+.headerMain {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .sectionKicker {
@@ -186,6 +192,70 @@
   gap: 8px;
 }
 
+.selectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.rangeSelect {
+  appearance: none;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 32px 0 12px;
+  height: 36px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.rangeSelect:hover {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-bg-surface-raised);
+  color: var(--color-text);
+}
+
+.selectArrow {
+  position: absolute;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  stroke-width: 2.5px;
+}
+
+.customDates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateInput {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  padding: 0 8px;
+  height: 36px;
+  outline: none;
+}
+
+.dateInput:focus {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.dateSeparator {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
 @media (max-width: 720px) {
   .tableWrap {
     overflow-x: hidden;
@@ -308,5 +378,33 @@
 
   .searchBox {
     width: 100%;
+  }
+
+  .headerMain {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+  }
+
+  .selectWrapper {
+    width: auto;
+  }
+
+  .rangeSelect {
+    width: auto;
+    min-width: 110px;
+  }
+
+  .customDates {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+
+  .dateInput {
+    flex: 1;
+    max-width: none;
   }
 }
