@@ -18,7 +18,7 @@
 - [x] Modular analytics architecture with CategoryBreakdown
 - [x] Production-ready linting (0 warnings, 0 errors)
 - [x] Advanced date filtering for analytics
-- [x] PWA support (Manifest, Service Worker)
+- [x] PWA support (Manifest, Service Worker, Offline Support with Local-First Syncing)
 - [x] Redesigned, state-of-the-art transactional modal with monochrome adaptive categories, subpixel-centered Amount fields, and smooth sliding active toggles
 
 ## Next
@@ -26,6 +26,5 @@
 - [ ] Export to CSV/PDF
 
 ## Later
-- [ ] Offline support
 - [ ] Budgets and recurring expenses
 - [ ] Server-side pagination & Analytics RPC
