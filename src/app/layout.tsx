@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PwaProvider } from "@/components/pwa-provider/pwa-provider";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
 import "./globals.css";
 
@@ -22,8 +23,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-theme="dark">
       <body>
-        {children}
-        <PwaInstallPrompt />
+        <PwaProvider>
+          {children}
+          <PwaInstallPrompt />
+        </PwaProvider>
       </body>
     </html>
   );

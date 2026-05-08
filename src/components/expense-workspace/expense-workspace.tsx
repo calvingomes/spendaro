@@ -6,6 +6,8 @@ import type { Expense } from "@/lib/types";
 import { ExpenseAnalytics } from "@/components/expense-analytics/expense-analytics";
 import { ExpenseList } from "@/components/expense-list/expense-list";
 import { ExpenseModal } from "@/components/expense-modal/expense-modal";
+import { saveLocalExpenses, getLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
+import { queueAction, processSyncQueue } from "@/utils/sync-queue";
 
 export function ExpenseWorkspace({
   initialExpenses,
@@ -22,6 +24,45 @@ export function ExpenseWorkspace({
   useEffect(() => {
     onExpensesChange?.(expenses);
   }, [expenses, onExpensesChange]);
+
+  useEffect(() => {
+    const initializeLocalCache = async () => {
+      if (initialExpenses && initialExpenses.length > 0) {
+        await saveLocalExpenses(initialExpenses);
+      } else {
+        const cached = await getLocalExpenses();
+        if (cached && cached.length > 0) {
+          setExpenses(cached);
+        }
+      }
+    };
+    initializeLocalCache();
+  }, [initialExpenses]);
+
+  useEffect(() => {
+    const handleOnlineStatus = async () => {
+      if (navigator.onLine) {
+        const allSynced = await processSyncQueue();
+        if (allSynced) {
+          try {
+            const response = await fetch("/api/expenses");
+            if (response.ok) {
+              const body = await response.json();
+              if (body.expenses) {
+                setExpenses(body.expenses);
+                await saveLocalExpenses(body.expenses);
+              }
+            }
+          } catch (err) {
+            console.error("Failed to refresh expenses after online sync:", err);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("online", handleOnlineStatus);
+    return () => window.removeEventListener("online", handleOnlineStatus);
+  }, []);
 
   useEffect(() => {
     const openModal = () => {
@@ -41,6 +82,37 @@ export function ExpenseWorkspace({
     return new Promise<void>((resolve, reject) => {
       startTransition(async () => {
         try {
+          const isOffline = !navigator.onLine;
+
+          if (isOffline) {
+            const isEditing = !!editingExpense;
+            const tempId = isEditing ? editingExpense.id : `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            
+            const offlineExpense: Expense = {
+              id: tempId,
+              user_id: editingExpense?.user_id ?? "offline-user",
+              label: String(payload.label ?? "").trim(),
+              category: String(payload.category ?? "").trim(),
+              amount: String(payload.amount ?? "0"),
+              type: (payload.type === "credit" ? "credit" : "debit") as "credit" | "debit",
+              created_at: payload.created_at ?? new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+
+            await putLocalExpense(offlineExpense);
+
+            if (isEditing) {
+              setExpenses((current) => current.map((e) => (e.id === editingExpense.id ? offlineExpense : e)));
+            } else {
+              setExpenses((current) => [offlineExpense, ...current]);
+            }
+
+            queueAction(isEditing ? "PUT" : "POST", isEditing ? { ...payload, id: editingExpense.id } : payload);
+            setIsModalOpen(false);
+            resolve();
+            return;
+          }
+
           const response = await fetch("/api/expenses", {
             method: editingExpense ? "PUT" : "POST",
             headers: { "Content-Type": "application/json" },
@@ -49,6 +121,8 @@ export function ExpenseWorkspace({
 
           const body = await response.json();
           if (!response.ok) throw new Error(body.error ?? "Save failed");
+
+          await putLocalExpense(body.expense);
 
           if (editingExpense) {
             setExpenses((current) => current.map((e) => (e.id === editingExpense.id ? body.expense : e)));
@@ -69,6 +143,17 @@ export function ExpenseWorkspace({
     return new Promise<void>((resolve, reject) => {
       startTransition(async () => {
         try {
+          const isOffline = !navigator.onLine;
+
+          if (isOffline) {
+            await deleteLocalExpense(expenseId);
+            setExpenses((current) => current.filter((e) => e.id !== expenseId));
+            queueAction("DELETE", { id: expenseId });
+            setIsModalOpen(false);
+            resolve();
+            return;
+          }
+
           const response = await fetch("/api/expenses", {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
@@ -80,6 +165,7 @@ export function ExpenseWorkspace({
             throw new Error(body.error ?? "Delete failed");
           }
 
+          await deleteLocalExpense(expenseId);
           setExpenses((current) => current.filter((e) => e.id !== expenseId));
           setIsModalOpen(false);
           resolve();
