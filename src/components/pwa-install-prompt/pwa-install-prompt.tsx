@@ -5,20 +5,10 @@ import { Share, Plus, MoreVertical } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import styles from "./pwa-install-prompt.module.css";
 
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: "accepted" | "dismissed";
-    platform: string;
-  }>;
-  prompt(): Promise<void>;
-}
-
 export function PwaInstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     // 1. Check if already running in standalone PWA mode
@@ -39,30 +29,13 @@ export function PwaInstallPrompt() {
     setIsIOS(detectIOS);
     setIsAndroid(detectAndroid);
 
-    // 4. Handle Android/Chrome beforeinstallprompt event (enables 1-click install)
-    const handleBeforeInstallPrompt = (e: Event) => {
-      if (!detectAndroid) return;
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    // 5. If iOS or Android, show prompt after a short delay (2 seconds) for guaranteed UX
+    // 4. If iOS or Android, show prompt after a short delay (2 seconds) for guaranteed UX
     if (detectIOS || detectAndroid) {
       const timer = setTimeout(() => {
         setShowPrompt(true);
       }, 2000);
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-      };
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
   }, []);
 
   const handleDismiss = () => {
@@ -70,20 +43,7 @@ export function PwaInstallPrompt() {
     setShowPrompt(false);
   };
 
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    // Trigger the native installation flow
-    deferredPrompt.prompt();
-    
-    const choiceResult = await deferredPrompt.userChoice;
-    if (choiceResult.outcome === "accepted") {
-      sessionStorage.setItem("xpenses_pwa_dismissed", "true");
-    }
-    
-    setDeferredPrompt(null);
-    setShowPrompt(false);
-  };
+  if (!isIOS && !isAndroid) return null;
 
   return (
     <Modal 
@@ -111,21 +71,7 @@ export function PwaInstallPrompt() {
             Got it
           </button>
         </div>
-      ) : deferredPrompt ? (
-        <div className={styles.promptContent}>
-          <p className={styles.promptText}>
-            Install Xpenses on your device to track expenses faster, directly from your home screen.
-          </p>
-          <div className={styles.buttonGroup}>
-            <button className={styles.actionButton} onClick={handleInstallClick} type="button">
-              Add to home screen
-            </button>
-            <button className={styles.cancelButton} onClick={handleDismiss} type="button">
-              Not now
-            </button>
-          </div>
-        </div>
-      ) : isAndroid ? (
+      ) : (
         <div className={styles.promptContent}>
           <p className={styles.promptText}>
             Add Xpenses to your home screen for quick access:
@@ -144,7 +90,7 @@ export function PwaInstallPrompt() {
             Got it
           </button>
         </div>
-      ) : null}
+      )}
     </Modal>
   );
 }
