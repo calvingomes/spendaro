@@ -3,7 +3,7 @@ const QUEUE_KEY = "xpenses_offline_queue";
 export interface QueuedAction {
   id: string; // Unique ID for this queued action
   action: "POST" | "PUT" | "DELETE";
-  payload: any;
+  payload: Record<string, unknown>;
 }
 
 export function getQueuedActions(): QueuedAction[] {
@@ -26,7 +26,7 @@ export function saveQueuedActions(actions: QueuedAction[]): void {
   }
 }
 
-export function queueAction(action: "POST" | "PUT" | "DELETE", payload: any): void {
+export function queueAction(action: "POST" | "PUT" | "DELETE", payload: Record<string, unknown>): void {
   const actions = getQueuedActions();
   const newAction: QueuedAction = {
     id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
