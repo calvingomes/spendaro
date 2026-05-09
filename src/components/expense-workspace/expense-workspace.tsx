@@ -63,15 +63,10 @@ export function ExpenseWorkspace({
         }
       }
 
-      // If online and fully synced, trust the server's fresh data and update local cache
-      if (initialExpenses && initialExpenses.length > 0) {
+      // If online and fully synced, trust the server's fresh data entirely (even if it's empty)
+      if (initialExpenses !== undefined) {
         setExpenses(initialExpenses);
         await saveLocalExpenses(initialExpenses);
-      } else {
-        const cached = await getLocalExpenses();
-        if (cached && cached.length > 0) {
-          setExpenses(cached);
-        }
       }
     };
     initializeLocalCache();
