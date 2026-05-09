@@ -25,10 +25,34 @@ export function ExpenseWorkspace({
     onExpensesChange?.(expenses);
   }, [expenses, onExpensesChange]);
 
+  const syncAndRefresh = async () => {
+    const allSynced = await processSyncQueue();
+    if (allSynced) {
+      try {
+        const response = await fetch("/api/expenses");
+        if (response.ok) {
+          const body = await response.json();
+          if (body.expenses) {
+            setExpenses(body.expenses);
+            await saveLocalExpenses(body.expenses);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to refresh expenses after online sync:", err);
+      }
+    }
+  };
+
   useEffect(() => {
     const initializeLocalCache = async () => {
       const isOffline = typeof window !== "undefined" && !navigator.onLine;
       const hasUnsyncedActions = getQueuedActions().length > 0;
+
+      if (!isOffline && hasUnsyncedActions) {
+        // App started online, but has pending offline items. Sync immediately.
+        await syncAndRefresh();
+        return;
+      }
 
       // If we are offline or have pending offline actions, trust IndexedDB over the cached HTML props
       if (isOffline || hasUnsyncedActions) {
@@ -54,23 +78,9 @@ export function ExpenseWorkspace({
   }, [initialExpenses]);
 
   useEffect(() => {
-    const handleOnlineStatus = async () => {
+    const handleOnlineStatus = () => {
       if (navigator.onLine) {
-        const allSynced = await processSyncQueue();
-        if (allSynced) {
-          try {
-            const response = await fetch("/api/expenses");
-            if (response.ok) {
-              const body = await response.json();
-              if (body.expenses) {
-                setExpenses(body.expenses);
-                await saveLocalExpenses(body.expenses);
-              }
-            }
-          } catch (err) {
-            console.error("Failed to refresh expenses after online sync:", err);
-          }
-        }
+        syncAndRefresh();
       }
     };
 
@@ -100,7 +110,7 @@ export function ExpenseWorkspace({
 
           if (isOffline) {
             const isEditing = !!editingExpense;
-            const tempId = isEditing ? editingExpense.id : `local-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            const tempId = isEditing ? editingExpense.id : crypto.randomUUID();
             
             const offlineExpense: Expense = {
               id: tempId,

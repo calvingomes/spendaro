@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
+  const id = body.id ? String(body.id).trim() : undefined;
   const label = String(body.label ?? "").trim();
   const category = String(body.category ?? "").trim();
   const amount = Number(body.amount);
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await supabase
     .from("expenses")
     .insert({
+      ...(id && { id }),
       user_id: user.id,
       label,
       category,
