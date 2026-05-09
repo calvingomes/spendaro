@@ -1,4 +1,4 @@
-const CACHE_NAME = "xpenses-assets-v1";
+const CACHE_NAME = "xpenses-assets-v2";
 const ASSETS_TO_CACHE = [
   "/",
   "/manifest.webmanifest",
@@ -44,7 +44,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Next.js static files and images: Cache-First or Stale-While-Revalidate
+  // Next.js static files and images: Cache-First
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
@@ -70,12 +70,39 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Next.js RSC payload requests (React Server Components data fetches).
+  // Chrome fires these after loading cached HTML — iOS does not.
+  // Strategy: Stale-While-Revalidate — serve cache immediately, update in background.
+  const isRscRequest =
+    url.searchParams.has("_rsc") ||
+    (request.headers.get("Accept") || "").includes("text/x-component");
+
+  if (isRscRequest) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(request);
+
+        const networkFetch = fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+          })
+          .catch(() => cachedResponse);
+
+        // Serve cached RSC immediately if available, otherwise wait for network
+        return cachedResponse || networkFetch;
+      })
+    );
+    return;
+  }
+
   // Pages and documents (navigation): Network-First, with a cache fallback
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then((networkResponse) => {
-          // If online and successful, cache the navigation response
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -85,7 +112,6 @@ self.addEventListener("fetch", (event) => {
           return networkResponse;
         })
         .catch(() => {
-          // If offline, try to return the cached response for this page or fallback to the root '/'
           return caches.match(request).then((cachedResponse) => {
             if (cachedResponse) return cachedResponse;
             return caches.match("/");
