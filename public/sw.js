@@ -1,7 +1,7 @@
 const CACHE_NAME = "xpenses-assets-v1";
 const ASSETS_TO_CACHE = [
   "/",
-  "/manifest.json",
+  "/manifest.webmanifest",
   "/favicon.ico",
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
