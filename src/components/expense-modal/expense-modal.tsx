@@ -101,7 +101,7 @@ export function ExpenseModal({
     });
     DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
 
-    return Array.from(base);
+    return Array.from(base).sort((a, b) => a.localeCompare(b));
   }, [expenses, addedCategories]);
 
   // Handles adding an inline custom category chip

@@ -55,11 +55,9 @@ export async function processSyncQueue(): Promise<boolean> {
       });
 
       if (!response.ok) {
-        // If it's a 4xx error (e.g. Bad Request, invalid ID format), it's a permanent failure.
-        // We drop it from the queue to prevent it from permanently poisoning the sync system.
         if (response.status >= 400 && response.status < 500) {
           console.error(`Permanent sync failure (Status ${response.status}) for action:`, item);
-          continue; // Do NOT push to remainingActions
+          continue;
         }
         throw new Error(`Sync failed with status ${response.status}`);
       }
