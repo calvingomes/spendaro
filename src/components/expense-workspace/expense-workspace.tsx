@@ -7,7 +7,7 @@ import { ExpenseAnalytics } from "@/components/expense-analytics/expense-analyti
 import { ExpenseList } from "@/components/expense-list/expense-list";
 import { ExpenseModal } from "@/components/expense-modal/expense-modal";
 import { saveLocalExpenses, getLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
-import { queueAction, processSyncQueue } from "@/utils/sync-queue";
+import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-queue";
 
 export function ExpenseWorkspace({
   initialExpenses,
@@ -27,7 +27,21 @@ export function ExpenseWorkspace({
 
   useEffect(() => {
     const initializeLocalCache = async () => {
+      const isOffline = typeof window !== "undefined" && !navigator.onLine;
+      const hasUnsyncedActions = getQueuedActions().length > 0;
+
+      // If we are offline or have pending offline actions, trust IndexedDB over the cached HTML props
+      if (isOffline || hasUnsyncedActions) {
+        const cached = await getLocalExpenses();
+        if (cached && cached.length > 0) {
+          setExpenses(cached);
+          return;
+        }
+      }
+
+      // If online and fully synced, trust the server's fresh data and update local cache
       if (initialExpenses && initialExpenses.length > 0) {
+        setExpenses(initialExpenses);
         await saveLocalExpenses(initialExpenses);
       } else {
         const cached = await getLocalExpenses();
