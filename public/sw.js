@@ -1,6 +1,6 @@
-const CACHE_NAME = "xpenses-assets-v2";
+const CACHE_NAME = "xpenses-assets-v3";
 const ASSETS_TO_CACHE = [
-  "/",
+  "/dashboard",
   "/manifest.webmanifest",
   "/favicon.ico",
   "/icons/icon-192x192.png",
@@ -114,7 +114,7 @@ self.addEventListener("fetch", (event) => {
         .catch(() => {
           return caches.match(request).then((cachedResponse) => {
             if (cachedResponse) return cachedResponse;
-            return caches.match("/");
+            return caches.match("/dashboard");
           });
         })
     );
