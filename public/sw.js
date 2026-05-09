@@ -34,6 +34,13 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  if (
+    url.hostname === "localhost" ||
+    url.hostname === "127.0.0.1" ||
+    url.hostname.startsWith("192.168.")
+  ) {
+    return;
+  }
 
   // Skip caching for internal API endpoints, Supabase operations, and hot-module-reloading
   if (
