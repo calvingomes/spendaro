@@ -8,6 +8,7 @@ import { AddExpenseButton } from "@/components/buttons/add-expense-button/add-ex
 import { ThemeToggle } from "@/components/theme-toggle/theme-toggle";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
 import type { Expense } from "@/lib/types";
 
 export function Dashboard({
@@ -36,6 +37,7 @@ export function Dashboard({
       <StatsCards expenses={expenses} />
 
       <ExpenseWorkspace initialExpenses={initialExpenses} onExpensesChange={setExpenses} />
+      <PwaInstallPrompt />
     </main>
   );
 }
