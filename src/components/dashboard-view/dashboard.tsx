@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/theme-toggle/theme-toggle";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
+import { WhatsNewModal } from "@/components/whats-new-modal/whats-new-modal";
 import type { Expense } from "@/lib/types";
 
 export function Dashboard({
@@ -38,6 +39,7 @@ export function Dashboard({
 
       <ExpenseWorkspace initialExpenses={initialExpenses} onExpensesChange={setExpenses} />
       <PwaInstallPrompt />
+      <WhatsNewModal />
     </main>
   );
 }

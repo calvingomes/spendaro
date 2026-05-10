@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { PwaProvider } from "@/components/pwa-provider/pwa-provider";
-import { WhatsNewModal } from "@/components/whats-new-modal/whats-new-modal";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,7 +24,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <PwaProvider>
           {children}
-          <WhatsNewModal />
         </PwaProvider>
       </body>
     </html>
