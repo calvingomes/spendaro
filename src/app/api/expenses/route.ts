@@ -15,7 +15,8 @@ export async function GET() {
   const { data, error } = await supabase
     .from("expenses")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });

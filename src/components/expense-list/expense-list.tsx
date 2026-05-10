@@ -29,7 +29,12 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
       .filter((e) => 
         e.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      )
+      .sort((a, b) => {
+        const diff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        if (diff !== 0) return diff;
+        return b.id.localeCompare(a.id);
+      });
   }, [expenses, searchTerm, range, customStart, customEnd]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {

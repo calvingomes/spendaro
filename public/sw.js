@@ -1,6 +1,5 @@
-const CACHE_NAME = "xpenses-assets-v4";
+const CACHE_NAME = "xpenses-assets-v7";
 const ASSETS_TO_CACHE = [
-  "/dashboard",
   "/manifest.webmanifest",
   "/favicon.ico",
   "/icons/icon-192x192.png",

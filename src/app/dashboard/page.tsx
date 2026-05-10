@@ -9,7 +9,7 @@ export default async function DashboardPage() {
   
   const [{ data: { user } }, { data: expenses }] = await Promise.all([
     supabase.auth.getUser(),
-    supabase.from("expenses").select("*").order("created_at", { ascending: false })
+    supabase.from("expenses").select("*").order("created_at", { ascending: false }).order("id", { ascending: false })
   ]);
 
   if (!user) redirect("/sign-in");
