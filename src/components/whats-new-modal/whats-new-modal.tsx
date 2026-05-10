@@ -61,7 +61,7 @@ export function WhatsNewModal() {
           className={styles.actionButton} 
           onClick={handleDismiss}
         >
-          Great, let's go
+          Great, let&apos;s go
         </button>
       </div>
     </Modal>

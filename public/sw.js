@@ -78,8 +78,6 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Next.js RSC payload requests (React Server Components data fetches).
-  // Chrome fires these after loading cached HTML — iOS does not.
-  // Strategy: Stale-While-Revalidate — serve cache immediately, update in background.
   const isRscRequest =
     url.searchParams.has("_rsc") ||
     (request.headers.get("Accept") || "").includes("text/x-component");
