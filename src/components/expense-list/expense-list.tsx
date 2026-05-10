@@ -29,7 +29,8 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
       .filter((e) => 
         e.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      )
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [expenses, searchTerm, range, customStart, customEnd]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
