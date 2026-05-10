@@ -101,7 +101,7 @@ export function ExpenseModal({
     });
     DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
 
-    return Array.from(base);
+    return Array.from(base).sort((a, b) => a.localeCompare(b));
   }, [expenses, addedCategories]);
 
   // Handles adding an inline custom category chip
@@ -154,12 +154,24 @@ export function ExpenseModal({
       return;
     }
 
+    let finalCreatedAt: string | undefined;
+    if (form.created_at) {
+      if (editingExpense && formatDateForInput(editingExpense.created_at) === form.created_at) {
+        finalCreatedAt = editingExpense.created_at;
+      } else {
+        const now = new Date();
+        const [year, month, day] = form.created_at.split("-").map(Number);
+        const combinedDate = new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds());
+        finalCreatedAt = combinedDate.toISOString();
+      }
+    }
+
     const payload = {
       label: normalizedLabel,
       category: normalizedCategory,
       amount: amountNum.toString(),
       type: form.type,
-      created_at: form.created_at ? new Date(form.created_at).toISOString() : undefined
+      created_at: finalCreatedAt
     };
 
     try {

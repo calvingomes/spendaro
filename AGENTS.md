@@ -96,6 +96,9 @@ Expected create payload:
 - Any TSX component, view, or page that has a `.module.css` file must live in its own folder alongside that CSS module.
 - Keep component folders shallow and obvious. Prefer `src/components/<feature>/` or `src/app/<route>/` with local CSS modules.
 - Dashboard header actions should stay in the top-right. Add expense opens a modal; sign out stays adjacent.
+- `createSupabaseBrowserClient()` must remain initialized globally within `PwaProvider` to maintain the authentication heartbeat and circumvent Next.js RSC Set-Cookie drop bugs.
+- `public/sw.js` contains an internal localhost kill-switch loop-protection. Do not remove the localhost detection headers as this shields Next.js Turbopack from infinite HMR reloads.
+- The "What's New" modal triggers based on comparisons between `localStorage` and `CURRENT_VERSION` in `features-config.ts`. Bump that string to fire a global update visual.
 
 ## Commands
 Use Bun:
@@ -109,8 +112,9 @@ Use Bun:
 - Match Vercel's dashboard language more than generic SaaS templates.
 - Keep forms simple and readable.
 - Avoid overdesigning charts or controls in early phases.
+- Utilize ONLY standardized design tokens from `globals.css` for module colors and spacing; avoid hardcoding hex codes.
 
 ## Current Build Status
-The core architecture is solid with Radix UI, the Credit/Debit system, and modular analytics fully integrated. The project is 100% lint-clean, production-ready, and optimized as a mobile-first PWA. The current phase focuses on:
+The core architecture is fully stabilized with hardened PWA Offline Sync engine (self-healing 4xx, UUID persistence) and verified cross-device Session durability. The project is 100% lint-clean and hardened for production usage. The immediate focus is now solely:
 - Export and sharing features (CSV/PDF)
-- Offline support and recurring expenses
+- Final Polish and visual transitions
