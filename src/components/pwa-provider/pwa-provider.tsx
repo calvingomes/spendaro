@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export function PwaProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    createSupabaseBrowserClient();
+  }, []);
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       const isDev =
