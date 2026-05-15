@@ -60,10 +60,10 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
               value={range}
               onChange={(e) => setRange(e.target.value as DateRange)}
             >
+              <option value="overall">Overall</option>
               <option value="this-month">This month</option>
               <option value="last-month">Last month</option>
               <option value="last-3-months">Last 3 months</option>
-              <option value="overall">Overall</option>
               <option value="custom">Custom range</option>
             </select>
             <ChevronDown className={styles.selectArrow} />
