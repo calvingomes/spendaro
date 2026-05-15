@@ -1,3 +1,5 @@
+import type { Expense } from "@/lib/types";
+
 export const DEFAULT_CATEGORIES = ["Bills", "Entertainment", "Food", "Investment", "Salary", "Savings", "Shopping", "Subscriptions", "Travel"];
 
 export function formatDateForInput(date: Date | string) {
@@ -14,9 +16,9 @@ export function parseAmount(value: string) {
   return Number.parseFloat(value);
 }
 
-export function formatCurrency(value: string) {
-  const amount = Number.parseFloat(value);
-  if (Number.isNaN(amount)) return "₹0.00";
+export function formatCurrency(value: string | number) {
+  const amount = typeof value === "string" ? Number.parseFloat(value) : value;
+  if (amount === undefined || amount === null || Number.isNaN(amount)) return "₹0.00";
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -28,4 +30,17 @@ export function normalizeText(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return "";
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+export function calculateAggregates(expenses: Expense[]) {
+  return expenses.reduce(
+    (acc, e) => {
+      const amount = Number.parseFloat(e.amount) || 0;
+      if (e.type === "credit") acc.income += amount;
+      else if (e.type === "debit") acc.expense += amount;
+      else if (e.type === "savings") acc.savings += amount;
+      return acc;
+    },
+    { income: 0, expense: 0, savings: 0 }
+  );
 }
