@@ -39,6 +39,10 @@
   color: var(--color-red);
 }
 
+.statValue.savings {
+  color: var(--color-amber);
+}
+
 @media (max-width: 620px) {
   .statsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

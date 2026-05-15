@@ -11,7 +11,7 @@ type ExpenseFormState = {
   label: string;
   category: string;
   amount: string;
-  type: "credit" | "debit";
+  type: "credit" | "debit" | "savings";
   created_at: string;
 };
 
@@ -304,7 +304,7 @@ export function ExpenseModal({
             <div 
               className={styles.slider}
               style={{
-                transform: form.type === "debit" ? "translateX(0)" : "translateX(100%)"
+                transform: form.type === "debit" ? "translateX(0)" : form.type === "credit" ? "translateX(100%)" : "translateX(200%)"
               }}
             />
             <button
@@ -320,6 +320,13 @@ export function ExpenseModal({
               onClick={() => setForm((curr) => ({ ...curr, type: "credit" }))}
             >
               Credit
+            </button>
+            <button
+              type="button"
+              className={`${styles.toggleButton} ${form.type === "savings" ? styles.savingsActive : ""}`}
+              onClick={() => setForm((curr) => ({ ...curr, type: "savings" }))}
+            >
+              Savings
             </button>
           </div>
         </div>

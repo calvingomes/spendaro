@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpRight, ArrowDownLeft, Pencil, Search, ChevronDown } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, PiggyBank, Pencil, Search, ChevronDown } from "lucide-react";
 import styles from "./expense-list.module.css";
 import { formatCurrency, formatDateForInput } from "@/utils/expense-utils";
 import { isDateInRange, type DateRange } from "@/utils/date-utils";
@@ -128,10 +128,18 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
                   onClick={() => setActiveCardId(activeCardId === expense.id ? null : expense.id)}
                 >
                   <td className={styles.labelCell}>{expense.label}</td>
-                  <td className={`${styles.amountCell} ${expense.type === "credit" ? styles.positive : styles.negative}`}>
+                  <td className={`${styles.amountCell} ${
+                    expense.type === "credit" 
+                      ? styles.positive 
+                      : expense.type === "savings" 
+                        ? styles.savings 
+                        : styles.negative
+                  }`}>
                     <div className={styles.amountContent}>
                       {expense.type === "credit" ? (
                         <ArrowUpRight className={styles.amountIcon} />
+                      ) : expense.type === "savings" ? (
+                        <PiggyBank className={styles.amountIcon} />
                       ) : (
                         <ArrowDownLeft className={styles.amountIcon} />
                       )}

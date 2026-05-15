@@ -113,7 +113,7 @@ export function ExpenseWorkspace({
               label: String(payload.label ?? "").trim(),
               category: String(payload.category ?? "").trim(),
               amount: String(payload.amount ?? "0"),
-              type: (payload.type === "credit" ? "credit" : "debit") as "credit" | "debit",
+              type: (payload.type ?? "debit") as "credit" | "debit" | "savings",
               created_at: payload.created_at ?? new Date().toISOString(),
               updated_at: new Date().toISOString()
             };
