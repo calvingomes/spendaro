@@ -1,4 +1,4 @@
-export const DEFAULT_CATEGORIES = ["Bills", "Entertainment", "Food", "Investment", "Salary", "Shopping", "Subscriptions", "Travel"];
+export const DEFAULT_CATEGORIES = ["Bills", "Entertainment", "Food", "Investment", "Salary", "Savings", "Shopping", "Subscriptions", "Travel"];
 
 export function formatDateForInput(date: Date | string) {
   const d = typeof date === "string" ? new Date(date) : date;

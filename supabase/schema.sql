@@ -4,7 +4,7 @@ create table if not exists public.expenses (
   label text not null,
   category text not null,
   amount numeric(12, 2) not null check (amount >= 0),
-  type text not null default 'debit' check (type in ('credit', 'debit')),
+  type text not null default 'debit' check (type in ('credit', 'debit', 'savings')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

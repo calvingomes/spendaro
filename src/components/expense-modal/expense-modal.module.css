@@ -215,7 +215,7 @@
   top: 3px;
   bottom: 3px;
   left: 3px;
-  width: calc(50% - 3px);
+  width: calc((100% - 6px) / 3);
   border-radius: var(--radius-2);
   background: var(--color-bg-surface-raised);
   border: 1px solid var(--color-border);
@@ -251,6 +251,11 @@
 
 .creditActive {
   color: var(--color-green) !important;
+  font-weight: 600;
+}
+
+.savingsActive {
+  color: var(--color-amber) !important;
   font-weight: 600;
 }
 
