@@ -39,8 +39,13 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
   const stats = [
     { label: "Overall Income", value: formatCurrency(totalIncome) },
     { label: "Overall Expense", value: formatCurrency(totalExpense) },
-    { 
-      label: "Net balance", 
+    {
+      label: "Net savings",
+      value: formatCurrency(0),
+      colorClass: "positive"
+    },
+    {
+      label: "Net balance",
       value: formatCurrency(netBalance),
       colorClass: netBalance >= 0 ? "positive" : "negative"
     }
