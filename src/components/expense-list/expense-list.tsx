@@ -15,7 +15,7 @@ interface ExpenseListProps {
 
 export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [range, setRange] = useState<DateRange>("overall");
+  const [range, setRange] = useState<DateRange>("this-month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [visibleCount, setVisibleCount] = useState(50);
