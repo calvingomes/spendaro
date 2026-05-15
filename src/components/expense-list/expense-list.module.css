@@ -243,12 +243,13 @@
 .headerStats {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
 }
 
 .headerStatItem {
   display: flex;
   flex-direction: column;
+  width: 110px;
 }
 
 .headerStatItem .statLabel {
@@ -440,10 +441,16 @@
     border-radius: var(--radius-2);
     border: 1px solid var(--color-border);
     margin-top: 4px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   .headerStatItem {
     align-items: center;
+    text-align: center;
+    width: auto;
+    min-width: 80px;
+    flex: 1;
   }
 
   .headerStatItem .statLabel {
