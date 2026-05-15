@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight, ArrowDownLeft, PiggyBank, Pencil, Search, ChevronDown } from "lucide-react";
 import styles from "./expense-list.module.css";
-import { formatCurrency, formatDateForInput } from "@/utils/expense-utils";
+import { calculateAggregates, formatCurrency, formatDateForInput } from "@/utils/expense-utils";
 import { isDateInRange, type DateRange } from "@/utils/date-utils";
 import type { Expense } from "@/lib/types";
 
@@ -37,6 +37,11 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
       });
   }, [expenses, searchTerm, range, customStart, customEnd]);
 
+  const { income, expense, savings } = useMemo(() => 
+    calculateAggregates(filteredExpenses), 
+    [filteredExpenses]
+  );
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop <= clientHeight + 50) {
@@ -54,6 +59,22 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
             <p className={styles.sectionKicker}>Activity</p>
             <h2 className={styles.sectionTitle}>Recent transactions</h2>
           </div>
+
+          <div className={styles.headerStats}>
+            <div className={styles.headerStatItem}>
+              <span className={styles.statLabel}>Income</span>
+              <span className={`${styles.statValue} ${styles.positive}`}>{formatCurrency(income)}</span>
+            </div>
+            <div className={styles.headerStatItem}>
+              <span className={styles.statLabel}>Expense</span>
+              <span className={`${styles.statValue} ${styles.negative}`}>{formatCurrency(expense)}</span>
+            </div>
+            <div className={styles.headerStatItem}>
+              <span className={styles.statLabel}>Savings</span>
+              <span className={`${styles.statValue} ${styles.savings}`}>{formatCurrency(savings)}</span>
+            </div>
+          </div>
+
           <div className={styles.selectWrapper}>
             <select 
               className={styles.rangeSelect}

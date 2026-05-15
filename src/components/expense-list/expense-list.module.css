@@ -16,9 +16,8 @@
 .headerMain {
   flex: 1;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
 }
 
 .titleGroup {
@@ -207,6 +206,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  margin-left: auto;
 }
 
 .rangeSelect {
@@ -240,6 +240,31 @@
   stroke-width: 2.5px;
 }
 
+.headerStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.headerStatItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.headerStatItem .statLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.headerStatItem .statValue {
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .customDates {
   display: flex;
   align-items: center;
@@ -267,7 +292,7 @@
   color: var(--color-text-tertiary);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .tableWrap {
     overflow-x: hidden;
   }
@@ -397,10 +422,36 @@
     align-items: center;
     width: 100%;
     gap: 16px;
+    flex-wrap: wrap;
   }
 
   .selectWrapper {
     width: auto;
+    margin-left: 0;
+  }
+
+  .headerStats {
+    display: flex;
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--color-bg-subtle);
+    border-radius: var(--radius-2);
+    border: 1px solid var(--color-border);
+    margin-top: 4px;
+  }
+
+  .headerStatItem {
+    align-items: center;
+  }
+
+  .headerStatItem .statLabel {
+    font-size: 9px;
+  }
+
+  .headerStatItem .statValue {
+    font-size: 12px;
   }
 
   .rangeSelect {
