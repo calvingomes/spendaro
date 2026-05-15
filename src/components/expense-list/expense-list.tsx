@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpRight, ArrowDownLeft, PiggyBank, Pencil, Search, ChevronDown } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, CircleFadingArrowUp, Pencil, Search, ChevronDown } from "lucide-react";
 import styles from "./expense-list.module.css";
 import { calculateAggregates, formatCurrency, formatDateForInput } from "@/utils/expense-utils";
 import { isDateInRange, type DateRange } from "@/utils/date-utils";
@@ -160,7 +160,7 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
                       {expense.type === "credit" ? (
                         <ArrowUpRight className={styles.amountIcon} />
                       ) : expense.type === "savings" ? (
-                        <PiggyBank className={styles.amountIcon} />
+                        <CircleFadingArrowUp className={styles.amountIcon} />
                       ) : (
                         <ArrowDownLeft className={styles.amountIcon} />
                       )}
