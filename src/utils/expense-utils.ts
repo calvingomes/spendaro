@@ -18,12 +18,13 @@ export function parseAmount(value: string) {
 
 export function formatCurrency(value: string | number) {
   const amount = typeof value === "string" ? Number.parseFloat(value) : value;
-  if (amount === undefined || amount === null || Number.isNaN(amount)) return "₹0.00";
-  return new Intl.NumberFormat("en-IN", {
+  if (amount === undefined || amount === null || Number.isNaN(amount)) return "₹ 0.00";
+  const formatted = new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
     maximumFractionDigits: 2
   }).format(amount);
+  return formatted.replace("₹", "₹ ");
 }
 
 export function normalizeText(value: string) {

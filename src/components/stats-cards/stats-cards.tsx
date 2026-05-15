@@ -4,14 +4,7 @@
 import { useMemo } from "react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2
-  }).format(value);
-}
+import { formatCurrency } from "@/utils/expense-utils";
 
 export function StatsCards({ expenses }: { expenses: Expense[] }) {
   const totalIncome = useMemo(
