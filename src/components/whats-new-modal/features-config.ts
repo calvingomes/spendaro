@@ -8,7 +8,7 @@ export const RELEASE_FEATURES = [
     id: "nav",
     icon: Compass,
     title: "Sleek Switcher & Settings",
-    description: "Navigate effortlessly between Transactions, Analytics, and Settings via custom tabs—including a dedicated, flat bottom dock for installed mobile apps."
+    description: "Navigate effortlessly between Transactions, Analytics, and Profile via tabs."
   },
   {
     id: "sync",
