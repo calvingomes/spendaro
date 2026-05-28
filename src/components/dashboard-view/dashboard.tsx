@@ -3,21 +3,25 @@
 import Image from "next/image";
 import { useState } from "react";
 import styles from "./dashboard.module.css";
-import { SignOutButton } from "@/components/buttons/sign-out-button/sign-out-button";
 import { AddExpenseButton } from "@/components/buttons/add-expense-button/add-expense-button";
-import { ThemeToggle } from "@/components/theme-toggle/theme-toggle";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
 import { WhatsNewModal } from "@/components/whats-new-modal/whats-new-modal";
+import { Navigation, NavTab } from "@/components/navigation/navigation";
+import { ProfileView } from "@/components/profile-view/profile-view";
+import type { User } from "@supabase/supabase-js";
 import type { Expense } from "@/lib/types";
 
 export function Dashboard({
-  initialExpenses
+  initialExpenses,
+  user
 }: {
   initialExpenses: Expense[];
+  user: User;
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
+  const [activeTab, setActiveTab] = useState<NavTab>("transactions");
 
   return (
     <main className={styles.page}>
@@ -29,15 +33,32 @@ export function Dashboard({
           </div>
         </div>
         <div className={styles.topActions}>
-          <AddExpenseButton />
-          <ThemeToggle />
-          <SignOutButton />
+          <div className={activeTab === "transactions" ? "" : styles.desktopOnly}>
+            <AddExpenseButton />
+          </div>
         </div>
       </header>
 
-      <StatsCards expenses={expenses} />
+      {/* Navigation Switcher */}
+      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <ExpenseWorkspace initialExpenses={initialExpenses} onExpensesChange={setExpenses} />
+      {activeTab === "transactions" && (
+        <StatsCards expenses={expenses} />
+      )}
+
+      {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during transactions and analytics views */}
+      {(activeTab === "transactions" || activeTab === "analytics") && (
+        <ExpenseWorkspace 
+          initialExpenses={initialExpenses} 
+          onExpensesChange={setExpenses} 
+          activeTab={activeTab}
+        />
+      )}
+
+      {activeTab === "profile" && (
+        <ProfileView user={user} />
+      )}
+
       <PwaInstallPrompt />
       <WhatsNewModal />
     </main>

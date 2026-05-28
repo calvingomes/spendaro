@@ -24,12 +24,22 @@ export function ThemeToggle() {
 
   return (
     <button 
-      className={styles.toggle} 
+      className={styles.button} 
       onClick={toggleTheme} 
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       aria-label="Toggle theme"
     >
-      {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+      {theme === "dark" ? (
+        <>
+          <Sun className={styles.icon} size={16} />
+          <span className={styles.text}>Light Mode</span>
+        </>
+      ) : (
+        <>
+          <Moon className={styles.icon} size={16} />
+          <span className={styles.text}>Dark Mode</span>
+        </>
+      )}
     </button>
   );
 }

@@ -41,6 +41,22 @@
   gap: 10px;
 }
 
+.desktopOnly {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .desktopOnly {
+    display: none;
+  }
+  
+  .page {
+    padding-bottom: 96px;
+  }
+}
+
 @media (max-width: 640px) {
   .brandName {
     font-size: 20px;

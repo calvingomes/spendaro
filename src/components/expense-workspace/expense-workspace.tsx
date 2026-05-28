@@ -11,10 +11,12 @@ import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-qu
 
 export function ExpenseWorkspace({
   initialExpenses,
-  onExpensesChange
+  onExpensesChange,
+  activeTab = "transactions"
 }: {
   initialExpenses: Expense[];
   onExpensesChange?: (expenses: Expense[]) => void;
+  activeTab?: "transactions" | "analytics" | "profile";
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -197,13 +199,17 @@ export function ExpenseWorkspace({
 
   return (
     <section className={styles.workspace}>
-      <ExpenseList 
-        expenses={expenses} 
-        onEdit={handleEdit}
-        isPending={isPending}
-      />
+      {activeTab === "transactions" && (
+        <ExpenseList 
+          expenses={expenses} 
+          onEdit={handleEdit}
+          isPending={isPending}
+        />
+      )}
 
-      <ExpenseAnalytics expenses={expenses} />
+      {activeTab === "analytics" && (
+        <ExpenseAnalytics expenses={expenses} />
+      )}
 
       <ExpenseModal 
         isOpen={isModalOpen}
