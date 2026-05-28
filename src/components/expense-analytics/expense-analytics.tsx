@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import styles from "./expense-analytics.module.css";
 import type { Expense } from "@/lib/types";
 import { getWeekRange, getWeekLabel } from "@/utils/date-utils";
+import { AnimatedCounter } from "@/components/ui/animated-counter/animated-counter";
 
 // Curated Harmony Palette (low-contrast, Sleek HSL colors for dark mode)
 const COLORS = [
@@ -27,21 +28,20 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-import { AnimatedCounter } from "@/components/ui/animated-counter/animated-counter";
 
-const QUARTERS = ["Q1", "Q2", "Q3", "Q4"];
+const QUARTERS = ["Jan - Mar", "Apr - Jun", "Jul - Sep", "Oct - Dec"];
 
 const WEEKS = [0, 1, 2, 3, 4, 5];
 
 export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
   const [activeType, setActiveType] = useState<"debit" | "credit">("debit");
   const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
-  
+
   // Dynamic current date states
   const now = new Date();
   const currentMonthIdx = now.getMonth();
   const currentQuarterIdx = Math.floor(currentMonthIdx / 3);
-  
+
   const [selectedMonthIdx, setSelectedMonthIdx] = useState(currentMonthIdx);
   const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(currentQuarterIdx);
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
@@ -49,17 +49,17 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
   // Dynamically calculate weeks based on oldest expense (fallback to at least 6 weeks)
   const WEEKS_LIST = useMemo(() => {
     if (expenses.length === 0) return WEEKS;
-    
+
     let oldestDate = new Date();
     expenses.forEach((e) => {
       const expDate = new Date(e.created_at);
       if (expDate < oldestDate) oldestDate = expDate;
     });
-    
+
     const today = new Date();
     const msDiff = today.getTime() - oldestDate.getTime();
     const weeksDiff = Math.ceil(msDiff / (1000 * 60 * 60 * 24 * 7));
-    
+
     const count = Math.max(6, weeksDiff);
     return Array.from({ length: count }, (_, idx) => idx);
   }, [expenses]);
@@ -118,7 +118,7 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
   }, [categoryData]);
 
   return (
-    <article className={`${styles.card} surface radius-3`}>
+    <article className={styles.card}>
       {/* Top Header Row */}
       <div className={styles.header}>
         <div className={styles.selectWrapper}>

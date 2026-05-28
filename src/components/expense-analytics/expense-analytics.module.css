@@ -1,5 +1,5 @@
 .card {
-  padding: var(--space-5);
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
@@ -18,24 +18,35 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  background: var(--color-bg-control);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.selectWrapper:hover {
+  background: var(--color-bg-surface-raised);
+  border-color: var(--color-border-strong);
 }
 
 .typeSelect {
   appearance: none;
   background: transparent;
   border: none;
-  font-size: var(--text-lg);
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: 500;
   color: var(--color-text);
-  padding-right: 20px;
+  padding-right: 16px;
   cursor: pointer;
   outline: none;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .selectArrow {
   position: absolute;
-  right: 0;
+  right: 10px;
   color: var(--color-text-secondary);
   pointer-events: none;
 }
