@@ -37,7 +37,7 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
     [expenses]
   );
 
-  const netBalance = totalIncome - totalExpense;
+  const netBalance = totalIncome - totalExpense - totalSavings;
 
   const stats = [
     { label: "Overall Income", value: formatCurrency(totalIncome) },
