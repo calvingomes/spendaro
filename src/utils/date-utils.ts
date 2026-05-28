@@ -36,3 +36,34 @@ export function isDateInRange(date: Date, range: DateRange, customStart?: string
       return true;
   }
 }
+
+export function getWeekRange(weeksAgo: number) {
+  const today = new Date();
+  const day = today.getDay();
+  const offset = today.getDate() - day + (day === 0 ? -6 : 1) - (weeksAgo * 7);
+  const start = new Date(today.setDate(offset));
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+}
+
+export function getWeekLabel(weeksAgo: number) {
+  const today = new Date();
+  const day = today.getDay();
+  const offset = today.getDate() - day + (day === 0 ? -6 : 1) - (weeksAgo * 7);
+  const start = new Date(today.setDate(offset));
+  
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  
+  const format = (d: Date) => {
+    const month = d.toLocaleDateString("en-US", { month: "short" });
+    return `${month} ${d.getDate()}`;
+  };
+  
+  return `${format(start)} - ${format(end)}`;
+}
