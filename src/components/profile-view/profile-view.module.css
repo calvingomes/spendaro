@@ -3,6 +3,11 @@
   flex-direction: column;
   gap: var(--space-5);
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  order: 3;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--space-6);
 }
 
 .heading {
