@@ -35,7 +35,7 @@
 
 .balanceValue {
   margin: 0;
-  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-size: clamp(2.75rem, 10vw, 4.25rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   color: var(--color-text);
