@@ -16,15 +16,6 @@
   margin-bottom: var(--space-4);
 }
 
-.headerRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-  width: 100%;
-}
-
 .filterActionsRow {
   display: flex;
   justify-content: space-between;
@@ -33,7 +24,6 @@
   flex-wrap: wrap;
   width: 100%;
 }
-
 
 .searchBox {
   position: relative;
@@ -79,8 +69,6 @@
   border-radius: var(--radius-2);
 }
 
-
-
 .tableWrap {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2);
@@ -113,9 +101,6 @@
   background: var(--color-bg-subtle);
 }
 
-
-
-
 .headerStats {
   display: flex;
   align-items: center;
@@ -142,33 +127,6 @@
   font-weight: 600;
 }
 
-.customDates {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dateInput {
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2);
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  padding: 0 8px;
-  height: 36px;
-  outline: none;
-}
-
-.dateInput:focus {
-  border-color: var(--color-border-strong);
-  color: var(--color-text);
-}
-
-.dateSeparator {
-  font-size: 12px;
-  color: var(--color-text-tertiary);
-}
-
 @media (max-width: 960px) {
   .tableWrap {
     overflow-x: hidden;
@@ -182,37 +140,14 @@
     display: none;
   }
 
-
-
   .sectionHeader {
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
   }
 
-  .sectionActions {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-
   .searchBox {
     width: 100%;
-  }
-
-  .headerMain {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .selectWrapper {
-    width: auto;
-    margin-left: 0;
   }
 
   .headerStats {
@@ -243,22 +178,6 @@
 
   .headerStatItem .statValue {
     font-size: 12px;
-  }
-
-  .rangeSelect {
-    width: auto;
-    min-width: 110px;
-  }
-
-  .customDates {
-    width: 100%;
-    justify-content: space-between;
-    margin-top: 4px;
-  }
-
-  .dateInput {
-    flex: 1;
-    max-width: none;
   }
 }
 

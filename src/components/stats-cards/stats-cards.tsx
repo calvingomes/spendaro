@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { TrendingUp, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
