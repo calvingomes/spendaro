@@ -5,6 +5,7 @@
   gap: 8px;
   padding: 0 14px;
   min-height: var(--control-height);
+  width: 150px;
   border-radius: var(--radius-2);
   border: 1px solid var(--color-text);
   background: var(--color-text);

@@ -14,5 +14,5 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/sign-in");
 
-  return <Dashboard initialExpenses={expenses ?? []} />;
+  return <Dashboard initialExpenses={expenses ?? []} user={user} />;
 }

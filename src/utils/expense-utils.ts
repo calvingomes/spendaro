@@ -18,13 +18,20 @@ export function parseAmount(value: string) {
 
 export function formatCurrency(value: string | number) {
   const amount = typeof value === "string" ? Number.parseFloat(value) : value;
-  if (amount === undefined || amount === null || Number.isNaN(amount)) return "₹ 0.00";
+  if (amount === undefined || amount === null || Number.isNaN(amount)) return "₹ 0";
+  
+  const absoluteAmount = Math.abs(amount);
+  const useGrouping = absoluteAmount >= 10000;
+
   const formatted = new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 2
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    useGrouping: useGrouping
   }).format(amount);
-  return formatted.replace("₹", "₹ ");
+  
+  return formatted.replace("₹", "₹ ").replace(/,/g, " ");
 }
 
 export function normalizeText(value: string) {

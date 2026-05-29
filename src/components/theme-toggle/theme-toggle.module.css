@@ -1,21 +1,52 @@
-.toggle {
+.button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-2);
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.toggle:hover {
-  background: var(--color-bg-surface-raised);
-  border-color: var(--color-border-strong);
+  gap: 8px;
+  min-height: var(--control-height);
+  min-width: var(--control-height);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-control);
   color: var(--color-text);
+  border-radius: var(--radius-2);
+  padding: 0 12px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+.button:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-surface-raised);
+}
 
+.icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-secondary);
+}
+
+.text {
+  display: inline;
+}
+
+@media (max-width: 720px) {
+  .button {
+    padding: 0;
+  }
+  
+  .text {
+    display: none;
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
