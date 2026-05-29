@@ -42,11 +42,32 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
 
   return (
     <div className={styles.heroContainer}>
-      <div className={styles.balanceBlock}>
-        <span className={styles.balanceLabel}>Balance</span>
-        <h1 className={styles.balanceValue}>
-          {formatCurrency(netBalance)}
-        </h1>
+      <div className={styles.heroHeader}>
+        <div className={styles.balanceBlock}>
+          <span className={styles.balanceLabel}>Balance</span>
+          <h1 className={styles.balanceValue}>
+            {formatCurrency(netBalance)}
+          </h1>
+        </div>
+
+        <div className={`${styles.actionButtonsRow} ${styles.desktopOnly}`}>
+          <button
+            className={styles.primaryActionButton}
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
+          >
+            <TrendingDown size={14} />
+            Add expense
+          </button>
+          <button
+            className={styles.primaryActionButton}
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
+          >
+            <TrendingUp size={14} />
+            Add income
+          </button>
+        </div>
       </div>
 
       <div className={styles.statsRow}>
@@ -79,6 +100,25 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
           </div>
           <strong className={styles.cardValue}>{formatCurrency(totalSavings)}</strong>
         </article>
+      </div>
+
+      <div className={`${styles.actionButtonsRow} ${styles.mobileOnly}`}>
+        <button
+          className={styles.primaryActionButton}
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
+        >
+          <TrendingDown size={16} />
+          Add expense
+        </button>
+        <button
+          className={styles.primaryActionButton}
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
+        >
+          <TrendingUp size={16} />
+          Add income
+        </button>
       </div>
     </div>
   );

@@ -22,6 +22,7 @@ export function ExpenseWorkspace({
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [defaultType, setDefaultType] = useState<"credit" | "debit" | "savings">("debit");
 
   useEffect(() => {
     onExpensesChange?.(expenses);
@@ -86,7 +87,10 @@ export function ExpenseWorkspace({
   }, []);
 
   useEffect(() => {
-    const openModal = () => {
+    const openModal = (e: Event) => {
+      const customEvent = e as CustomEvent<{ defaultType?: "credit" | "debit" | "savings" }>;
+      const dType = customEvent.detail?.defaultType ?? "debit";
+      setDefaultType(dType);
       setEditingExpense(null);
       setIsModalOpen(true);
     };
@@ -219,6 +223,7 @@ export function ExpenseWorkspace({
         editingExpense={editingExpense}
         isPending={isPending}
         expenses={expenses}
+        defaultType={defaultType}
       />
     </section>
   );

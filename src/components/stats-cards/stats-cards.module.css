@@ -8,6 +8,13 @@
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.heroHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+}
+
 .balanceBlock {
   display: flex;
   flex-direction: column;
@@ -34,6 +41,42 @@
   transition: color 0.25s ease;
 }
 
+.actionButtonsRow {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.primaryActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-2);
+  border: 1px solid var(--color-text);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.primaryActionButton:hover {
+  opacity: 0.9;
+}
+
+.primaryActionButton:active {
+  transform: scale(0.98);
+}
+
+.primaryActionButton svg {
+  flex-shrink: 0;
+}
+
 .statsRow {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -48,6 +91,8 @@
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  min-height: 115px;
   gap: var(--space-4);
   -webkit-tap-highlight-color: transparent;
 }
@@ -99,6 +144,14 @@
   white-space: nowrap;
 }
 
+.desktopOnly {
+  display: flex !important;
+}
+
+.mobileOnly {
+  display: none !important;
+}
+
 @media (max-width: 600px) {
   .statsRow {
     display: flex;
@@ -119,6 +172,7 @@
   .statCard {
     flex: 0 0 44%;
     min-width: 145px;
+    min-height: 95px;
     scroll-snap-align: start;
     padding: var(--space-3);
     gap: var(--space-3);
@@ -133,6 +187,30 @@
   .iconPill svg {
     width: 12px;
     height: 12px;
+  }
+
+  .heroHeader {
+    display: block;
+  }
+
+  .desktopOnly {
+    display: none !important;
+  }
+
+  .mobileOnly {
+    display: flex !important;
+  }
+
+  .actionButtonsRow.mobileOnly {
+    width: 100%;
+    gap: var(--space-2);
+  }
+
+  .actionButtonsRow.mobileOnly .primaryActionButton {
+    flex: 1;
+    font-size: 13px;
+    min-height: 50px;
+    padding: 0 var(--space-3);
   }
 }
 

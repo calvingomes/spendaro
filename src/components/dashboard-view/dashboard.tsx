@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useState } from "react";
 import styles from "./dashboard.module.css";
-import { AddExpenseButton } from "@/components/buttons/add-expense-button/add-expense-button";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
@@ -30,11 +29,6 @@ export function Dashboard({
           <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
           <div>
             <p className={styles.brandName}>Xpenses</p>
-          </div>
-        </div>
-        <div className={styles.topActions}>
-          <div className={activeTab === "transactions" ? "" : styles.desktopOnly}>
-            <AddExpenseButton />
           </div>
         </div>
       </header>
