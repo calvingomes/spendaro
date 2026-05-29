@@ -2,14 +2,19 @@ import type { Expense } from "@/lib/types";
 
 export const DEFAULT_CATEGORIES = ["Bills", "Entertainment", "Food", "Investment", "Salary", "Savings", "Shopping", "Subscriptions", "Travel"];
 
-export function formatDateForInput(date: Date | string) {
-  const d = typeof date === "string" ? new Date(date) : date;
+/** Returns YYYY-MM-DD in the user's LOCAL timezone (avoids UTC shift). */
+export function localDateString(date: Date = new Date()) {
   const pad = (value: number) => String(value).padStart(2, "0");
   return [
-    d.getFullYear(),
-    pad(d.getMonth() + 1),
-    pad(d.getDate())
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate())
   ].join("-");
+}
+
+export function formatDateForInput(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return localDateString(d);
 }
 
 export function parseAmount(value: string) {

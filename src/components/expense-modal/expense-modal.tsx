@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import styles from "./expense-modal.module.css";
-import { DEFAULT_CATEGORIES, formatDateForInput, parseAmount, normalizeText } from "@/utils/expense-utils";
+import { DEFAULT_CATEGORIES, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
 
 type ExpenseFormState = {
@@ -130,8 +130,8 @@ export function ExpenseModal({
   // Humanize selected date for micro-link
   const formatDateDisplay = (dateString: string) => {
     if (!dateString) return "Today";
-    const today = new Date().toISOString().split("T")[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const today = localDateString();
+    const yesterday = localDateString(new Date(Date.now() - 86400000));
     if (dateString === today) return "Today";
     if (dateString === yesterday) return "Yesterday";
 
