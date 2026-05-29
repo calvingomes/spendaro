@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ArrowDownLeft, CircleFadingArrowUp, Pencil } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, TrendingUp, Pencil, TrendingDown } from "lucide-react";
 import styles from "./expense-row.module.css";
 import { formatCurrency } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
@@ -22,6 +22,8 @@ export function ExpenseRow({
 }: ExpenseRowProps) {
   const isActive = activeCardId === expense.id;
 
+  const isWithdrawal = expense.type === "savings" && (Number.parseFloat(expense.amount) || 0) < 0;
+
   return (
     <tr 
       className={`${styles.expenseRow} ${isActive ? styles.activeCard : ""}`}
@@ -31,19 +33,25 @@ export function ExpenseRow({
       <td className={`${styles.amountCell} ${
         expense.type === "credit" 
           ? styles.positive 
-          : expense.type === "savings" 
-            ? styles.savings 
+          : expense.type === "savings"
+            ? isWithdrawal
+              ? styles.savingsDebit
+              : styles.savingsCredit
             : styles.negative
       }`}>
         <div className={styles.amountContent}>
           {expense.type === "credit" ? (
             <ArrowUpRight className={styles.amountIcon} />
           ) : expense.type === "savings" ? (
-            <CircleFadingArrowUp className={styles.amountIcon} />
+            isWithdrawal ? (
+              <TrendingDown className={styles.amountIcon} />
+            ) : (
+              <TrendingUp className={styles.amountIcon} />
+            )
           ) : (
             <ArrowDownLeft className={styles.amountIcon} />
           )}
-          {formatCurrency(expense.amount)}
+          {formatCurrency(Math.abs(Number.parseFloat(expense.amount) || 0))}
         </div>
       </td>
       <td className={styles.categoryCell}>{expense.category}</td>

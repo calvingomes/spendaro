@@ -44,9 +44,16 @@ export function calculateAggregates(expenses: Expense[]) {
   return expenses.reduce(
     (acc, e) => {
       const amount = Number.parseFloat(e.amount) || 0;
-      if (e.type === "credit") acc.income += amount;
-      else if (e.type === "debit") acc.expense += amount;
-      else if (e.type === "savings") acc.savings += amount;
+      if (e.type === "credit") {
+        acc.income += amount;
+      } else if (e.type === "debit") {
+        acc.expense += amount;
+      } else if (e.type === "savings") {
+        acc.savings += amount;
+        if (amount < 0) {
+          acc.expense += Math.abs(amount);
+        }
+      }
       return acc;
     },
     { income: 0, expense: 0, savings: 0 }

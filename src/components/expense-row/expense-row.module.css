@@ -32,7 +32,11 @@
   color: var(--color-red);
 }
 
-.savings {
+.savingsCredit {
+  color: var(--color-amber);
+}
+
+.savingsDebit {
   color: var(--color-amber);
 }
 

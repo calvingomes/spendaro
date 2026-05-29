@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp, TrendingDown, CircleFadingArrowUp } from "lucide-react";
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
@@ -20,9 +20,17 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
   const totalExpense = useMemo(
     () =>
       expenses.reduce((total, expense) => {
-        if (expense.type !== "debit") return total;
-        const amount = Number.parseFloat(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
+        if (expense.type === "debit") {
+          const amount = Number.parseFloat(expense.amount);
+          return total + (Number.isNaN(amount) ? 0 : amount);
+        }
+        if (expense.type === "savings") {
+          const amount = Number.parseFloat(expense.amount);
+          if (amount < 0) {
+            return total + Math.abs(amount);
+          }
+        }
+        return total;
       }, 0),
     [expenses]
   );
@@ -55,17 +63,17 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
           >
-            <TrendingDown size={14} />
-            Add expense
+            <ArrowDownLeft size={14} />
+            Debit
           </button>
-          {/* <button
+          <button
             className={styles.primaryActionButton}
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
           >
-            <TrendingUp size={14} />
-            Add income
-          </button> */}
+            <ArrowUpRight size={14} />
+            Credit
+          </button>
         </div>
       </div>
 
@@ -73,7 +81,7 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
         <article className={styles.statCard}>
           <div className={styles.cardHeader}>
             <div className={`${styles.iconPill} ${styles.incomeIcon}`}>
-              <TrendingUp size={14} />
+              <ArrowUpRight size={14} />
             </div>
             <span className={styles.cardLabel}>Income</span>
           </div>
@@ -83,7 +91,7 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
         <article className={styles.statCard}>
           <div className={styles.cardHeader}>
             <div className={`${styles.iconPill} ${styles.expenseIcon}`}>
-              <TrendingDown size={14} />
+              <ArrowDownLeft size={14} />
             </div>
             <span className={styles.cardLabel}>Expense</span>
           </div>
@@ -93,7 +101,7 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
         <article className={styles.statCard}>
           <div className={styles.cardHeader}>
             <div className={`${styles.iconPill} ${styles.savingsIcon}`}>
-              <CircleFadingArrowUp size={14} />
+              <TrendingUp size={14} />
             </div>
             <span className={styles.cardLabel}>Savings</span>
           </div>
@@ -107,17 +115,17 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
         >
-          <TrendingDown size={16} />
-          Add expense
+          <ArrowDownLeft size={16} />
+          Debit
         </button>
-        {/* <button
+        <button
           className={styles.primaryActionButton}
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
         >
-          <TrendingUp size={16} />
-          Add income
-        </button> */}
+          <ArrowUpRight size={16} />
+          Credit
+        </button>
       </div>
     </div>
   );

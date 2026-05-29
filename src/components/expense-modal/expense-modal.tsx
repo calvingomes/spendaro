@@ -34,12 +34,12 @@ interface ExpenseModalProps {
   defaultType?: "credit" | "debit" | "savings";
 }
 
-export function ExpenseModal({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  onDelete, 
-  editingExpense, 
+export function ExpenseModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  onDelete,
+  editingExpense,
   isPending,
   expenses,
   defaultType = "debit"
@@ -53,6 +53,10 @@ export function ExpenseModal({
   const dateInputRef = useRef<HTMLInputElement>(null);
   const newCategoryInputRef = useRef<HTMLInputElement>(null);
 
+  const isExpenseMode = useMemo(() => {
+    return defaultType === "debit" || (editingExpense && editingExpense.type === "debit");
+  }, [defaultType, editingExpense]);
+
   // Initialize form state
   useEffect(() => {
     if (isOpen) {
@@ -60,7 +64,7 @@ export function ExpenseModal({
         setForm({
           label: editingExpense.label,
           category: editingExpense.category,
-          amount: editingExpense.amount,
+          amount: Math.abs(Number.parseFloat(editingExpense.amount) || 0).toString(),
           type: editingExpense.type,
           created_at: formatDateForInput(editingExpense.created_at)
         });
@@ -97,7 +101,7 @@ export function ExpenseModal({
   // Dynamic list of categories (newly added ones + unique historical + defaults)
   const allCategories = useMemo(() => {
     const base = new Set<string>();
-    
+
     addedCategories.forEach((cat) => base.add(normalizeText(cat)));
     expenses.forEach((e) => {
       if (e.category) base.add(normalizeText(e.category));
@@ -130,7 +134,7 @@ export function ExpenseModal({
     const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
     if (dateString === today) return "Today";
     if (dateString === yesterday) return "Yesterday";
-    
+
     const dateObj = new Date(dateString);
     return dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
@@ -169,10 +173,12 @@ export function ExpenseModal({
       }
     }
 
+    const finalAmount = isExpenseMode && form.type === "savings" ? -amountNum : amountNum;
+
     const payload = {
       label: normalizedLabel,
       category: normalizedCategory,
-      amount: amountNum.toString(),
+      amount: finalAmount.toString(),
       type: form.type,
       created_at: finalCreatedAt
     };
@@ -184,15 +190,24 @@ export function ExpenseModal({
     }
   };
 
+  const modalTitle = useMemo(() => {
+    const action = editingExpense ? "Edit" : "New";
+    return isExpenseMode ? `${action} Expense` : `${action} Income`;
+  }, [editingExpense, isExpenseMode]);
+
+  const submitButtonLabel = useMemo(() => {
+    if (editingExpense) return "Save changes";
+    return isExpenseMode ? "Add Expense" : "Add Income";
+  }, [editingExpense, isExpenseMode]);
+
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      title={editingExpense ? "Edit transaction" : "New transaction"}
-      description={`Fill out the form below to ${editingExpense ? "update your" : "add a new"} transaction.`}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={modalTitle}
     >
       <form className={styles.form} onSubmit={handleSubmit}>
-        
+
         {/* Field 1: Large Centered Amount (Numeric keyboard) */}
         <div className={styles.amountSection}>
           <div className={styles.amountContainer}>
@@ -277,10 +292,7 @@ export function ExpenseModal({
                 onClick={() => setShowAddCategory(true)}
                 aria-label="Add custom category"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
+                <Plus />
               </button>
             )}
 
@@ -301,42 +313,39 @@ export function ExpenseModal({
           </div>
         </div>
 
-        {/* Field 4: Pill-Style Switch Toggle */}
-        <div className={styles.field}>
-          <div className={styles.toggleContainer}>
-            <div 
-              className={styles.slider}
-              style={{
-                transform: form.type === "debit" ? "translateX(0)" : form.type === "credit" ? "translateX(100%)" : "translateX(200%)"
-              }}
-            />
-            <button
-              type="button"
-              className={`${styles.toggleButton} ${form.type === "debit" ? styles.debitActive : ""}`}
-              onClick={() => setForm((curr) => ({ ...curr, type: "debit" }))}
-            >
-              Debit
-            </button>
-            <button
-              type="button"
-              className={`${styles.toggleButton} ${form.type === "credit" ? styles.creditActive : ""}`}
-              onClick={() => setForm((curr) => ({ ...curr, type: "credit" }))}
-            >
-              Credit
-            </button>
-            <button
-              type="button"
-              className={`${styles.toggleButton} ${form.type === "savings" ? styles.savingsActive : ""}`}
-              onClick={() => setForm((curr) => ({ ...curr, type: "savings" }))}
-            >
-              Savings
-            </button>
-          </div>
+        {/* Field 4: Savings Switch Toggle Row */}
+        <div className={styles.switchField}>
+          <span className={`${styles.switchLabel} ${form.type === "savings"
+            ? (isExpenseMode ? styles.switchLabelRed : styles.switchLabelGreen)
+            : ""
+            }`}>
+            {isExpenseMode ? "Take from savings" : "Add to savings"}
+          </span>
+          <button
+            type="button"
+            className={`${styles.switch} ${form.type === "savings" ? styles.switchOn : ""}`}
+            onClick={() => {
+              if (isExpenseMode) {
+                setForm((curr) => ({
+                  ...curr,
+                  type: curr.type === "savings" ? "debit" : "savings"
+                }));
+              } else {
+                setForm((curr) => ({
+                  ...curr,
+                  type: curr.type === "savings" ? "credit" : "savings"
+                }));
+              }
+            }}
+            aria-label={isExpenseMode ? "Toggle take from savings" : "Toggle add to savings"}
+          >
+            <div className={styles.switchThumb} />
+          </button>
         </div>
 
         {/* Field 5: Unobtrusive Date selector link */}
-        <div 
-          className={styles.dateLinkContainer} 
+        <div
+          className={styles.dateLinkContainer}
           onClick={() => dateInputRef.current?.showPicker()}
           style={{ cursor: "pointer" }}
         >
@@ -358,9 +367,9 @@ export function ExpenseModal({
           {errorMessage && <p className={styles.error}>{errorMessage}</p>}
           <div className={styles.footerActions}>
             {editingExpense && (
-              <button 
-                className={styles.deleteButton} 
-                type="button" 
+              <button
+                className={styles.deleteButton}
+                type="button"
                 onClick={() => onDelete(editingExpense.id)}
                 disabled={isPending}
               >
@@ -374,12 +383,12 @@ export function ExpenseModal({
               ) : editingExpense ? (
                 <>
                   <Pencil className={styles.tableIcon} />
-                  Save changes
+                  {submitButtonLabel}
                 </>
               ) : (
                 <>
                   <Plus className={styles.tableIcon} />
-                  Add transaction
+                  {submitButtonLabel}
                 </>
               )}
             </button>
