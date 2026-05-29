@@ -52,8 +52,13 @@ export function AnimatedCounter({
   }, [value, duration]);
 
   const formatted = useMemo(() => {
-    if (formatAsK && displayValue >= 1000) {
-      return `${currencySymbol}${(displayValue / 1000).toFixed(1)}K`;
+    if (formatAsK) {
+      if (displayValue >= 100000) {
+        return `${currencySymbol}${(displayValue / 100000).toFixed(2).replace(/\.00$/, "")}L`;
+      }
+      if (displayValue >= 1000) {
+        return `${currencySymbol}${(displayValue / 1000).toFixed(2).replace(/\.00$/, "")}K`;
+      }
     }
     return `${currencySymbol}${Math.round(displayValue).toLocaleString(undefined, {
       maximumFractionDigits: 0,

@@ -7,6 +7,7 @@ import styles from "./expense-analytics.module.css";
 import type { Expense } from "@/lib/types";
 import { getWeekRange, getWeekLabel } from "@/utils/date-utils";
 import { AnimatedCounter } from "@/components/ui/animated-counter/animated-counter";
+import { formatCurrency } from "@/utils/expense-utils";
 
 // Curated Harmony Palette (low-contrast, Sleek HSL colors for dark mode)
 const COLORS = [
@@ -236,6 +237,11 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
                 <span className={styles.totalValue}>
                   <AnimatedCounter value={totalAmount} />
                 </span>
+                {(totalAmount >= 1000 || totalAmount % 1 !== 0) && (
+                  <span className={styles.exactValue}>
+                    {formatCurrency(totalAmount)}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -251,7 +257,7 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
                   <span className={styles.categoryName}>{item.name}</span>
                 </div>
                 <span className={styles.categoryAmount}>
-                  ₹{item.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  {formatCurrency(item.value)}
                 </span>
               </div>
             ))}

@@ -1,19 +1,25 @@
 import { Zap, ShieldCheck, Compass } from "lucide-react";
 
 // Bump this version string next time you release new features to trigger the modal again!
-export const CURRENT_VERSION = "1.2.0";
+export const CURRENT_VERSION = "1.3.0";
 
 export const RELEASE_FEATURES = [
   {
-    id: "nav",
-    icon: Compass,
-    title: "Sleek Switcher & Settings",
-    description: "Navigate effortlessly between Transactions, Analytics, and Profile via tabs."
+    id: "zen-balance",
+    icon: ShieldCheck,
+    title: "All-New Balance Layout",
+    description: "A clean, balance banner with side-by-side summaries for income, expenses, and savings."
   },
   {
-    id: "sync",
+    id: "donut-analytics",
     icon: Zap,
-    title: "Worry-Free Offline Mode",
-    description: "Log expenses anytime, anywhere. They will automatically save to your account the moment you're back online."
+    title: "Refined Analytics",
+    description: "Sleek charts showing exact values and compact summary notations."
+  },
+  {
+    id: "nav",
+    icon: Compass,
+    title: "Simple Navigation",
+    description: "Switch effortlessly between your transactions list, visual charts, and profile settings."
   }
 ];
