@@ -1,10 +1,10 @@
 "use client";
 
-import { ReceiptText, BarChart3, User, LucideIcon } from "lucide-react";
+import { ReceiptText, BarChart3, User, PlusCircle, LucideIcon } from "lucide-react";
 import styles from "./navigation.module.css";
 import clsx from "clsx";
 
-export type NavTab = "transactions" | "analytics" | "profile";
+export type NavTab = "add" | "transactions" | "analytics" | "profile";
 
 interface NavigationProps {
   activeTab: NavTab;
@@ -18,6 +18,7 @@ interface TabItem {
 }
 
 const TABS: TabItem[] = [
+  { id: "add", label: "Add", icon: PlusCircle },
   { id: "transactions", label: "Transactions", icon: ReceiptText },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "profile", label: "Profile", icon: User },

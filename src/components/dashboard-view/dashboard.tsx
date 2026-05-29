@@ -20,7 +20,7 @@ export function Dashboard({
   user: User;
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
-  const [activeTab, setActiveTab] = useState<NavTab>("transactions");
+  const [activeTab, setActiveTab] = useState<NavTab>("add");
 
   return (
     <main className={styles.page}>
@@ -36,16 +36,17 @@ export function Dashboard({
       {/* Navigation Switcher */}
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {activeTab === "transactions" && (
+      {activeTab === "add" && (
         <StatsCards expenses={expenses} />
       )}
 
-      {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during transactions and analytics views */}
-      {(activeTab === "transactions" || activeTab === "analytics") && (
+      {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during add, transactions and analytics views */}
+      {(activeTab === "add" || activeTab === "transactions" || activeTab === "analytics") && (
         <ExpenseWorkspace 
           initialExpenses={initialExpenses} 
           onExpensesChange={setExpenses} 
           activeTab={activeTab}
+          onTabChange={setActiveTab}
         />
       )}
 

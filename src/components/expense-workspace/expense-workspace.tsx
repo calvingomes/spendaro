@@ -12,11 +12,13 @@ import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-qu
 export function ExpenseWorkspace({
   initialExpenses,
   onExpensesChange,
-  activeTab = "transactions"
+  activeTab = "transactions",
+  onTabChange
 }: {
   initialExpenses: Expense[];
   onExpensesChange?: (expenses: Expense[]) => void;
-  activeTab?: "transactions" | "analytics" | "profile";
+  activeTab?: "add" | "transactions" | "analytics" | "profile";
+  onTabChange?: (tab: "add" | "transactions" | "analytics" | "profile") => void;
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -124,15 +126,16 @@ export function ExpenseWorkspace({
               updated_at: new Date().toISOString()
             };
 
+            // Update local state and IndexedDB cache immediately
+            if (isEditing) {
+              const updated = expenses.map((e) => (e.id === tempId ? offlineExpense : e));
+              setExpenses(updated);
+            } else {
+              setExpenses([offlineExpense, ...expenses]);
+            }
             await putLocalExpense(offlineExpense);
 
-            if (isEditing) {
-              setExpenses((current) => current.map((e) => (e.id === editingExpense.id ? offlineExpense : e)));
-            } else {
-              setExpenses((current) => [offlineExpense, ...current]);
-            }
-
-            queueAction(isEditing ? "PUT" : "POST", isEditing ? { ...payload, id: editingExpense.id } : payload);
+            queueAction(isEditing ? "PUT" : "POST", isEditing ? { ...payload, id: editingExpense.id } : payload as Record<string, unknown>);
             setIsModalOpen(false);
             resolve();
             return;
@@ -203,6 +206,29 @@ export function ExpenseWorkspace({
 
   return (
     <section className={styles.workspace}>
+      {activeTab === "add" && expenses.length > 0 && (
+        <div className={styles.recentActivity}>
+          <h2 className={styles.sectionTitle}>Recent activity</h2>
+          <ExpenseList 
+            expenses={expenses.slice(0, 10)} 
+            onEdit={handleEdit}
+            isPending={isPending}
+            simple={true}
+          />
+          {expenses.length > 10 && (
+            <div className={styles.seeMoreContainer}>
+              <button
+                className={styles.seeMoreButton}
+                type="button"
+                onClick={() => onTabChange?.("transactions")}
+              >
+                See all transactions
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === "transactions" && (
         <ExpenseList 
           expenses={expenses} 
