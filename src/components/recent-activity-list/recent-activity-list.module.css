@@ -17,6 +17,7 @@
   margin-top: 8px;
   flex: 1;
   min-height: 0;
+  margin-bottom: var(--space-4);
 }
 
 .table {

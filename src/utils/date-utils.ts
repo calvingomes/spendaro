@@ -67,3 +67,21 @@ export function getWeekLabel(weeksAgo: number) {
   
   return `${format(start)} - ${format(end)}`;
 }
+
+export function getWeeksList(expenses: { created_at: string | Date }[]): number[] {
+  const WEEKS = [0, 1, 2, 3, 4, 5];
+  if (expenses.length === 0) return WEEKS;
+
+  let oldestDate = new Date();
+  expenses.forEach((e) => {
+    const expDate = new Date(e.created_at);
+    if (expDate < oldestDate) oldestDate = expDate;
+  });
+
+  const today = new Date();
+  const msDiff = today.getTime() - oldestDate.getTime();
+  const weeksDiff = Math.ceil(msDiff / (1000 * 60 * 60 * 24 * 7));
+
+  const count = Math.max(6, weeksDiff);
+  return Array.from({ length: count }, (_, idx) => idx);
+}
