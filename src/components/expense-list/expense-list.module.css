@@ -315,3 +315,15 @@
     max-width: none;
   }
 }
+
+.positive {
+  color: var(--color-green);
+}
+
+.negative {
+  color: var(--color-red);
+}
+
+.savings {
+  color: var(--color-amber);
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpRight, ArrowDownLeft, CircleFadingArrowUp, Pencil, Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown } from "lucide-react";
 import styles from "./expense-list.module.css";
 import { ExpenseRow } from "../expense-row/expense-row";
 import { calculateAggregates, formatCurrency, formatDateForInput } from "@/utils/expense-utils";

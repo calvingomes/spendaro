@@ -1,4 +1,3 @@
-/* eslint-disable css-modules/no-unused-class */
 "use client";
 
 import { useMemo } from "react";
