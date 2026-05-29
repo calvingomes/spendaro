@@ -58,14 +58,14 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
             <TrendingDown size={14} />
             Add expense
           </button>
-          <button
+          {/* <button
             className={styles.primaryActionButton}
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
           >
             <TrendingUp size={14} />
             Add income
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -110,14 +110,14 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
           <TrendingDown size={16} />
           Add expense
         </button>
-        <button
+        {/* <button
           className={styles.primaryActionButton}
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
         >
           <TrendingUp size={16} />
           Add income
-        </button>
+        </button> */}
       </div>
     </div>
   );
