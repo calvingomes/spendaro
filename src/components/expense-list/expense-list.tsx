@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight, ArrowDownLeft, CircleFadingArrowUp, Pencil, Search, ChevronDown } from "lucide-react";
 import styles from "./expense-list.module.css";
+import { ExpenseRow } from "../expense-row/expense-row";
 import { calculateAggregates, formatCurrency, formatDateForInput } from "@/utils/expense-utils";
 import { isDateInRange, type DateRange } from "@/utils/date-utils";
 import type { Expense } from "@/lib/types";
@@ -11,12 +12,11 @@ interface ExpenseListProps {
   expenses: Expense[];
   onEdit: (expense: Expense) => void;
   isPending: boolean;
-  simple?: boolean;
 }
 
-export function ExpenseList({ expenses, onEdit, isPending, simple = false }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [range, setRange] = useState<DateRange>(simple ? "overall" : "this-month");
+  const [range, setRange] = useState<DateRange>("this-month");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [visibleCount, setVisibleCount] = useState(50);
@@ -53,87 +53,85 @@ export function ExpenseList({ expenses, onEdit, isPending, simple = false }: Exp
   const displayedExpenses = filteredExpenses.slice(0, visibleCount);
 
   return (
-    <article className={simple ? styles.simpleList : styles.listCard}>
-      {!simple && (
-        <div className={styles.sectionHeader}>
-          <div className={styles.headerMain}>
-            <div className={styles.titleGroup}>
-              <p className={styles.sectionKicker}>Activity</p>
-              <h2 className={styles.sectionTitle}>Recent transactions</h2>
-            </div>
+    <article className={styles.listCard}>
+      <div className={styles.sectionHeader}>
+        <div className={styles.headerMain}>
+          <div className={styles.titleGroup}>
+            <p className={styles.sectionKicker}>Activity</p>
+            <h2 className={styles.sectionTitle}>Recent transactions</h2>
+          </div>
 
-            <div className={styles.headerStats}>
-              <div className={styles.headerStatItem}>
-                <span className={styles.statLabel}>Income</span>
-                <span className={`${styles.statValue} ${styles.positive}`}>{formatCurrency(income)}</span>
-              </div>
-              <div className={styles.headerStatItem}>
-                <span className={styles.statLabel}>Expense</span>
-                <span className={`${styles.statValue} ${styles.negative}`}>{formatCurrency(expense)}</span>
-              </div>
-              <div className={styles.headerStatItem}>
-                <span className={styles.statLabel}>Savings</span>
-                <span className={`${styles.statValue} ${styles.savings}`}>{formatCurrency(savings)}</span>
-              </div>
+          <div className={styles.headerStats}>
+            <div className={styles.headerStatItem}>
+              <span className={styles.statLabel}>Income</span>
+              <span className={`${styles.statValue} ${styles.positive}`}>{formatCurrency(income)}</span>
             </div>
-
-            <div className={styles.selectWrapper}>
-              <select 
-                className={styles.rangeSelect}
-                value={range}
-                onChange={(e) => setRange(e.target.value as DateRange)}
-              >
-                <option value="overall">Overall</option>
-                <option value="this-month">This month</option>
-                <option value="last-month">Last month</option>
-                <option value="last-3-months">Last 3 months</option>
-                <option value="custom">Custom range</option>
-              </select>
-              <ChevronDown className={styles.selectArrow} />
+            <div className={styles.headerStatItem}>
+              <span className={styles.statLabel}>Expense</span>
+              <span className={`${styles.statValue} ${styles.negative}`}>{formatCurrency(expense)}</span>
+            </div>
+            <div className={styles.headerStatItem}>
+              <span className={styles.statLabel}>Savings</span>
+              <span className={`${styles.statValue} ${styles.savings}`}>{formatCurrency(savings)}</span>
             </div>
           </div>
-          
-          <div className={styles.sectionActions}>
-            {range === "custom" && (
-              <div className={styles.customDates}>
-                <input 
-                  type="date" 
-                  value={customStart} 
-                  onChange={(e) => setCustomStart(e.target.value)}
-                  max={today}
-                  className={styles.dateInput}
-                />
-                <span className={styles.dateSeparator}>to</span>
-                <input 
-                  type="date" 
-                  value={customEnd} 
-                  onChange={(e) => setCustomEnd(e.target.value)}
-                  min={customStart}
-                  max={today}
-                  className={styles.dateInput}
-                />
-              </div>
-            )}
-            <div className={styles.searchBox}>
-              <Search className={styles.searchIcon} />
-              <input 
-                type="text" 
-                placeholder="Search Label or Category..." 
-                className={styles.searchInput}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+
+          <div className={styles.selectWrapper}>
+            <select 
+              className={styles.rangeSelect}
+              value={range}
+              onChange={(e) => setRange(e.target.value as DateRange)}
+            >
+              <option value="overall">Overall</option>
+              <option value="this-month">This month</option>
+              <option value="last-month">Last month</option>
+              <option value="last-3-months">Last 3 months</option>
+              <option value="custom">Custom range</option>
+            </select>
+            <ChevronDown className={styles.selectArrow} />
           </div>
         </div>
-      )}
+        
+        <div className={styles.sectionActions}>
+          {range === "custom" && (
+            <div className={styles.customDates}>
+              <input 
+                type="date" 
+                value={customStart} 
+                onChange={(e) => setCustomStart(e.target.value)}
+                max={today}
+                className={styles.dateInput}
+              />
+              <span className={styles.dateSeparator}>to</span>
+              <input 
+                type="date" 
+                value={customEnd} 
+                onChange={(e) => setCustomEnd(e.target.value)}
+                min={customStart}
+                max={today}
+                className={styles.dateInput}
+              />
+            </div>
+          )}
+          <div className={styles.searchBox}>
+            <Search className={styles.searchIcon} />
+            <input 
+              type="text" 
+              placeholder="Search Label or Category..." 
+              className={styles.searchInput}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
       {filteredExpenses.length === 0 ? (
         <div className={styles.emptyState}>
           <p>No transactions found.</p>
         </div>
       ) : (
-        <div className={`${styles.tableWrap} ${simple ? styles.simpleTableWrap : ""}`} onScroll={handleScroll}>
+        <div className={styles.tableWrap} onScroll={handleScroll}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -146,41 +144,14 @@ export function ExpenseList({ expenses, onEdit, isPending, simple = false }: Exp
             </thead>
             <tbody>
               {displayedExpenses.map((expense) => (
-                <tr 
-                  key={expense.id} 
-                  className={activeCardId === expense.id ? styles.activeCard : ""}
-                  onClick={() => setActiveCardId(activeCardId === expense.id ? null : expense.id)}
-                >
-                  <td className={styles.labelCell}>{expense.label}</td>
-                  <td className={`${styles.amountCell} ${
-                    expense.type === "credit" 
-                      ? styles.positive 
-                      : expense.type === "savings" 
-                        ? styles.savings 
-                        : styles.negative
-                  }`}>
-                    <div className={styles.amountContent}>
-                      {expense.type === "credit" ? (
-                        <ArrowUpRight className={styles.amountIcon} />
-                      ) : expense.type === "savings" ? (
-                        <CircleFadingArrowUp className={styles.amountIcon} />
-                      ) : (
-                        <ArrowDownLeft className={styles.amountIcon} />
-                      )}
-                      {formatCurrency(expense.amount)}
-                    </div>
-                  </td>
-                  <td className={styles.categoryCell}>{expense.category}</td>
-                  <td className={styles.dateCell}>{new Date(expense.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</td>
-                  <td className={styles.actionsCellWrap}>
-                    <div className={styles.actionsCell}>
-                      <button className={styles.tableButton} type="button" onClick={() => onEdit(expense)} disabled={isPending} title="Edit">
-                        <Pencil className={styles.tableIcon} />
-                        <span>Edit</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <ExpenseRow
+                  key={expense.id}
+                  expense={expense}
+                  onEdit={onEdit}
+                  isPending={isPending}
+                  activeCardId={activeCardId}
+                  setActiveCardId={setActiveCardId}
+                />
               ))}
             </tbody>
           </table>

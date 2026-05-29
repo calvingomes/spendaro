@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
+import { TrendingUp, TrendingDown, CircleFadingArrowUp } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
@@ -94,7 +94,7 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
         <article className={styles.statCard}>
           <div className={styles.cardHeader}>
             <div className={`${styles.iconPill} ${styles.savingsIcon}`}>
-              <PiggyBank size={14} />
+              <CircleFadingArrowUp size={14} />
             </div>
             <span className={styles.cardLabel}>Savings</span>
           </div>

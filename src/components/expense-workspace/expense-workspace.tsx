@@ -5,6 +5,7 @@ import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
 import { ExpenseAnalytics } from "@/components/expense-analytics/expense-analytics";
 import { ExpenseList } from "@/components/expense-list/expense-list";
+import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { ExpenseModal } from "@/components/expense-modal/expense-modal";
 import { saveLocalExpenses, getLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
 import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-queue";
@@ -209,11 +210,10 @@ export function ExpenseWorkspace({
       {activeTab === "add" && expenses.length > 0 && (
         <div className={styles.recentActivity}>
           <h2 className={styles.sectionTitle}>Recent activity</h2>
-          <ExpenseList 
+          <RecentActivityList 
             expenses={expenses.slice(0, 10)} 
             onEdit={handleEdit}
             isPending={isPending}
-            simple={true}
           />
           {expenses.length > 10 && (
             <div className={styles.seeMoreContainer}>
