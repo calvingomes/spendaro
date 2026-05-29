@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowUpRight, ArrowDownLeft, CircleFadingArrowUp, Pencil, Search, ChevronDown } from "lucide-react";
+import { Search } from "lucide-react";
 import styles from "./expense-list.module.css";
-import { calculateAggregates, formatCurrency, formatDateForInput } from "@/utils/expense-utils";
-import { isDateInRange, type DateRange } from "@/utils/date-utils";
+import { ExpenseRow } from "../expense-row/expense-row";
+import { getWeekRange, getWeeksList } from "@/utils/date-utils";
+import { calculateAggregates, formatCurrency } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
+import { ExpenseFilters, type TimeSegment } from "@/components/expense-filters/expense-filters";
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -15,17 +17,50 @@ interface ExpenseListProps {
 
 export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [range, setRange] = useState<DateRange>("this-month");
-  const [customStart, setCustomStart] = useState("");
-  const [customEnd, setCustomEnd] = useState("");
+  const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
+  const [activeType, setActiveType] = useState<"debit" | "credit" | "all">("all");
+
+  // Dynamic current date states
+  const now = new Date();
+  const currentMonthIdx = now.getMonth();
+  const currentQuarterIdx = Math.floor(currentMonthIdx / 3);
+
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(currentMonthIdx);
+  const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(currentQuarterIdx);
+  const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const [visibleCount, setVisibleCount] = useState(50);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
-  const today = useMemo(() => formatDateForInput(new Date()), []);
+  // Dynamically calculate weeks based on oldest expense (fallback to at least 6 weeks)
+  const WEEKS_LIST = useMemo(() => getWeeksList(expenses), [expenses]);
 
+  // Memoized filtered data calculations
   const filteredExpenses = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+
     return expenses
-      .filter((e) => isDateInRange(new Date(e.created_at), range, customStart, customEnd))
+      .filter((e) => {
+        // Filter by Transaction Type (debit / credit / all)
+        if (activeType === "all") return true;
+        return e.type === activeType;
+      })
+      .filter((e) => {
+        const expenseDate = new Date(e.created_at);
+        const expYear = expenseDate.getFullYear();
+
+        if (timeSegment === "month") {
+          return expenseDate.getMonth() === selectedMonthIdx && expYear === currentYear;
+        } else if (timeSegment === "quarter") {
+          const expQuarter = Math.floor(expenseDate.getMonth() / 3);
+          return expQuarter === selectedQuarterIdx && expYear === currentYear;
+        } else if (timeSegment === "week") {
+          const { start, end } = getWeekRange(selectedWeekIdx);
+          return expenseDate >= start && expenseDate <= end;
+        } else if (timeSegment === "all") {
+          return true;
+        }
+        return true;
+      })
       .filter((e) => 
         e.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -35,7 +70,7 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
         if (diff !== 0) return diff;
         return b.id.localeCompare(a.id);
       });
-  }, [expenses, searchTerm, range, customStart, customEnd]);
+  }, [expenses, searchTerm, timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx, activeType]);
 
   const { income, expense, savings } = useMemo(() => 
     calculateAggregates(filteredExpenses), 
@@ -54,10 +89,36 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
   return (
     <article className={styles.listCard}>
       <div className={styles.sectionHeader}>
-        <div className={styles.headerMain}>
-          <div className={styles.titleGroup}>
-            <p className={styles.sectionKicker}>Activity</p>
-            <h2 className={styles.sectionTitle}>Recent transactions</h2>
+        <ExpenseFilters
+          activeType={activeType}
+          onTypeChange={setActiveType}
+          typeOptions={[
+            { value: "all", label: "All Transactions" },
+            { value: "debit", label: "Expenses" },
+            { value: "credit", label: "Income" },
+          ]}
+          timeSegment={timeSegment}
+          onTimeSegmentChange={setTimeSegment}
+          selectedWeekIdx={selectedWeekIdx}
+          onWeekChange={setSelectedWeekIdx}
+          selectedMonthIdx={selectedMonthIdx}
+          onMonthChange={setSelectedMonthIdx}
+          selectedQuarterIdx={selectedQuarterIdx}
+          onQuarterChange={setSelectedQuarterIdx}
+          weeksList={WEEKS_LIST}
+        />
+
+        {/* Row 3: Search box (left) + Aggregates (right) */}
+        <div className={styles.filterActionsRow}>
+          <div className={styles.searchBox}>
+            <Search className={styles.searchIcon} />
+            <input 
+              type="text" 
+              placeholder="Search Label or Category..." 
+              className={styles.searchInput}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
 
           <div className={styles.headerStats}>
@@ -73,54 +134,6 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
               <span className={styles.statLabel}>Savings</span>
               <span className={`${styles.statValue} ${styles.savings}`}>{formatCurrency(savings)}</span>
             </div>
-          </div>
-
-          <div className={styles.selectWrapper}>
-            <select 
-              className={styles.rangeSelect}
-              value={range}
-              onChange={(e) => setRange(e.target.value as DateRange)}
-            >
-              <option value="overall">Overall</option>
-              <option value="this-month">This month</option>
-              <option value="last-month">Last month</option>
-              <option value="last-3-months">Last 3 months</option>
-              <option value="custom">Custom range</option>
-            </select>
-            <ChevronDown className={styles.selectArrow} />
-          </div>
-        </div>
-        
-        <div className={styles.sectionActions}>
-          {range === "custom" && (
-            <div className={styles.customDates}>
-              <input 
-                type="date" 
-                value={customStart} 
-                onChange={(e) => setCustomStart(e.target.value)}
-                max={today}
-                className={styles.dateInput}
-              />
-              <span className={styles.dateSeparator}>to</span>
-              <input 
-                type="date" 
-                value={customEnd} 
-                onChange={(e) => setCustomEnd(e.target.value)}
-                min={customStart}
-                max={today}
-                className={styles.dateInput}
-              />
-            </div>
-          )}
-          <div className={styles.searchBox}>
-            <Search className={styles.searchIcon} />
-            <input 
-              type="text" 
-              placeholder="Search Label or Category..." 
-              className={styles.searchInput}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
           </div>
         </div>
       </div>
@@ -143,41 +156,14 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
             </thead>
             <tbody>
               {displayedExpenses.map((expense) => (
-                <tr 
-                  key={expense.id} 
-                  className={activeCardId === expense.id ? styles.activeCard : ""}
-                  onClick={() => setActiveCardId(activeCardId === expense.id ? null : expense.id)}
-                >
-                  <td className={styles.labelCell}>{expense.label}</td>
-                  <td className={`${styles.amountCell} ${
-                    expense.type === "credit" 
-                      ? styles.positive 
-                      : expense.type === "savings" 
-                        ? styles.savings 
-                        : styles.negative
-                  }`}>
-                    <div className={styles.amountContent}>
-                      {expense.type === "credit" ? (
-                        <ArrowUpRight className={styles.amountIcon} />
-                      ) : expense.type === "savings" ? (
-                        <CircleFadingArrowUp className={styles.amountIcon} />
-                      ) : (
-                        <ArrowDownLeft className={styles.amountIcon} />
-                      )}
-                      {formatCurrency(expense.amount)}
-                    </div>
-                  </td>
-                  <td className={styles.categoryCell}>{expense.category}</td>
-                  <td className={styles.dateCell}>{new Date(expense.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</td>
-                  <td className={styles.actionsCellWrap}>
-                    <div className={styles.actionsCell}>
-                      <button className={styles.tableButton} type="button" onClick={() => onEdit(expense)} disabled={isPending} title="Edit">
-                        <Pencil className={styles.tableIcon} />
-                        <span>Edit</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                <ExpenseRow
+                  key={expense.id}
+                  expense={expense}
+                  onEdit={onEdit}
+                  isPending={isPending}
+                  activeCardId={activeCardId}
+                  setActiveCardId={setActiveCardId}
+                />
               ))}
             </tbody>
           </table>

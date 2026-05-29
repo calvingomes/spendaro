@@ -31,6 +31,7 @@ interface ExpenseModalProps {
   editingExpense: Expense | null;
   isPending: boolean;
   expenses: Expense[];
+  defaultType?: "credit" | "debit" | "savings";
 }
 
 export function ExpenseModal({ 
@@ -40,7 +41,8 @@ export function ExpenseModal({
   onDelete, 
   editingExpense, 
   isPending,
-  expenses 
+  expenses,
+  defaultType = "debit"
 }: ExpenseModalProps) {
   const [form, setForm] = useState<ExpenseFormState>(emptyForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -65,6 +67,7 @@ export function ExpenseModal({
       } else {
         setForm({
           ...emptyForm,
+          type: defaultType,
           created_at: formatDateForInput(new Date())
         });
       }
@@ -72,7 +75,7 @@ export function ExpenseModal({
       setNewCategory("");
       setShowAddCategory(false);
     }
-  }, [isOpen, editingExpense]);
+  }, [isOpen, editingExpense, defaultType]);
 
   // Autofocus and scroll the inline category input when opened
   useEffect(() => {

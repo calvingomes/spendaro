@@ -5,6 +5,7 @@ import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
 import { ExpenseAnalytics } from "@/components/expense-analytics/expense-analytics";
 import { ExpenseList } from "@/components/expense-list/expense-list";
+import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { ExpenseModal } from "@/components/expense-modal/expense-modal";
 import { saveLocalExpenses, getLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
 import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-queue";
@@ -12,16 +13,19 @@ import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-qu
 export function ExpenseWorkspace({
   initialExpenses,
   onExpensesChange,
-  activeTab = "transactions"
+  activeTab = "transactions",
+  onTabChange
 }: {
   initialExpenses: Expense[];
   onExpensesChange?: (expenses: Expense[]) => void;
-  activeTab?: "transactions" | "analytics" | "profile";
+  activeTab?: "add" | "transactions" | "analytics" | "profile";
+  onTabChange?: (tab: "add" | "transactions" | "analytics" | "profile") => void;
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [defaultType, setDefaultType] = useState<"credit" | "debit" | "savings">("debit");
 
   useEffect(() => {
     onExpensesChange?.(expenses);
@@ -86,7 +90,10 @@ export function ExpenseWorkspace({
   }, []);
 
   useEffect(() => {
-    const openModal = () => {
+    const openModal = (e: Event) => {
+      const customEvent = e as CustomEvent<{ defaultType?: "credit" | "debit" | "savings" }>;
+      const dType = customEvent.detail?.defaultType ?? "debit";
+      setDefaultType(dType);
       setEditingExpense(null);
       setIsModalOpen(true);
     };
@@ -120,15 +127,16 @@ export function ExpenseWorkspace({
               updated_at: new Date().toISOString()
             };
 
+            // Update local state and IndexedDB cache immediately
+            if (isEditing) {
+              const updated = expenses.map((e) => (e.id === tempId ? offlineExpense : e));
+              setExpenses(updated);
+            } else {
+              setExpenses([offlineExpense, ...expenses]);
+            }
             await putLocalExpense(offlineExpense);
 
-            if (isEditing) {
-              setExpenses((current) => current.map((e) => (e.id === editingExpense.id ? offlineExpense : e)));
-            } else {
-              setExpenses((current) => [offlineExpense, ...current]);
-            }
-
-            queueAction(isEditing ? "PUT" : "POST", isEditing ? { ...payload, id: editingExpense.id } : payload);
+            queueAction(isEditing ? "PUT" : "POST", isEditing ? { ...payload, id: editingExpense.id } : payload as Record<string, unknown>);
             setIsModalOpen(false);
             resolve();
             return;
@@ -199,6 +207,28 @@ export function ExpenseWorkspace({
 
   return (
     <section className={styles.workspace}>
+      {activeTab === "add" && expenses.length > 0 && (
+        <div className={styles.recentActivity}>
+          <h2 className={styles.sectionTitle}>Recent activity</h2>
+          <RecentActivityList 
+            expenses={expenses.slice(0, 10)} 
+            onEdit={handleEdit}
+            isPending={isPending}
+          />
+          {expenses.length > 10 && (
+            <div className={styles.seeMoreContainer}>
+              <button
+                className={styles.seeMoreButton}
+                type="button"
+                onClick={() => onTabChange?.("transactions")}
+              >
+                See all transactions
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === "transactions" && (
         <ExpenseList 
           expenses={expenses} 
@@ -219,6 +249,7 @@ export function ExpenseWorkspace({
         editingExpense={editingExpense}
         isPending={isPending}
         expenses={expenses}
+        defaultType={defaultType}
       />
     </section>
   );

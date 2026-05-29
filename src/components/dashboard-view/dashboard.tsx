@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useState } from "react";
 import styles from "./dashboard.module.css";
-import { AddExpenseButton } from "@/components/buttons/add-expense-button/add-expense-button";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
@@ -21,7 +20,7 @@ export function Dashboard({
   user: User;
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
-  const [activeTab, setActiveTab] = useState<NavTab>("transactions");
+  const [activeTab, setActiveTab] = useState<NavTab>("add");
 
   return (
     <main className={styles.page}>
@@ -32,26 +31,22 @@ export function Dashboard({
             <p className={styles.brandName}>Xpenses</p>
           </div>
         </div>
-        <div className={styles.topActions}>
-          <div className={activeTab === "transactions" ? "" : styles.desktopOnly}>
-            <AddExpenseButton />
-          </div>
-        </div>
       </header>
 
       {/* Navigation Switcher */}
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {activeTab === "transactions" && (
+      {activeTab === "add" && (
         <StatsCards expenses={expenses} />
       )}
 
-      {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during transactions and analytics views */}
-      {(activeTab === "transactions" || activeTab === "analytics") && (
+      {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during add, transactions and analytics views */}
+      {(activeTab === "add" || activeTab === "transactions" || activeTab === "analytics") && (
         <ExpenseWorkspace 
           initialExpenses={initialExpenses} 
           onExpensesChange={setExpenses} 
           activeTab={activeTab}
+          onTabChange={setActiveTab}
         />
       )}
 

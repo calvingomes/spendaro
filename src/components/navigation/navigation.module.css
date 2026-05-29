@@ -1,8 +1,10 @@
 .desktopNav {
   display: none;
   width: 100%;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-4);
   border-bottom: 1px solid var(--color-border);
+  order: 2;
+  flex-shrink: 0;
 }
 
 .desktopNavInner {
@@ -54,7 +56,7 @@
 
 .mobileNav {
   display: block;
-  position: fixed;
+  position: sticky;
   bottom: 0;
   left: 0;
   right: 0;
@@ -63,6 +65,8 @@
   border-top: 1px solid var(--color-border);
   padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
   padding-top: var(--space-2);
+  order: 4;
+  flex-shrink: 0;
 }
 
 :global([data-theme='light']) .mobileNav {
