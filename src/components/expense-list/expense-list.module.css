@@ -150,6 +150,10 @@
     width: 100%;
   }
 
+  .searchInput {
+    font-size: 16px;
+  }
+
   .headerStats {
     display: flex;
     order: 3;
