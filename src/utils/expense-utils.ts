@@ -53,11 +53,6 @@ export function calculateAggregates(expenses: Expense[]) {
         acc.income += amount;
       } else if (e.type === "debit") {
         acc.expense += amount;
-      } else if (e.type === "savings") {
-        acc.savings += amount;
-        if (amount < 0) {
-          acc.expense += Math.abs(amount);
-        }
       }
       return acc;
     },

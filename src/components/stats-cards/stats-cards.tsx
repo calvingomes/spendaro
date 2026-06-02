@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
@@ -24,28 +24,12 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
           const amount = Number.parseFloat(expense.amount);
           return total + (Number.isNaN(amount) ? 0 : amount);
         }
-        if (expense.type === "savings") {
-          const amount = Number.parseFloat(expense.amount);
-          if (amount < 0) {
-            return total + Math.abs(amount);
-          }
-        }
         return total;
       }, 0),
     [expenses]
   );
 
-  const totalSavings = useMemo(
-    () =>
-      expenses.reduce((total, expense) => {
-        if (expense.type !== "savings") return total;
-        const amount = Number.parseFloat(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
-      }, 0),
-    [expenses]
-  );
-
-  const netBalance = totalIncome - totalExpense - totalSavings;
+  const netBalance = totalIncome - totalExpense;
 
   return (
     <div className={styles.heroContainer}>
@@ -96,16 +80,6 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
             <span className={styles.cardLabel}>Expense</span>
           </div>
           <strong className={styles.cardValue}>{formatCurrency(totalExpense)}</strong>
-        </article>
-
-        <article className={styles.statCard}>
-          <div className={styles.cardHeader}>
-            <div className={`${styles.iconPill} ${styles.savingsIcon}`}>
-              <TrendingUp size={14} />
-            </div>
-            <span className={styles.cardLabel}>Savings</span>
-          </div>
-          <strong className={styles.cardValue}>{formatCurrency(totalSavings)}</strong>
         </article>
       </div>
 

@@ -3,7 +3,6 @@
   flex-direction: column;
   gap: var(--space-4);
   margin-top: var(--space-4);
-  order: 3;
   flex: 1;
   min-height: 0;
 }

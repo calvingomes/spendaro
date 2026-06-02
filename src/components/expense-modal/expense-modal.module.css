@@ -198,69 +198,6 @@
   }
 }
 
-/* Savings Switch Toggle Row */
-.switchField {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  min-height: 48px;
-}
-
-.switchLabel {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  transition: color 0.15s ease;
-}
-
-.switchLabelRed {
-  color: var(--color-red);
-}
-
-.switchLabelGreen {
-  color: var(--color-green);
-}
-
-.switch {
-  position: relative;
-  width: 48px;
-  height: 26px;
-  min-width: 48px;
-  min-height: 26px;
-  background: var(--color-bg-control);
-  border: 1px solid var(--color-border);
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 0;
-  margin: 0;
-  outline: none;
-  box-sizing: border-box;
-  display: block;
-  flex-shrink: 0;
-}
-
-.switchOn {
-  background: var(--color-text);
-}
-
-.switchThumb {
-  position: absolute;
-  top: 1px;
-  left: 1px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--color-text-secondary);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s;
-  box-sizing: border-box;
-}
-
-.switchOn .switchThumb {
-  transform: translateX(22px);
-  background: var(--color-bg);
-}
 
 /* Date Selector link */
 .dateLinkContainer {

@@ -38,12 +38,12 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const id = body.id ? String(body.id).trim() : undefined;
   const label = String(body.label ?? "").trim();
-  const category = String(body.category ?? "").trim();
   const amount = Number(body.amount);
+  const category = body.category || "Uncategorized";
   const type = (body.type === "credit" || body.type === "savings" ? body.type : "debit") as "credit" | "debit" | "savings";
-  const createdAt = body.created_at ? new Date(body.created_at).toISOString() : new Date().toISOString();
+  const pot_id = body.pot_id || null;
 
-  if (!label || !category || Number.isNaN(amount)) {
+  if (!label || Number.isNaN(amount)) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
       category,
       amount,
       type,
-      created_at: createdAt
+      pot_id,
+      created_at: body.created_at || new Date().toISOString()
     })
     .select("*")
     .single();
@@ -85,6 +86,7 @@ export async function PUT(request: NextRequest) {
   const category = String(body.category ?? "").trim();
   const amount = Number(body.amount);
   const type = (body.type === "credit" || body.type === "savings" ? body.type : "debit") as "credit" | "debit" | "savings";
+  const pot_id = body.pot_id !== undefined ? body.pot_id : null;
   const createdAt = body.created_at ? new Date(body.created_at).toISOString() : new Date().toISOString();
 
   if (!id || !label || !category || Number.isNaN(amount)) {
@@ -98,6 +100,7 @@ export async function PUT(request: NextRequest) {
       category,
       amount,
       type,
+      pot_id,
       created_at: createdAt
     })
     .eq("id", id)
