@@ -130,10 +130,6 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
               <span className={styles.statLabel}>Expense</span>
               <span className={`${styles.statValue} ${styles.negative}`}>{formatCurrency(expense)}</span>
             </div>
-            <div className={styles.headerStatItem}>
-              <span className={styles.statLabel}>Savings</span>
-              <span className={`${styles.statValue} ${styles.savings}`}>{formatCurrency(savings)}</span>
-            </div>
           </div>
         </div>
       </div>

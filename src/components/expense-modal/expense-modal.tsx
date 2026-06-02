@@ -172,8 +172,7 @@ export function ExpenseModal({
         finalCreatedAt = combinedDate.toISOString();
       }
     }
-
-    const finalAmount = isExpenseMode && form.type === "savings" ? -amountNum : amountNum;
+    const finalAmount = amountNum;
 
     const payload = {
       label: normalizedLabel,
@@ -313,37 +312,7 @@ export function ExpenseModal({
           </div>
         </div>
 
-        {/* Field 4: Savings Switch Toggle Row */}
-        <div className={styles.switchField}>
-          <span className={`${styles.switchLabel} ${form.type === "savings"
-            ? (isExpenseMode ? styles.switchLabelRed : styles.switchLabelGreen)
-            : ""
-            }`}>
-            {isExpenseMode ? "Take from savings" : "Add to savings"}
-          </span>
-          <button
-            type="button"
-            className={`${styles.switch} ${form.type === "savings" ? styles.switchOn : ""}`}
-            onClick={() => {
-              if (isExpenseMode) {
-                setForm((curr) => ({
-                  ...curr,
-                  type: curr.type === "savings" ? "debit" : "savings"
-                }));
-              } else {
-                setForm((curr) => ({
-                  ...curr,
-                  type: curr.type === "savings" ? "credit" : "savings"
-                }));
-              }
-            }}
-            aria-label={isExpenseMode ? "Toggle take from savings" : "Toggle add to savings"}
-          >
-            <div className={styles.switchThumb} />
-          </button>
-        </div>
-
-        {/* Field 5: Unobtrusive Date selector link */}
+        {/* Field 4: Unobtrusive Date selector link */}
         <div
           className={styles.dateLinkContainer}
           onClick={() => dateInputRef.current?.showPicker()}
