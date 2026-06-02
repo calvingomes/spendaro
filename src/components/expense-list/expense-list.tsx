@@ -72,7 +72,7 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
       });
   }, [expenses, searchTerm, timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx, activeType]);
 
-  const { income, expense, savings } = useMemo(() => 
+  const { income, expense } = useMemo(() => 
     calculateAggregates(filteredExpenses), 
     [filteredExpenses]
   );

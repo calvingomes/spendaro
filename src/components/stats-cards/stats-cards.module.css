@@ -47,37 +47,10 @@
   display: flex;
   gap: var(--space-3);
 }
-
 .primaryActionButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: var(--control-height);
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-2);
-  border: 1px solid var(--color-text);
-  background: var(--color-text);
-  color: var(--color-bg);
   font-size: var(--text-base);
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.1s ease;
-  -webkit-tap-highlight-color: transparent;
-  white-space: nowrap;
 }
 
-.primaryActionButton:hover {
-  opacity: 0.9;
-}
-
-.primaryActionButton:active {
-  transform: scale(0.98);
-}
-
-.primaryActionButton svg {
-  flex-shrink: 0;
-}
 
 .statsRow {
   display: grid;

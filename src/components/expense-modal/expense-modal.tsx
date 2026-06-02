@@ -3,6 +3,10 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
+import { AmountInput } from "@/components/ui/amount-input/amount-input";
+import { Input } from "@/components/ui/input/input";
+import { CategoryPicker } from "@/components/ui/category-picker/category-picker";
+import { Button } from "@/components/ui/button/button";
 import styles from "./expense-modal.module.css";
 import { DEFAULT_CATEGORIES, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
@@ -46,12 +50,9 @@ export function ExpenseModal({
 }: ExpenseModalProps) {
   const [form, setForm] = useState<ExpenseFormState>(emptyForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [newCategory, setNewCategory] = useState("");
-  const [showAddCategory, setShowAddCategory] = useState(false);
   const [addedCategories, setAddedCategories] = useState<string[]>([]);
 
   const dateInputRef = useRef<HTMLInputElement>(null);
-  const newCategoryInputRef = useRef<HTMLInputElement>(null);
 
   const isExpenseMode = useMemo(() => {
     return defaultType === "debit" || (editingExpense && editingExpense.type === "debit");
@@ -76,20 +77,8 @@ export function ExpenseModal({
         });
       }
       setErrorMessage(null);
-      setNewCategory("");
-      setShowAddCategory(false);
     }
   }, [isOpen, editingExpense, defaultType]);
-
-  // Autofocus and scroll the inline category input when opened
-  useEffect(() => {
-    if (showAddCategory && newCategoryInputRef.current) {
-      newCategoryInputRef.current.focus();
-      setTimeout(() => {
-        newCategoryInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 150);
-    }
-  }, [showAddCategory]);
 
   const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     const target = e.target;
@@ -111,10 +100,8 @@ export function ExpenseModal({
     return Array.from(base).sort((a, b) => a.localeCompare(b));
   }, [expenses, addedCategories]);
 
-  // Handles adding an inline custom category chip
-  const handleNewCategorySubmit = (event?: React.FormEvent) => {
-    if (event) event.preventDefault();
-    const normalized = normalizeText(newCategory);
+  const handleAddCategory = (newCat: string) => {
+    const normalized = normalizeText(newCat);
     if (!normalized) return;
 
     const matchExists = allCategories.some(cat => cat.toLowerCase() === normalized.toLowerCase());
@@ -123,8 +110,6 @@ export function ExpenseModal({
     }
 
     setForm(current => ({ ...current, category: normalized }));
-    setNewCategory("");
-    setShowAddCategory(false);
   };
 
   // Humanize selected date for micro-link
@@ -208,109 +193,32 @@ export function ExpenseModal({
       <form className={styles.form} onSubmit={handleSubmit}>
 
         {/* Field 1: Large Centered Amount (Numeric keyboard) */}
-        <div className={styles.amountSection}>
-          <div className={styles.amountContainer}>
-            <span className={styles.currencySymbol}>₹</span>
-            <div className={styles.inputWrapper}>
-              <span className={styles.mirrorSpan}>
-                {form.amount || "0.00"}
-              </span>
-              <input
-                id="amount"
-                type="text"
-                inputMode="decimal"
-                className={styles.largeAmountInput}
-                value={form.amount}
-                onFocus={handleInputFocus}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === "" || /^[0-9]*\.?[0-9]*$/.test(val)) {
-                    setForm((curr) => ({ ...curr, amount: val }));
-                  }
-                }}
-                placeholder="0.00"
-                required
-              />
-            </div>
-          </div>
-        </div>
+        <AmountInput 
+          value={form.amount} 
+          onChange={(val) => setForm((curr) => ({ ...curr, amount: val }))}
+          onFocus={handleInputFocus}
+        />
+
 
         {/* Field 2: Label Input */}
-        <div className={styles.field}>
-          <label htmlFor="label">Label</label>
-          <input
-            id="label"
-            type="text"
-            className={styles.textInput}
-            value={form.label}
-            onFocus={handleInputFocus}
-            onChange={(e) => setForm((curr) => ({ ...curr, label: e.target.value }))}
-            placeholder="e.g. Starbucks, Coffee, Salary"
-            required
-          />
-        </div>
+        <Input
+          label="Label"
+          id="label"
+          value={form.label}
+          onFocus={handleInputFocus}
+          onChange={(val) => setForm((curr) => ({ ...curr, label: val }))}
+          placeholder="e.g. Starbucks, Coffee, Salary"
+          required
+        />
 
         {/* Field 3: Category Tappable Chips */}
-        <div className={styles.field}>
-          <label>Category</label>
-          <div className={styles.chipsRow}>
-            {/* Toggle Plus Button or inline text input on the far left */}
-            {showAddCategory ? (
-              <div className={styles.inlineCategoryForm}>
-                <input
-                  ref={newCategoryInputRef}
-                  type="text"
-                  placeholder="New..."
-                  value={newCategory}
-                  onFocus={handleInputFocus}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className={styles.inlineCategoryInput}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleNewCategorySubmit();
-                    }
-                    if (e.key === "Escape") {
-                      setShowAddCategory(false);
-                    }
-                  }}
-                  onBlur={() => {
-                    // Save on blur if has value, else close
-                    if (newCategory.trim()) {
-                      handleNewCategorySubmit();
-                    } else {
-                      setShowAddCategory(false);
-                    }
-                  }}
-                />
-              </div>
-            ) : (
-              <button
-                type="button"
-                className={styles.addCategoryChip}
-                onClick={() => setShowAddCategory(true)}
-                aria-label="Add custom category"
-              >
-                <Plus />
-              </button>
-            )}
-
-            {/* Mapped Categories scrollable after */}
-            {allCategories.map((cat) => {
-              const isActive = form.category.toLowerCase() === cat.toLowerCase();
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`${styles.chip} ${isActive ? styles.chipActive : ""}`}
-                  onClick={() => setForm((curr) => ({ ...curr, category: cat }))}
-                >
-                  {cat}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <CategoryPicker
+          value={form.category}
+          onChange={(cat) => setForm((curr) => ({ ...curr, category: cat }))}
+          categories={allCategories}
+          onAddCategory={handleAddCategory}
+          onFocus={handleInputFocus}
+        />
 
         {/* Field 4: Unobtrusive Date selector link */}
         <div
@@ -346,21 +254,21 @@ export function ExpenseModal({
                 Delete
               </button>
             )}
-            <button className={styles.primaryButton} type="submit" disabled={isPending}>
-              {isPending ? (
-                "Saving"
-              ) : editingExpense ? (
-                <>
-                  <Pencil className={styles.tableIcon} />
-                  {submitButtonLabel}
-                </>
-              ) : (
-                <>
-                  <Plus className={styles.tableIcon} />
-                  {submitButtonLabel}
-                </>
-              )}
-            </button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={
+                isPending ||
+                !form.label.trim() ||
+                !form.category.trim() ||
+                !form.amount || parseAmount(form.amount) <= 0
+              }
+              icon={isPending ? undefined : editingExpense ? <Pencil className={styles.tableIcon} /> : <Plus className={styles.tableIcon} />}
+              fullWidth={!editingExpense}
+            >
+              {isPending ? "Saving..." : submitButtonLabel}
+            </Button>
           </div>
         </div>
 

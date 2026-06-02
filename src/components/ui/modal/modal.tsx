@@ -9,10 +9,11 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   description?: string;
+  headerAction?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export function Modal({ isOpen, onClose, title, description, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, description, headerAction, children }: ModalProps) {
   return (
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
@@ -22,6 +23,11 @@ export function Modal({ isOpen, onClose, title, description, children }: ModalPr
           <Dialog.Description className={styles.visuallyHidden}>
             {description ?? `Modal content for ${title}`}
           </Dialog.Description>
+          {headerAction && (
+            <div className={styles.headerAction}>
+              {headerAction}
+            </div>
+          )}
           <Dialog.Close className={styles.closeButton}>
             <X size={16} />
           </Dialog.Close>

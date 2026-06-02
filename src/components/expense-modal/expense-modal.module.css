@@ -1,80 +1,13 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-.amountSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 4px;
-}
-
-.amountContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-
-.currencySymbol {
-  font-size: 40px;
-  font-weight: 500;
-  color: var(--color-text-tertiary);
-  margin-right: 8px;
-  user-select: none;
-}
-
-.inputWrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.mirrorSpan {
-  font-size: 52px;
-  font-weight: 700;
-  color: transparent;
-  pointer-events: none;
-  white-space: pre;
-  padding: 0;
-  margin: 0;
-  box-sizing: content-box;
-  font-family: inherit;
-  user-select: none;
-}
-
-.largeAmountInput {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  font-size: 52px;
-  font-weight: 700;
-  text-align: left;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--color-text);
-  font-family: inherit;
-  padding: 0;
-  margin: 0;
-  box-sizing: content-box;
-}
-
-.largeAmountInput::placeholder {
-  color: var(--color-text-tertiary);
+  gap: var(--space-5);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .field label {
@@ -84,120 +17,6 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
-.textInput {
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2);
-  padding: 10px 14px;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-text);
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.textInput:focus {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-surface-raised);
-}
-
-/* Category Chips */
-.chipsRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 0;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.chipsRow::-webkit-scrollbar {
-  display: none;
-}
-
-.chip {
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  padding: 6px 14px;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-
-.chip:hover:not(.chipActive) {
-  background: var(--color-bg-surface-raised);
-  border-color: var(--color-border-strong);
-}
-
-.chipActive {
-  background: var(--color-text);
-  border-color: var(--color-text);
-  color: var(--color-bg);
-  font-weight: 600;
-}
-
-.addCategoryChip {
-  background: var(--color-bg-subtle);
-  border: 1px dashed var(--color-border);
-  color: var(--color-text-tertiary);
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--text-lg);
-  font-weight: 500;
-  border-radius: 50%;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.addCategoryChip:hover {
-  border-color: var(--color-text-secondary);
-  color: var(--color-text-secondary);
-  background: var(--color-bg-surface-raised);
-}
-
-.inlineCategoryForm {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  animation: slideInLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.inlineCategoryInput {
-  background: var(--color-bg-surface-raised);
-  border: 1px solid var(--color-border-strong);
-  color: var(--color-text);
-  font-size: var(--text-lg);
-  padding: 5px 12px;
-  border-radius: var(--radius-pill);
-  outline: none;
-  width: 120px;
-  height: 40px;
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 
 /* Date Selector link */
 .dateLinkContainer {
@@ -266,33 +85,6 @@
   display: flex;
   gap: 12px;
   width: 100%;
-}
-
-.primaryButton {
-  flex: 1;
-  background: var(--color-text);
-  color: var(--color-bg);
-  border: 1px solid var(--color-text);
-  border-radius: var(--radius-2);
-  padding: 12px 20px;
-  font-size: var(--text-base);
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.15s ease;
-}
-
-.primaryButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.9);
-}
-
-.primaryButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .deleteButton {
