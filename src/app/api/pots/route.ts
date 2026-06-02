@@ -34,6 +34,8 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const name = body.name?.trim();
+  const goal = body.goal ? Number(body.goal) : 0;
+  const color = body.color?.trim() || '#f5a623';
 
   if (!name) {
     return NextResponse.json({ error: "Pot name is required" }, { status: 400 });
@@ -45,6 +47,8 @@ export async function POST(request: NextRequest) {
       {
         user_id: user.id,
         name: name,
+        goal: goal,
+        color: color,
       }
     ])
     .select()
@@ -58,7 +62,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(data);
 }
 
-// PUT /api/pots - Update a pot's name
 export async function PUT(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -68,15 +71,29 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { id, name } = body;
+  const { id, name, goal, color } = body;
 
-  if (!id || !name?.trim()) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ error: "Missing required pot id" }, { status: 400 });
+  }
+
+  const updateData: Record<string, string | number> = {
+    updated_at: new Date().toISOString()
+  };
+
+  if (name?.trim()) {
+    updateData.name = name.trim();
+  }
+  if (goal !== undefined) {
+    updateData.goal = Number(goal) || 0;
+  }
+  if (color?.trim()) {
+    updateData.color = color.trim();
   }
 
   const { data, error } = await supabase
     .from("pots")
-    .update({ name: name.trim(), updated_at: new Date().toISOString() })
+    .update(updateData)
     .eq("id", id)
     .eq("user_id", user.id)
     .select()
