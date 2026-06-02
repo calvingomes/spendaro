@@ -3,6 +3,7 @@ const QUEUE_KEY = "xpenses_offline_queue";
 export interface QueuedAction {
   id: string; // Unique ID for this queued action
   action: "POST" | "PUT" | "DELETE";
+  target?: "expenses" | "pots";
   payload: Record<string, unknown>;
 }
 
@@ -26,11 +27,16 @@ export function saveQueuedActions(actions: QueuedAction[]): void {
   }
 }
 
-export function queueAction(action: "POST" | "PUT" | "DELETE", payload: Record<string, unknown>): void {
+export function queueAction(
+  action: "POST" | "PUT" | "DELETE", 
+  payload: Record<string, unknown>,
+  target: "expenses" | "pots" = "expenses"
+): void {
   const actions = getQueuedActions();
   const newAction: QueuedAction = {
     id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     action,
+    target,
     payload,
   };
   actions.push(newAction);
@@ -48,11 +54,24 @@ export async function processSyncQueue(): Promise<boolean> {
 
   for (const item of actions) {
     try {
-      const response = await fetch("/api/expenses", {
+      const isPots = item.target === "pots";
+      const isDelete = item.action === "DELETE";
+      
+      let url = isPots ? "/api/pots" : "/api/expenses";
+      if (isPots && isDelete && item.payload.id) {
+        url = `/api/pots?id=${item.payload.id}`;
+      }
+
+      const fetchOptions: RequestInit = {
         method: item.action,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(item.payload),
-      });
+      };
+
+      if (!isDelete || !isPots) {
+        fetchOptions.body = JSON.stringify(item.payload);
+      }
+
+      const response = await fetch(url, fetchOptions);
 
       if (!response.ok) {
         if (response.status >= 400 && response.status < 500) {
