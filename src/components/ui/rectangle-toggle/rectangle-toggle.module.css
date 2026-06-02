@@ -1,0 +1,43 @@
+.toggleControl {
+  display: inline-flex;
+  background: var(--color-bg-control);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: 3px;
+  gap: 2px;
+  width: 100%;
+}
+
+.toggleButton {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: calc(var(--radius-2) - 2px);
+  cursor: pointer;
+  min-height: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.toggleButton:hover {
+  color: var(--color-text);
+}
+
+.activeToggle {
+  background: var(--color-bg-surface-raised);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), var(--shadow-elevated);
+}
+
+.toggleButton.activeGreen {
+  color: var(--color-green);
+}
+
+.toggleButton.activeRed {
+  color: var(--color-red);
+}
