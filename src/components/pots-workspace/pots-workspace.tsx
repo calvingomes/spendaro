@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button/button";
 import styles from "./pots-workspace.module.css";
 import type { Expense, Pot } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
+import { getLocalExpenses, saveLocalExpenses } from "@/utils/db";
 
 interface PotsWorkspaceProps {
   expenses: Expense[];
@@ -15,7 +16,7 @@ interface PotsWorkspaceProps {
   onPotsChange: (pots: Pot[]) => void;
 }
 
-export function PotsWorkspace({ expenses, pots, onPotsChange }: PotsWorkspaceProps) {
+export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }: PotsWorkspaceProps) {
   const [error, setError] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingPot, setEditingPot] = useState<Pot | null>(null);
@@ -30,6 +31,29 @@ export function PotsWorkspace({ expenses, pots, onPotsChange }: PotsWorkspacePro
       onPotsChange(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load pots");
+    }
+  };
+
+  const fetchExpenses = async () => {
+    const isOffline = typeof window !== "undefined" && !navigator.onLine;
+    if (isOffline) {
+      const cached = await getLocalExpenses();
+      if (cached && onExpensesChange) {
+        onExpensesChange(cached);
+      }
+      return;
+    }
+    try {
+      const res = await fetch("/api/expenses");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.expenses && onExpensesChange) {
+          onExpensesChange(data.expenses);
+          await saveLocalExpenses(data.expenses);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch expenses:", err);
     }
   };
 
@@ -106,8 +130,7 @@ export function PotsWorkspace({ expenses, pots, onPotsChange }: PotsWorkspacePro
           balance={potBalances?.[selectedPot.id] || 0}
           onClose={() => setSelectedPot(null)}
           onTransactionSuccess={() => {
-            // Trigger a re-fetch of expenses so the global state updates
-            window.dispatchEvent(new Event("force-sync-down"));
+            fetchExpenses();
           }}
           onEdit={() => {
             setEditingPot(selectedPot);
