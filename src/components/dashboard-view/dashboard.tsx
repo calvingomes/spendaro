@@ -85,7 +85,7 @@ export function Dashboard({
         {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during add, transactions and analytics views */}
         {(activeTab === "add" || activeTab === "transactions" || activeTab === "analytics") && (
           <ExpenseWorkspace 
-            initialExpenses={initialExpenses} 
+            initialExpenses={expenses} 
             onExpensesChange={setExpenses} 
             activeTab={activeTab}
             onTabChange={setActiveTab}
