@@ -60,7 +60,7 @@ export function PotDetailModal({
         id: crypto.randomUUID(),
         user_id: pot.user_id ?? "offline-user",
         label: view === "add" ? `Added to ${pot.name}` : `Withdrew from ${pot.name}`,
-        category: "Savings",
+        category: "Pots",
         amount: finalAmount.toString(),
         type: "savings",
         pot_id: pot.id,
@@ -91,7 +91,7 @@ export function PotDetailModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           label: view === "add" ? `Added to ${pot.name}` : `Withdrew from ${pot.name}`,
-          category: "Savings",
+          category: "Pots",
           amount: finalAmount.toString(),
           type: "savings",
           pot_id: pot.id,
