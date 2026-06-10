@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ArrowDownLeft, TrendingUp, Pencil, TrendingDown } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Pencil } from "lucide-react";
 import styles from "./expense-row.module.css";
 import { formatCurrency } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
@@ -43,14 +43,11 @@ export function ExpenseRow({
           {expense.type === "credit" ? (
             <ArrowUpRight className={styles.amountIcon} />
           ) : expense.type === "savings" ? (
-            isWithdrawal ? (
-              <TrendingDown className={styles.amountIcon} />
-            ) : (
-              <TrendingUp className={styles.amountIcon} />
-            )
+            null
           ) : (
             <ArrowDownLeft className={styles.amountIcon} />
           )}
+          {expense.type === "savings" && (isWithdrawal ? "- " : "+ ")}
           {formatCurrency(Math.abs(Number.parseFloat(expense.amount) || 0))}
         </div>
       </td>
