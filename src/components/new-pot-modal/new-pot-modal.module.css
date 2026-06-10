@@ -21,7 +21,12 @@
 
 .actions {
   display: flex;
+  flex-direction: row;
   gap: var(--space-3);
   margin-top: var(--space-4);
+}
+
+.actions > button {
+  flex: 1;
 }
 

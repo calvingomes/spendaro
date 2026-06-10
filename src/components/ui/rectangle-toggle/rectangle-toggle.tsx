@@ -20,8 +20,18 @@ export function RectangleToggle<T extends string>({
   onChange,
   colorMap,
 }: ToggleControlProps<T>) {
+  const activeIndex = options.findIndex((opt) => opt.value === value);
+  const N = options.length;
+
   return (
-    <div className={styles.toggleControl}>
+    <div 
+      className={styles.toggleControl}
+      style={{
+        "--active-index": activeIndex !== -1 ? activeIndex : 0,
+        "--options-count": N,
+      } as React.CSSProperties}
+    >
+      {activeIndex !== -1 && <div className={styles.slider} />}
       {options.map((option) => {
         const isActive = value === option.value;
         const color = colorMap?.[option.value];

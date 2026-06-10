@@ -151,6 +151,7 @@ export function NewPotModal({ isOpen, onClose, onSubmitSuccess, pot }: NewPotMod
               size="lg"
               onClick={onClose}
               disabled={isSubmitting}
+              fullWidth
             >
               Cancel
             </Button>
@@ -160,7 +161,7 @@ export function NewPotModal({ isOpen, onClose, onSubmitSuccess, pot }: NewPotMod
             variant="primary"
             size="lg"
             disabled={isSubmitting || potName.trim() === "" || !potGoal || Number(potGoal) <= 0}
-            fullWidth={!pot}
+            fullWidth
           >
             {isSubmitting ? "Saving..." : pot ? "Save" : "Create Pot"}
           </Button>

@@ -28,7 +28,7 @@ export function Button({
       )}
       {...props}
     >
-      {icon && <span className="inline-flex shrink-0">{icon}</span>}
+      {icon && <span className={styles.icon}>{icon}</span>}
       {children}
     </button>
   );

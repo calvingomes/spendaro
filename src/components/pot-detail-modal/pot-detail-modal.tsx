@@ -168,7 +168,7 @@ export function PotDetailModal({
             disabled={isSubmitting || numAmount <= 0 || (view === "withdraw" && numAmount > balance)}
             fullWidth
           >
-            {isSubmitting ? "Processing..." : view === "add" ? "Add Amount" : "Withdraw Amount"}
+            {isSubmitting ? "Saving..." : view === "add" ? "Add Amount" : "Withdraw Amount"}
           </Button>
 
           <Button
