@@ -70,6 +70,16 @@
   color: var(--color-text);
 }
 
+.headerAction {
+  position: absolute;
+  top: 24px;
+  right: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
 @keyframes scaleIn {
   from {
     transform: translate(-50%, -45%) scale(0.95);
@@ -112,5 +122,10 @@
   .closeButton {
     top: 20px;
     right: 20px;
+  }
+
+  .headerAction {
+    top: 20px;
+    right: 56px;
   }
 }

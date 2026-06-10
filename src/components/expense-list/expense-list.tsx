@@ -72,7 +72,7 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
       });
   }, [expenses, searchTerm, timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx, activeType]);
 
-  const { income, expense, savings } = useMemo(() => 
+  const { income, expense } = useMemo(() => 
     calculateAggregates(filteredExpenses), 
     [filteredExpenses]
   );
@@ -129,10 +129,6 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
             <div className={styles.headerStatItem}>
               <span className={styles.statLabel}>Expense</span>
               <span className={`${styles.statValue} ${styles.negative}`}>{formatCurrency(expense)}</span>
-            </div>
-            <div className={styles.headerStatItem}>
-              <span className={styles.statLabel}>Savings</span>
-              <span className={`${styles.statValue} ${styles.savings}`}>{formatCurrency(savings)}</span>
             </div>
           </div>
         </div>

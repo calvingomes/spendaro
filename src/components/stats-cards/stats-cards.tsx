@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
+import { Button } from "@/components/ui/button/button";
 
 export function StatsCards({ expenses }: { expenses: Expense[] }) {
   const totalIncome = useMemo(
@@ -24,28 +25,12 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
           const amount = Number.parseFloat(expense.amount);
           return total + (Number.isNaN(amount) ? 0 : amount);
         }
-        if (expense.type === "savings") {
-          const amount = Number.parseFloat(expense.amount);
-          if (amount < 0) {
-            return total + Math.abs(amount);
-          }
-        }
         return total;
       }, 0),
     [expenses]
   );
 
-  const totalSavings = useMemo(
-    () =>
-      expenses.reduce((total, expense) => {
-        if (expense.type !== "savings") return total;
-        const amount = Number.parseFloat(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
-      }, 0),
-    [expenses]
-  );
-
-  const netBalance = totalIncome - totalExpense - totalSavings;
+  const netBalance = totalIncome - totalExpense;
 
   return (
     <div className={styles.heroContainer}>
@@ -58,22 +43,24 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
         </div>
 
         <div className={`${styles.actionButtonsRow} ${styles.desktopOnly}`}>
-          <button
+          <Button
+            variant="primary"
+            size="md"
             className={styles.primaryActionButton}
-            type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
+            icon={<ArrowDownLeft size={14} />}
           >
-            <ArrowDownLeft size={14} />
             Debit
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
             className={styles.primaryActionButton}
-            type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
+            icon={<ArrowUpRight size={14} />}
           >
-            <ArrowUpRight size={14} />
             Credit
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -97,36 +84,29 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
           </div>
           <strong className={styles.cardValue}>{formatCurrency(totalExpense)}</strong>
         </article>
-
-        <article className={styles.statCard}>
-          <div className={styles.cardHeader}>
-            <div className={`${styles.iconPill} ${styles.savingsIcon}`}>
-              <TrendingUp size={14} />
-            </div>
-            <span className={styles.cardLabel}>Savings</span>
-          </div>
-          <strong className={styles.cardValue}>{formatCurrency(totalSavings)}</strong>
-        </article>
       </div>
 
       <div className={`${styles.actionButtonsRow} ${styles.mobileOnly}`}>
-        <button
+        <Button
+          variant="primary"
+          size="md"
           className={styles.primaryActionButton}
-          type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
+          icon={<ArrowDownLeft size={16} />}
         >
-          <ArrowDownLeft size={16} />
           Debit
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
+          size="md"
           className={styles.primaryActionButton}
-          type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
+          icon={<ArrowUpRight size={16} />}
         >
-          <ArrowUpRight size={16} />
           Credit
-        </button>
+        </Button>
       </div>
     </div>
   );
 }
+

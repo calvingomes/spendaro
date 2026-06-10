@@ -1,0 +1,54 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-2);
+}
+
+.error {
+  color: var(--color-red);
+  font-size: var(--text-sm);
+  margin: 0;
+  text-align: center;
+}
+
+.editHeaderButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editHeaderButton:hover {
+  background: var(--color-bg-subtle);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+
+.actionButtonsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+button.deleteButton {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-red);
+}
+
+button.deleteButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-red) 8%, transparent);
+}
+

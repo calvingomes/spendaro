@@ -45,6 +45,15 @@ export function normalizeText(value: string) {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
+export function capitalizeWords(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return trimmed
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export function calculateAggregates(expenses: Expense[]) {
   return expenses.reduce(
     (acc, e) => {
@@ -53,11 +62,6 @@ export function calculateAggregates(expenses: Expense[]) {
         acc.income += amount;
       } else if (e.type === "debit") {
         acc.expense += amount;
-      } else if (e.type === "savings") {
-        acc.savings += amount;
-        if (amount < 0) {
-          acc.expense += Math.abs(amount);
-        }
       }
       return acc;
     },

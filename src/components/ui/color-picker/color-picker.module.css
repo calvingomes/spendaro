@@ -1,0 +1,26 @@
+.colorPicker {
+  display: flex;
+  gap: var(--space-5);
+  padding: var(--space-2) 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.colorCircle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  min-height: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  display: block;
+  flex-shrink: 0;
+}
+
+.activeColorCircle {
+  box-shadow: 0 0 0 2px var(--color-bg-surface), 0 0 0 4px var(--color-text);
+}

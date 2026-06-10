@@ -1,0 +1,31 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.textInput {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: 10px 14px;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  outline: none;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.textInput:focus {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-surface-raised);
+}

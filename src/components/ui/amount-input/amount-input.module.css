@@ -1,0 +1,73 @@
+.amountSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.amountLabel {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.amountContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.currencySymbol {
+  font-size: 40px;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  margin-right: 8px;
+  user-select: none;
+}
+
+.inputWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.mirrorSpan {
+  font-size: 52px;
+  font-weight: 700;
+  color: transparent;
+  pointer-events: none;
+  white-space: pre;
+  padding: 0;
+  margin: 0;
+  box-sizing: content-box;
+  font-family: inherit;
+  user-select: none;
+}
+
+.largeAmountInput {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 52px;
+  font-weight: 700;
+  text-align: left;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text);
+  font-family: inherit;
+  padding: 0;
+  margin: 0;
+  box-sizing: content-box;
+}
+
+.largeAmountInput::placeholder {
+  color: var(--color-text-tertiary);
+}
