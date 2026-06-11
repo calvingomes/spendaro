@@ -24,6 +24,7 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
 }
 
 .brand {
