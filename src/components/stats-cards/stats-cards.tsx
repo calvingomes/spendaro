@@ -30,7 +30,17 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
     [expenses]
   );
 
-  const netBalance = totalIncome - totalExpense;
+  const totalSavings = useMemo(
+    () =>
+      expenses.reduce((total, expense) => {
+        if (expense.type !== "savings") return total;
+        const amount = Number.parseFloat(expense.amount);
+        return total + (Number.isNaN(amount) ? 0 : amount);
+      }, 0),
+    [expenses]
+  );
+
+  const netBalance = totalIncome - totalExpense - totalSavings;
 
   return (
     <div className={styles.heroContainer}>
