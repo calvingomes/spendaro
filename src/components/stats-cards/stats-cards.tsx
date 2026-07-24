@@ -1,13 +1,19 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Repeat } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
 import { Button } from "@/components/ui/button/button";
 
-export function StatsCards({ expenses }: { expenses: Expense[] }) {
+export function StatsCards({ 
+  expenses,
+  onViewSubscriptions
+}: { 
+  expenses: Expense[];
+  onViewSubscriptions: () => void;
+}) {
   const totalIncome = useMemo(
     () =>
       expenses.reduce((total, expense) => {
@@ -52,24 +58,36 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
           </h1>
         </div>
 
-        <div className={`${styles.actionButtonsRow} ${styles.desktopOnly}`}>
-          <Button
+        <div className={`${styles.desktopActionContainer} ${styles.desktopOnly}`}>
+          <div className={styles.actionButtonsRow}>
+            <Button
+              variant="primary"
+              size="md"
+              className={styles.primaryActionButton}
+              onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
+              icon={<ArrowDownLeft size={14} />}
+            >
+              Debit
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              className={styles.primaryActionButton}
+              onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
+              icon={<ArrowUpRight size={14} />}
+            >
+              Credit
+            </Button>
+          </div>
+          <Button 
             variant="primary"
             size="md"
-            className={styles.primaryActionButton}
-            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
-            icon={<ArrowDownLeft size={14} />}
+            fullWidth
+            className={styles.viewSubscriptionsButton}
+            onClick={onViewSubscriptions}
+            icon={<Repeat size={14} />}
           >
-            Debit
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            className={styles.primaryActionButton}
-            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
-            icon={<ArrowUpRight size={14} />}
-          >
-            Credit
+            View Subscriptions
           </Button>
         </div>
       </div>
@@ -96,27 +114,38 @@ export function StatsCards({ expenses }: { expenses: Expense[] }) {
         </article>
       </div>
 
-      <div className={`${styles.actionButtonsRow} ${styles.mobileOnly}`}>
-        <Button
+      <div className={`${styles.mobileActionContainer} ${styles.mobileOnly}`}>
+        <div className={styles.actionButtonsRow}>
+          <Button
+            variant="primary"
+            size="md"
+            className={styles.primaryActionButton}
+            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
+            icon={<ArrowDownLeft size={16} />}
+          >
+            Debit
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            className={styles.primaryActionButton}
+            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
+            icon={<ArrowUpRight size={16} />}
+          >
+            Credit
+          </Button>
+        </div>
+        <Button 
           variant="primary"
           size="md"
-          className={styles.primaryActionButton}
-          onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
-          icon={<ArrowDownLeft size={16} />}
+          fullWidth
+          className={styles.viewSubscriptionsButton}
+          onClick={onViewSubscriptions}
+          icon={<Repeat size={14} />}
         >
-          Debit
-        </Button>
-        <Button
-          variant="primary"
-          size="md"
-          className={styles.primaryActionButton}
-          onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
-          icon={<ArrowUpRight size={16} />}
-        >
-          Credit
+          View Subscriptions
         </Button>
       </div>
     </div>
   );
 }
-

@@ -61,3 +61,38 @@ create policy "Users can update own pots"
 create policy "Users can delete own pots"
   on public.pots for delete
   using (auth.uid() = user_id);
+
+-- Subscriptions Table
+create table if not exists public.subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  name text not null,
+  category text not null,
+  amount numeric(12, 2) not null check (amount >= 0),
+  renewal_day integer not null check (renewal_day >= 1 and renewal_day <= 31),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.subscriptions enable row level security;
+
+create policy "Users can read own subscriptions"
+  on public.subscriptions for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own subscriptions"
+  on public.subscriptions for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own subscriptions"
+  on public.subscriptions for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete own subscriptions"
+  on public.subscriptions for delete
+  using (auth.uid() = user_id);
+
+-- Alter expenses table to reference subscriptions
+alter table public.expenses 
+  add column if not exists subscription_id uuid references public.subscriptions (id) on delete set null;

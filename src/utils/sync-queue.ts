@@ -3,7 +3,7 @@ const QUEUE_KEY = "xpenses_offline_queue";
 export interface QueuedAction {
   id: string; // Unique ID for this queued action
   action: "POST" | "PUT" | "DELETE";
-  target?: "expenses" | "pots";
+  target?: "expenses" | "pots" | "subscriptions";
   payload: Record<string, unknown>;
 }
 
@@ -30,7 +30,7 @@ export function saveQueuedActions(actions: QueuedAction[]): void {
 export function queueAction(
   action: "POST" | "PUT" | "DELETE", 
   payload: Record<string, unknown>,
-  target: "expenses" | "pots" = "expenses"
+  target: "expenses" | "pots" | "subscriptions" = "expenses"
 ): void {
   const actions = getQueuedActions();
   const newAction: QueuedAction = {
@@ -54,12 +54,22 @@ export async function processSyncQueue(): Promise<boolean> {
 
   for (const item of actions) {
     try {
-      const isPots = item.target === "pots";
+      const target = item.target || "expenses";
       const isDelete = item.action === "DELETE";
       
-      let url = isPots ? "/api/pots" : "/api/expenses";
-      if (isPots && isDelete && item.payload.id) {
-        url = `/api/pots?id=${item.payload.id}`;
+      let url = "/api/expenses";
+      if (target === "pots") {
+        url = "/api/pots";
+      } else if (target === "subscriptions") {
+        url = "/api/subscriptions";
+      }
+
+      if (isDelete && item.payload.id) {
+        if (target === "pots") {
+          url = `/api/pots?id=${item.payload.id}`;
+        } else if (target === "subscriptions") {
+          url = `/api/subscriptions?id=${item.payload.id}`;
+        }
       }
 
       const fetchOptions: RequestInit = {
@@ -67,7 +77,8 @@ export async function processSyncQueue(): Promise<boolean> {
         headers: { "Content-Type": "application/json" },
       };
 
-      if (!isDelete || !isPots) {
+      // Only add body if it's not a GET/DELETE request with query params
+      if (!isDelete || target === "expenses") {
         fetchOptions.body = JSON.stringify(item.payload);
       }
 

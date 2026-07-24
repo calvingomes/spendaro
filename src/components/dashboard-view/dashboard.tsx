@@ -11,10 +11,15 @@ import { DesktopNavigation } from "@/components/desktop-navigation/desktop-navig
 import { MobileNavigation } from "@/components/mobile-navigation/mobile-navigation";
 import { ProfileView } from "@/components/profile-view/profile-view";
 import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
-import type { Expense, Pot, NavTab } from "@/lib/types";
+import { SubscriptionsWorkspace } from "@/components/subscriptions-workspace/subscriptions-workspace";
+import type { Expense, Pot, Subscription, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
-import { getLocalPots, saveLocalPots } from "@/utils/db";
+import { getLocalPots, saveLocalPots, getLocalSubscriptions, saveLocalSubscriptions, putLocalExpense, saveLocalExpenses } from "@/utils/db";
+import { processSubscriptions } from "@/utils/subscription-processor";
+import { queueAction } from "@/utils/sync-queue";
+
+import { ArrowLeft } from "lucide-react";
 
 export function Dashboard({
   initialExpenses,
@@ -25,48 +30,130 @@ export function Dashboard({
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
   const [pots, setPots] = useState<Pot[]>([]);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [activeTab, setActiveTab] = useState<NavTab>("add");
 
   useEffect(() => {
-    const prefetchPots = async () => {
+    const loadInitialData = async () => {
       const isOffline = typeof window !== "undefined" && !navigator.onLine;
 
+      // 1. Fetch Pots
       if (isOffline) {
-        const cached = await getLocalPots();
-        if (cached && cached.length > 0) {
-          setPots(cached);
+        const cachedPots = await getLocalPots();
+        if (cachedPots && cachedPots.length > 0) {
+          setPots(cachedPots);
         }
-        return;
+      } else {
+        try {
+          const res = await fetch("/api/pots");
+          if (res.ok) {
+            const data = await res.json();
+            setPots(data);
+            await saveLocalPots(data);
+          } else {
+            const cachedPots = await getLocalPots();
+            if (cachedPots && cachedPots.length > 0) setPots(cachedPots);
+          }
+        } catch (err) {
+          console.error("Failed to prefetch pots:", err);
+          const cachedPots = await getLocalPots();
+          if (cachedPots && cachedPots.length > 0) setPots(cachedPots);
+        }
       }
 
-      try {
-        const res = await fetch("/api/pots");
-        if (res.ok) {
-          const data = await res.json();
-          setPots(data);
-          await saveLocalPots(data);
-        } else {
-          // Fallback to offline cache on error
-          const cached = await getLocalPots();
-          if (cached && cached.length > 0) {
-            setPots(cached);
+      // 2. Fetch Subscriptions
+      let activeSubs: Subscription[] = [];
+      if (isOffline) {
+        activeSubs = await getLocalSubscriptions();
+      } else {
+        try {
+          const res = await fetch("/api/subscriptions");
+          if (res.ok) {
+            activeSubs = await res.json();
+            await saveLocalSubscriptions(activeSubs);
+          } else {
+            activeSubs = await getLocalSubscriptions();
           }
+        } catch (err) {
+          console.error("Failed to prefetch subscriptions:", err);
+          activeSubs = await getLocalSubscriptions();
         }
-      } catch (err) {
-        console.error("Failed to prefetch pots:", err);
-        const cached = await getLocalPots();
-        if (cached && cached.length > 0) {
-          setPots(cached);
+      }
+      setSubscriptions(activeSubs);
+
+      // 3. Process subscription automatic recurring deductions
+      if (activeSubs.length > 0) {
+        let updatedExpenses = [...expenses];
+        let generatedAny = false;
+
+        await processSubscriptions(
+          activeSubs,
+          expenses,
+          async (newExpense) => {
+            generatedAny = true;
+            updatedExpenses.push(newExpense);
+            await putLocalExpense(newExpense);
+
+            if (isOffline) {
+              queueAction("POST", {
+                id: newExpense.id,
+                label: newExpense.label,
+                category: newExpense.category,
+                amount: newExpense.amount,
+                type: newExpense.type,
+                subscription_id: newExpense.subscription_id,
+                created_at: newExpense.created_at
+              }, "expenses");
+            } else {
+              try {
+                const res = await fetch("/api/expenses", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    id: newExpense.id,
+                    label: newExpense.label,
+                    category: newExpense.category,
+                    amount: newExpense.amount,
+                    type: newExpense.type,
+                    subscription_id: newExpense.subscription_id,
+                    created_at: newExpense.created_at
+                  })
+                });
+                if (!res.ok) throw new Error();
+              } catch {
+                queueAction("POST", {
+                  id: newExpense.id,
+                  label: newExpense.label,
+                  category: newExpense.category,
+                  amount: newExpense.amount,
+                  type: newExpense.type,
+                  subscription_id: newExpense.subscription_id,
+                  created_at: newExpense.created_at
+                }, "expenses");
+              }
+            }
+          }
+        );
+
+        if (generatedAny) {
+          setExpenses(updatedExpenses);
+          await saveLocalExpenses(updatedExpenses);
         }
       }
     };
-    prefetchPots();
+
+    loadInitialData();
   }, []);
 
   return (
     <main className={styles.page}>
       <header className={styles.topBar}>
         <div className={styles.brand}>
+          {activeTab === "subscriptions" && (
+            <button className={styles.topBarBackButton} onClick={() => setActiveTab("add")} aria-label="Go back" type="button">
+              <ArrowLeft size={16} />
+            </button>
+          )}
           <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
           <div>
             <p className={styles.brandName}>Xpenses</p>
@@ -79,7 +166,10 @@ export function Dashboard({
 
       <div className={styles.mainContent}>
         {activeTab === "add" && (
-          <StatsCards expenses={expenses} />
+          <StatsCards 
+            expenses={expenses} 
+            onViewSubscriptions={() => setActiveTab("subscriptions")}
+          />
         )}
 
         {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during add, transactions and analytics views */}
@@ -87,8 +177,8 @@ export function Dashboard({
           <ExpenseWorkspace 
             initialExpenses={expenses} 
             onExpensesChange={setExpenses} 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
+            activeTab={activeTab as "add" | "transactions" | "analytics" | "profile"}
+            onTabChange={setActiveTab as (tab: "add" | "transactions" | "analytics" | "profile") => void}
           />
         )}
 
@@ -102,6 +192,14 @@ export function Dashboard({
             onExpensesChange={setExpenses} 
             pots={pots} 
             onPotsChange={setPots} 
+          />
+        )}
+
+        {activeTab === "subscriptions" && (
+          <SubscriptionsWorkspace 
+            subscriptions={subscriptions}
+            onSubscriptionsChange={setSubscriptions}
+            onBack={() => setActiveTab("add")}
           />
         )}
       </div>
