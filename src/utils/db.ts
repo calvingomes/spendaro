@@ -1,9 +1,8 @@
-import type { Expense, Pot, Subscription } from "@/lib/types";
+import type { Expense, Pot } from "@/lib/types";
 
 const DB_NAME = "xpenses-db";
 const STORE_NAME = "expenses";
 const POTS_STORE_NAME = "pots";
-const SUBSCRIPTIONS_STORE_NAME = "subscriptions";
 const DB_VERSION = 3;
 
 export function openDB(): Promise<IDBDatabase> {
@@ -25,9 +24,6 @@ export function openDB(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(POTS_STORE_NAME)) {
         db.createObjectStore(POTS_STORE_NAME, { keyPath: "id" });
-      }
-      if (!db.objectStoreNames.contains(SUBSCRIPTIONS_STORE_NAME)) {
-        db.createObjectStore(SUBSCRIPTIONS_STORE_NAME, { keyPath: "id" });
       }
     };
   });
@@ -147,59 +143,3 @@ export async function deleteLocalPot(id: string): Promise<void> {
   });
 }
 
-export async function saveLocalSubscriptions(subscriptions: Subscription[]): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(SUBSCRIPTIONS_STORE_NAME, "readwrite");
-    const store = tx.objectStore(SUBSCRIPTIONS_STORE_NAME);
-    
-    store.clear();
-    subscriptions.forEach((sub) => {
-      store.put(sub);
-    });
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export async function getLocalSubscriptions(): Promise<Subscription[]> {
-  try {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(SUBSCRIPTIONS_STORE_NAME, "readonly");
-      const store = tx.objectStore(SUBSCRIPTIONS_STORE_NAME);
-      const request = store.getAll();
-
-      request.onsuccess = () => resolve(request.result as Subscription[]);
-      request.onerror = () => reject(request.error);
-    });
-  } catch (err) {
-    console.error("Failed to fetch local subscriptions from IndexedDB:", err);
-    return [];
-  }
-}
-
-export async function putLocalSubscription(subscription: Subscription): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(SUBSCRIPTIONS_STORE_NAME, "readwrite");
-    const store = tx.objectStore(SUBSCRIPTIONS_STORE_NAME);
-    store.put(subscription);
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export async function deleteLocalSubscription(id: string): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(SUBSCRIPTIONS_STORE_NAME, "readwrite");
-    const store = tx.objectStore(SUBSCRIPTIONS_STORE_NAME);
-    store.delete(id);
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}

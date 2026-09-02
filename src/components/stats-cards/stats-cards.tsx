@@ -1,18 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowUpRight, ArrowDownLeft, Repeat } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
 import { Button } from "@/components/ui/button/button";
 
 export function StatsCards({ 
-  expenses,
-  onViewSubscriptions
+  expenses
 }: { 
   expenses: Expense[];
-  onViewSubscriptions: () => void;
 }) {
   const totalIncome = useMemo(
     () =>
@@ -79,16 +77,6 @@ export function StatsCards({
               Credit
             </Button>
           </div>
-          <Button 
-            variant="primary"
-            size="md"
-            fullWidth
-            className={styles.viewSubscriptionsButton}
-            onClick={onViewSubscriptions}
-            icon={<Repeat size={14} />}
-          >
-            View Subscriptions
-          </Button>
         </div>
       </div>
 
@@ -135,16 +123,6 @@ export function StatsCards({
             Credit
           </Button>
         </div>
-        <Button 
-          variant="primary"
-          size="md"
-          fullWidth
-          className={styles.viewSubscriptionsButton}
-          onClick={onViewSubscriptions}
-          icon={<Repeat size={14} />}
-        >
-          View Subscriptions
-        </Button>
       </div>
     </div>
   );

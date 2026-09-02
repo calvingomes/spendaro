@@ -11,15 +11,11 @@ import { DesktopNavigation } from "@/components/desktop-navigation/desktop-navig
 import { MobileNavigation } from "@/components/mobile-navigation/mobile-navigation";
 import { ProfileView } from "@/components/profile-view/profile-view";
 import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
-import { SubscriptionsWorkspace } from "@/components/subscriptions-workspace/subscriptions-workspace";
-import type { Expense, Pot, Subscription, NavTab } from "@/lib/types";
+import type { Expense, Pot, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
-import { getLocalPots, saveLocalPots, getLocalSubscriptions, saveLocalSubscriptions, putLocalExpense, saveLocalExpenses } from "@/utils/db";
-import { processSubscriptions } from "@/utils/subscription-processor";
-import { queueAction } from "@/utils/sync-queue";
+import { getLocalPots, saveLocalPots } from "@/utils/db";
 
-import { ArrowLeft } from "lucide-react";
 
 export function Dashboard({
   initialExpenses,
@@ -30,7 +26,6 @@ export function Dashboard({
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
   const [pots, setPots] = useState<Pot[]>([]);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [activeTab, setActiveTab] = useState<NavTab>("add");
 
   useEffect(() => {
@@ -61,85 +56,6 @@ export function Dashboard({
         }
       }
 
-      // 2. Fetch Subscriptions
-      let activeSubs: Subscription[] = [];
-      if (isOffline) {
-        activeSubs = await getLocalSubscriptions();
-      } else {
-        try {
-          const res = await fetch("/api/subscriptions");
-          if (res.ok) {
-            activeSubs = await res.json();
-            await saveLocalSubscriptions(activeSubs);
-          } else {
-            activeSubs = await getLocalSubscriptions();
-          }
-        } catch (err) {
-          console.error("Failed to prefetch subscriptions:", err);
-          activeSubs = await getLocalSubscriptions();
-        }
-      }
-      setSubscriptions(activeSubs);
-
-      // 3. Process subscription automatic recurring deductions
-      if (activeSubs.length > 0) {
-        let updatedExpenses = [...expenses];
-        let generatedAny = false;
-
-        await processSubscriptions(
-          activeSubs,
-          expenses,
-          async (newExpense) => {
-            generatedAny = true;
-            updatedExpenses.push(newExpense);
-            await putLocalExpense(newExpense);
-
-            if (isOffline) {
-              queueAction("POST", {
-                id: newExpense.id,
-                label: newExpense.label,
-                category: newExpense.category,
-                amount: newExpense.amount,
-                type: newExpense.type,
-                subscription_id: newExpense.subscription_id,
-                created_at: newExpense.created_at
-              }, "expenses");
-            } else {
-              try {
-                const res = await fetch("/api/expenses", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    id: newExpense.id,
-                    label: newExpense.label,
-                    category: newExpense.category,
-                    amount: newExpense.amount,
-                    type: newExpense.type,
-                    subscription_id: newExpense.subscription_id,
-                    created_at: newExpense.created_at
-                  })
-                });
-                if (!res.ok) throw new Error();
-              } catch {
-                queueAction("POST", {
-                  id: newExpense.id,
-                  label: newExpense.label,
-                  category: newExpense.category,
-                  amount: newExpense.amount,
-                  type: newExpense.type,
-                  subscription_id: newExpense.subscription_id,
-                  created_at: newExpense.created_at
-                }, "expenses");
-              }
-            }
-          }
-        );
-
-        if (generatedAny) {
-          setExpenses(updatedExpenses);
-          await saveLocalExpenses(updatedExpenses);
-        }
-      }
     };
 
     loadInitialData();
@@ -149,11 +65,6 @@ export function Dashboard({
     <main className={styles.page}>
       <header className={styles.topBar}>
         <div className={styles.brand}>
-          {activeTab === "subscriptions" && (
-            <button className={styles.topBarBackButton} onClick={() => setActiveTab("add")} aria-label="Go back" type="button">
-              <ArrowLeft size={16} />
-            </button>
-          )}
           <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
           <div>
             <p className={styles.brandName}>Xpenses</p>
@@ -166,10 +77,7 @@ export function Dashboard({
 
       <div className={styles.mainContent}>
         {activeTab === "add" && (
-          <StatsCards 
-            expenses={expenses} 
-            onViewSubscriptions={() => setActiveTab("subscriptions")}
-          />
+          <StatsCards expenses={expenses} />
         )}
 
         {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during add, transactions and analytics views */}
@@ -195,13 +103,6 @@ export function Dashboard({
           />
         )}
 
-        {activeTab === "subscriptions" && (
-          <SubscriptionsWorkspace 
-            subscriptions={subscriptions}
-            onSubscriptionsChange={setSubscriptions}
-            onBack={() => setActiveTab("add")}
-          />
-        )}
       </div>
 
       {/* Mobile Navigation */}

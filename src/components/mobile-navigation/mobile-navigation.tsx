@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ReceiptText, BarChart3, User, PlusCircle, PiggyBank, Repeat, LucideIcon } from "lucide-react";
+import { ReceiptText, BarChart3, User, PlusCircle, PiggyBank, LucideIcon } from "lucide-react";
 import styles from "./mobile-navigation.module.css";
 import clsx from "clsx";
 import type { NavTab } from "@/lib/types";
