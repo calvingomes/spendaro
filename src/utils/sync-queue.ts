@@ -3,7 +3,7 @@ const QUEUE_KEY = "xpenses_offline_queue";
 export interface QueuedAction {
   id: string; // Unique ID for this queued action
   action: "POST" | "PUT" | "DELETE";
-  target?: "expenses" | "pots" | "subscriptions";
+  target?: "expenses" | "pots";
   payload: Record<string, unknown>;
 }
 
@@ -30,7 +30,7 @@ export function saveQueuedActions(actions: QueuedAction[]): void {
 export function queueAction(
   action: "POST" | "PUT" | "DELETE", 
   payload: Record<string, unknown>,
-  target: "expenses" | "pots" | "subscriptions" = "expenses"
+  target: "expenses" | "pots" = "expenses"
 ): void {
   const actions = getQueuedActions();
   const newAction: QueuedAction = {
@@ -60,15 +60,11 @@ export async function processSyncQueue(): Promise<boolean> {
       let url = "/api/expenses";
       if (target === "pots") {
         url = "/api/pots";
-      } else if (target === "subscriptions") {
-        url = "/api/subscriptions";
       }
 
       if (isDelete && item.payload.id) {
         if (target === "pots") {
           url = `/api/pots?id=${item.payload.id}`;
-        } else if (target === "subscriptions") {
-          url = `/api/subscriptions?id=${item.payload.id}`;
         }
       }
 
