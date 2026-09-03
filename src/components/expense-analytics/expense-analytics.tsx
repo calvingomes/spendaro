@@ -23,7 +23,7 @@ const COLORS = [
 ];
 
 export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
-  const [activeType, setActiveType] = useState<"debit" | "credit">("debit");
+  const [activeType, setActiveType] = useState<"debit" | "credit" | "net">("net");
   const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
 
   // Dynamic current date states
@@ -40,11 +40,15 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
 
   // Memoized filtered data calculations
   const categoryData = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { debits: number; credits: number }>();
     const currentYear = new Date().getFullYear();
 
     expenses
-      .filter((e) => e.type === activeType)
+      .filter((e) =>
+        activeType === "net"
+          ? e.type === "debit" || e.type === "credit"
+          : e.type === activeType
+      )
       .filter((e) => {
         const expenseDate = new Date(e.created_at);
         const expYear = expenseDate.getFullYear();
@@ -67,12 +71,28 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
         if (!Number.isNaN(val)) {
           // Normalize categories
           const cat = e.category || "Other";
-          map.set(cat, (map.get(cat) ?? 0) + val);
+          const current = map.get(cat) ?? { debits: 0, credits: 0 };
+
+          if (activeType === "net") {
+            if (e.type === "debit") current.debits += val;
+            if (e.type === "credit") current.credits += val;
+          } else {
+            current.debits += val;
+          }
+
+          map.set(cat, current);
         }
       });
 
     return [...map.entries()]
-      .map(([name, value]) => ({ name, value }))
+      .map(([name, amounts]) => ({
+        name,
+        // Net is spending after same-category refunds, never a cash balance.
+        value: activeType === "net"
+          ? Math.max(0, amounts.debits - amounts.credits)
+          : amounts.debits,
+      }))
+      .filter((item) => activeType !== "net" || item.value > 0)
       .sort((a, b) => b.value - a.value);
   }, [expenses, activeType, timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx]);
 
@@ -80,6 +100,13 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
   const totalAmount = useMemo(() => {
     return categoryData.reduce((acc, curr) => acc + curr.value, 0);
   }, [categoryData]);
+
+  // Pie charts need non-negative values. Keep displayed net amounts signed,
+  // but use their magnitude for slice sizes when income exceeds expenses.
+  const chartData = useMemo(
+    () => categoryData.map((item) => ({ ...item, chartValue: Math.abs(item.value) })),
+    [categoryData]
+  );
 
   return (
     <article className={styles.card}>
@@ -89,6 +116,7 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
         typeOptions={[
           { value: "debit", label: "Expenses" },
           { value: "credit", label: "Income" },
+          { value: "net", label: "Net Expenses" },
         ]}
         timeSegment={timeSegment}
         onTimeSegmentChange={setTimeSegment}
@@ -109,14 +137,14 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={categoryData}
+                    data={chartData}
                     cx="50%"
                     cy="50%"
                     innerRadius={72}
                     outerRadius={90}
                     cornerRadius={8}
                     paddingAngle={5}
-                    dataKey="value"
+                    dataKey="chartValue"
                     stroke="none"
                   >
                     {categoryData.map((entry, index) => (
