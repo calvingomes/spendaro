@@ -3,7 +3,7 @@ import type { Expense, Pot } from "@/lib/types";
 const DB_NAME = "xpenses-db";
 const STORE_NAME = "expenses";
 const POTS_STORE_NAME = "pots";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -142,3 +142,4 @@ export async function deleteLocalPot(id: string): Promise<void> {
     tx.onerror = () => reject(tx.error);
   });
 }
+

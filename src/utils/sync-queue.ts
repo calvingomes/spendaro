@@ -54,12 +54,18 @@ export async function processSyncQueue(): Promise<boolean> {
 
   for (const item of actions) {
     try {
-      const isPots = item.target === "pots";
+      const target = item.target || "expenses";
       const isDelete = item.action === "DELETE";
       
-      let url = isPots ? "/api/pots" : "/api/expenses";
-      if (isPots && isDelete && item.payload.id) {
-        url = `/api/pots?id=${item.payload.id}`;
+      let url = "/api/expenses";
+      if (target === "pots") {
+        url = "/api/pots";
+      }
+
+      if (isDelete && item.payload.id) {
+        if (target === "pots") {
+          url = `/api/pots?id=${item.payload.id}`;
+        }
       }
 
       const fetchOptions: RequestInit = {
@@ -67,7 +73,8 @@ export async function processSyncQueue(): Promise<boolean> {
         headers: { "Content-Type": "application/json" },
       };
 
-      if (!isDelete || !isPots) {
+      // Only add body if it's not a GET/DELETE request with query params
+      if (!isDelete || target === "expenses") {
         fetchOptions.body = JSON.stringify(item.payload);
       }
 

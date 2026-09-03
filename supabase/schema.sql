@@ -61,3 +61,4 @@ create policy "Users can update own pots"
 create policy "Users can delete own pots"
   on public.pots for delete
   using (auth.uid() = user_id);
+

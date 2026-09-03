@@ -5,9 +5,10 @@ interface AmountInputProps {
   onChange: (value: string) => void;
   label?: string;
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
-export function AmountInput({ value, onChange, label, onFocus }: AmountInputProps) {
+export function AmountInput({ value, onChange, label, onFocus, disabled }: AmountInputProps) {
   return (
     <div className={styles.amountSection}>
       {label && <span className={styles.amountLabel}>{label}</span>}
@@ -30,6 +31,7 @@ export function AmountInput({ value, onChange, label, onFocus }: AmountInputProp
               }
             }}
             placeholder="0.00"
+            disabled={disabled}
             required
           />
         </div>

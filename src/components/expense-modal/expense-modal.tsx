@@ -265,7 +265,7 @@ export function ExpenseModal({
                 !form.amount || parseAmount(form.amount) <= 0
               }
               icon={isPending ? undefined : editingExpense ? <Pencil className={styles.tableIcon} /> : <Plus className={styles.tableIcon} />}
-              fullWidth={!editingExpense}
+              fullWidth
             >
               {isPending ? "Saving..." : submitButtonLabel}
             </Button>

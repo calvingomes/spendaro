@@ -87,14 +87,22 @@
   width: 100%;
 }
 
+.footerActions > button,
+.footerActions > * {
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+}
+
 .deleteButton {
   background: transparent;
   color: var(--color-red);
   border: 1px solid rgba(244, 63, 94, 0.2);
   border-radius: var(--radius-2);
-  padding: 12px 20px;
-  font-size: var(--text-base);
-  font-weight: 600;
+  height: 44px;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;

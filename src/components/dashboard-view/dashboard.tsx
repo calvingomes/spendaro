@@ -16,6 +16,7 @@ import type { User } from "@supabase/supabase-js";
 
 import { getLocalPots, saveLocalPots } from "@/utils/db";
 
+
 export function Dashboard({
   initialExpenses,
   user
@@ -28,39 +29,36 @@ export function Dashboard({
   const [activeTab, setActiveTab] = useState<NavTab>("add");
 
   useEffect(() => {
-    const prefetchPots = async () => {
+    const loadInitialData = async () => {
       const isOffline = typeof window !== "undefined" && !navigator.onLine;
 
+      // 1. Fetch Pots
       if (isOffline) {
-        const cached = await getLocalPots();
-        if (cached && cached.length > 0) {
-          setPots(cached);
+        const cachedPots = await getLocalPots();
+        if (cachedPots && cachedPots.length > 0) {
+          setPots(cachedPots);
         }
-        return;
+      } else {
+        try {
+          const res = await fetch("/api/pots");
+          if (res.ok) {
+            const data = await res.json();
+            setPots(data);
+            await saveLocalPots(data);
+          } else {
+            const cachedPots = await getLocalPots();
+            if (cachedPots && cachedPots.length > 0) setPots(cachedPots);
+          }
+        } catch (err) {
+          console.error("Failed to prefetch pots:", err);
+          const cachedPots = await getLocalPots();
+          if (cachedPots && cachedPots.length > 0) setPots(cachedPots);
+        }
       }
 
-      try {
-        const res = await fetch("/api/pots");
-        if (res.ok) {
-          const data = await res.json();
-          setPots(data);
-          await saveLocalPots(data);
-        } else {
-          // Fallback to offline cache on error
-          const cached = await getLocalPots();
-          if (cached && cached.length > 0) {
-            setPots(cached);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to prefetch pots:", err);
-        const cached = await getLocalPots();
-        if (cached && cached.length > 0) {
-          setPots(cached);
-        }
-      }
     };
-    prefetchPots();
+
+    loadInitialData();
   }, []);
 
   return (
@@ -87,8 +85,8 @@ export function Dashboard({
           <ExpenseWorkspace 
             initialExpenses={expenses} 
             onExpensesChange={setExpenses} 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
+            activeTab={activeTab as "add" | "transactions" | "analytics" | "profile"}
+            onTabChange={setActiveTab as (tab: "add" | "transactions" | "analytics" | "profile") => void}
           />
         )}
 
@@ -104,6 +102,7 @@ export function Dashboard({
             onPotsChange={setPots} 
           />
         )}
+
       </div>
 
       {/* Mobile Navigation */}
