@@ -7,6 +7,15 @@
   min-height: 0;
 }
 
+.error {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -80,4 +89,3 @@
   color: var(--color-text-secondary);
   font-weight: 500;
 }
-

@@ -4,8 +4,6 @@ import { useState } from "react";
 import { Modal } from "@/components/ui/modal/modal";
 import { Button } from "@/components/ui/button/button";
 import { formatCurrency } from "@/utils/expense-utils";
-import { deleteLocalPot } from "@/utils/db";
-import { queueAction } from "@/utils/sync-queue";
 import type { Pot } from "@/lib/types";
 import styles from "./delete-pot-modal.module.css";
 
@@ -15,29 +13,17 @@ interface DeletePotModalProps {
   onBack: () => void;
   pot: Pot;
   balance: number;
-  onDeleteSuccess: () => void;
+  onDelete: (id: string) => Promise<void>;
 }
 
-export function DeletePotModal({ isOpen, onClose, onBack, pot, balance, onDeleteSuccess }: DeletePotModalProps) {
+export function DeletePotModal({ isOpen, onClose, onBack, pot, balance, onDelete }: DeletePotModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasBalance = balance !== 0;
 
   const confirmDeletePot = async () => {
     setIsSubmitting(true);
-    const isOffline = typeof window !== "undefined" && !navigator.onLine;
-
-    if (isOffline) {
-      await deleteLocalPot(pot.id);
-      queueAction("DELETE", { id: pot.id }, "pots");
-      onDeleteSuccess();
-      onClose();
-      return;
-    }
-
     try {
-      await fetch(`/api/pots?id=${pot.id}`, { method: "DELETE" });
-      await deleteLocalPot(pot.id);
-      onDeleteSuccess();
+      await onDelete(pot.id);
       onClose();
     } catch (err) {
       console.error(err);

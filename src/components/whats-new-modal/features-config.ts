@@ -1,7 +1,7 @@
-import { Bug, ChartPie, PiggyBank } from "lucide-react";
+import { Zap, ChartPie, PiggyBank } from "lucide-react";
 
 // Bump this version string next time you release new features to trigger the modal again!
-export const CURRENT_VERSION = "1.6.0";
+export const CURRENT_VERSION = "1.7.0";
 
 export const RELEASE_FEATURES = [
   {
@@ -17,9 +17,9 @@ export const RELEASE_FEATURES = [
     description: "Money assigned to pots is now deducted from your main balance."
   },
   {
-    id: "bug-fixes",
-    icon: Bug,
-    title: "Bug Fixes",
-    description: "Various fixes and improvements for a smoother experience."
+    id: "instant-updates",
+    icon: Zap,
+    title: "Instant Updates",
+    description: "Adding or editing expenses and pots now happens instantly with no loading delays."
   }
 ];

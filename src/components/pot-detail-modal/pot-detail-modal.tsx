@@ -8,14 +8,12 @@ import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
 import styles from "./pot-detail-modal.module.css";
 import type { Pot, Expense } from "@/lib/types";
-import { putLocalExpense } from "@/utils/db";
-import { queueAction } from "@/utils/sync-queue";
 
 interface PotDetailModalProps {
   pot: Pot;
   balance: number;
   onClose: () => void;
-  onTransactionSuccess: () => void;
+  onTransaction: (payload: Partial<Expense>) => Promise<void>;
   onEdit: () => void;
   onDeleteInitiated: () => void;
 }
@@ -24,7 +22,7 @@ export function PotDetailModal({
   pot,
   balance,
   onClose,
-  onTransactionSuccess,
+  onTransaction,
   onEdit,
   onDeleteInitiated,
 }: PotDetailModalProps) {
@@ -53,57 +51,15 @@ export function PotDetailModal({
 
     // Amount is positive for Add, negative for Withdraw
     const finalAmount = view === "withdraw" ? -numAmount : numAmount;
-    const isOffline = typeof window !== "undefined" && !navigator.onLine;
-
-    if (isOffline) {
-      const offlineExpense: Expense = {
-        id: crypto.randomUUID(),
-        user_id: pot.user_id ?? "offline-user",
+    try {
+      await onTransaction({
         label: view === "add" ? `Added to ${pot.name}` : `Withdrew from ${pot.name}`,
         category: "Pots",
         amount: finalAmount.toString(),
         type: "savings",
         pot_id: pot.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      await putLocalExpense(offlineExpense);
-      queueAction("POST", {
-        label: offlineExpense.label,
-        category: offlineExpense.category,
-        amount: offlineExpense.amount,
-        type: offlineExpense.type,
-        pot_id: offlineExpense.pot_id,
-        created_at: offlineExpense.created_at
-      }, "expenses");
-
-      onTransactionSuccess();
-      setAmount("");
-      setIsSubmitting(false);
-      onClose();
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/expenses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label: view === "add" ? `Added to ${pot.name}` : `Withdrew from ${pot.name}`,
-          category: "Pots",
-          amount: finalAmount.toString(),
-          type: "savings",
-          pot_id: pot.id,
-          created_at: new Date().toISOString()
-        })
+        created_at: new Date().toISOString()
       });
-
-      if (!res.ok) throw new Error("Transaction failed");
-
-      const body = await res.json();
-      await putLocalExpense(body.expense);
-      onTransactionSuccess();
       setAmount("");
       onClose();
     } catch (err) {

@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
+  const id = body.id ? String(body.id).trim() : undefined;
   const name = body.name?.trim();
   const goal = body.goal ? Number(body.goal) : 0;
   const color = body.color?.trim() || '#f5a623';
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
     .from("pots")
     .insert([
       {
+        ...(id && { id }),
         user_id: user.id,
         name: name,
         goal: goal,
