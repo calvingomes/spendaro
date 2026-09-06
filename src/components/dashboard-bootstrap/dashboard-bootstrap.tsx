@@ -55,14 +55,47 @@ export function DashboardBootstrap() {
         const body = await expensesResponse.json();
         if (body.expenses) {
           await saveLocalExpenses(body.expenses);
-          setState((current) => current ? { ...current, expenses: body.expenses } : current);
+          setState((current) => {
+            if (!current) return current;
+            const prev = current.expenses;
+            const next = body.expenses as Expense[];
+            if (
+              prev.length === next.length &&
+              prev.every(
+                (item, idx) =>
+                  item.id === next[idx].id &&
+                  item.amount === next[idx].amount &&
+                  item.updated_at === next[idx].updated_at
+              )
+            ) {
+              return current;
+            }
+            return { ...current, expenses: next };
+          });
         }
       }
 
       if (potsResponse.ok) {
         const body = await potsResponse.json();
         await saveLocalPots(body);
-        setState((current) => current ? { ...current, pots: body } : current);
+        setState((current) => {
+          if (!current) return current;
+          const prev = current.pots;
+          const next = body as Pot[];
+          if (
+            prev.length === next.length &&
+            prev.every(
+              (item, idx) =>
+                item.id === next[idx].id &&
+                item.name === next[idx].name &&
+                item.goal === next[idx].goal &&
+                item.color === next[idx].color
+            )
+          ) {
+            return current;
+          }
+          return { ...current, pots: next };
+        });
       }
     };
 
