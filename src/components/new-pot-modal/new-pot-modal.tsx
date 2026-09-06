@@ -7,17 +7,15 @@ import { Button } from "@/components/ui/button/button";
 import styles from "./new-pot-modal.module.css";
 import type { Pot } from "@/lib/types";
 import { capitalizeWords } from "@/utils/expense-utils";
-import { putLocalPot } from "@/utils/db";
-import { queueAction } from "@/utils/sync-queue";
 
 interface NewPotModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmitSuccess: () => void;
+  onSubmit: (payload: { name: string; goal: string; color: string }) => Promise<void>;
   pot?: Pot | null; // If provided, we are in Edit mode
 }
 
-export function NewPotModal({ isOpen, onClose, onSubmitSuccess, pot }: NewPotModalProps) {
+export function NewPotModal({ isOpen, onClose, onSubmit, pot }: NewPotModalProps) {
   const [potName, setPotName] = useState("");
   const [potGoal, setPotGoal] = useState("");
   const [potColor, setPotColor] = useState("#f5a623");
@@ -42,81 +40,13 @@ export function NewPotModal({ isOpen, onClose, onSubmitSuccess, pot }: NewPotMod
     if (!formattedName) return;
     setIsSubmitting(true);
 
-    const isOffline = typeof window !== "undefined" && !navigator.onLine;
-    const isEdit = !!pot;
-
-    if (isEdit && pot) {
-      // Edit Pot Mode
-      if (isOffline) {
-        const updatedPot: Pot = {
-          ...pot,
-          name: formattedName,
-          goal: potGoal || "0",
-          color: potColor,
-          updated_at: new Date().toISOString()
-        };
-        await putLocalPot(updatedPot);
-        queueAction("PUT", { id: pot.id, name: formattedName, goal: potGoal || "0", color: potColor }, "pots");
-        setIsSubmitting(false);
-        onSubmitSuccess();
-        onClose();
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/pots", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: pot.id, name: formattedName, goal: potGoal || "0", color: potColor })
-        });
-        if (res.ok) {
-          const body = await res.json();
-          await putLocalPot(body);
-          onSubmitSuccess();
-          onClose();
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      // Create Pot Mode
-      if (isOffline) {
-        const offlinePot: Pot = {
-          id: crypto.randomUUID(),
-          user_id: "offline-user",
-          name: formattedName,
-          goal: potGoal || "0",
-          color: potColor,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        await putLocalPot(offlinePot);
-        queueAction("POST", { name: formattedName, goal: potGoal || "0", color: potColor }, "pots");
-        setIsSubmitting(false);
-        onSubmitSuccess();
-        onClose();
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/pots", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: formattedName, goal: potGoal || "0", color: potColor })
-        });
-        if (res.ok) {
-          const body = await res.json();
-          await putLocalPot(body);
-          onSubmitSuccess();
-          onClose();
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsSubmitting(false);
-      }
+    try {
+      await onSubmit({ name: formattedName, goal: potGoal || "0", color: potColor });
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

@@ -31,6 +31,7 @@ Do not introduce Tailwind. Do not change the visual direction unless the user as
 - `/auth/callback` Supabase OAuth callback handler
 - `/dashboard` protected authenticated dashboard
 - `/api/expenses` expense API
+- `/api/pots` pots API
 
 ## Auth Flow
 Google sign-in is enabled through Supabase.
@@ -59,15 +60,25 @@ Preferred usage:
 - Server-only code should never expose the service role key to the browser.
 
 ## Database
-The core table is `public.expenses`.
+The core tables are `public.expenses` and `public.pots`.
 
-Schema fields:
+`public.expenses` schema fields:
 - `id`
 - `user_id`
 - `label`
 - `category`
 - `amount`
-- `type` (credit | debit)
+- `type` (credit | debit | savings)
+- `pot_id` (uuid references public.pots on delete set null)
+- `created_at`
+- `updated_at`
+
+`public.pots` schema fields:
+- `id`
+- `user_id`
+- `name`
+- `goal`
+- `color`
 - `created_at`
 - `updated_at`
 
@@ -77,16 +88,30 @@ Policies should ensure users only see and mutate their own rows.
 ## API Contract
 `/api/expenses`
 - `GET` returns the current user's expenses
-- `POST` creates an expense
+- `POST` creates an expense (accepts optional client-generated `id` for UUID persistence)
 - `PUT` updates an expense
 - `DELETE` removes an expense
 
 Expected create payload:
+- `id` (optional, client-generated UUID for optimistic persistence)
 - `label`
 - `category`
 - `amount`
-- `type` (credit | debit)
-- `created_at` optional, defaults to now if missing
+- `type` (credit | debit | savings)
+- `pot_id` (optional)
+- `created_at` (optional, defaults to now if missing)
+
+`/api/pots`
+- `GET` returns the current user's pots
+- `POST` creates a pot (accepts optional client-generated `id` for UUID persistence)
+- `PUT` updates a pot
+- `DELETE` removes a pot (`/api/pots?id=<id>`)
+
+Expected create payload:
+- `id` (optional, client-generated UUID for optimistic persistence)
+- `name`
+- `goal`
+- `color`
 
 ## Implementation Notes
 - Prefer server components for reads when safe.
@@ -115,6 +140,7 @@ Use Bun:
 - Utilize ONLY standardized design tokens from `globals.css` for module colors and spacing; avoid hardcoding hex codes.
 
 ## Current Build Status
-The core architecture is fully stabilized with hardened PWA Offline Sync engine (self-healing 4xx, UUID persistence) and verified cross-device Session durability. The project is 100% lint-clean and hardened for production usage. The immediate focus is now solely:
+The core architecture is fully stabilized with an optimistic UI and hardened PWA Offline Sync engine (self-healing 4xx, optimistic client UUID persistence across expenses and pots, in-flight mutex with drain loop, FIFO network-drop preservation, and non-blocking inline error banners). The project is 100% lint-clean, passes full TypeScript production builds, and is hardened for production usage. The immediate focus is now:
+- Table filters
 - Export and sharing features (CSV/PDF)
-- Final Polish and visual transitions
+- Final polish and visual transitions

@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
-import { ExpenseAnalytics } from "@/components/expense-analytics/expense-analytics";
 import { ExpenseList } from "@/components/expense-list/expense-list";
 import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { ExpenseModal } from "@/components/expense-modal/expense-modal";
 import { saveLocalExpenses, getLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
 import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-queue";
+
+const ExpenseAnalytics = dynamic(
+  () => import("@/components/expense-analytics/expense-analytics").then((module) => module.ExpenseAnalytics),
+  { ssr: false }
+);
 
 export function ExpenseWorkspace({
   initialExpenses,
@@ -24,7 +29,9 @@ export function ExpenseWorkspace({
   const [expenses, setExpenses] = useState(initialExpenses);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const rollbackByActionId = useRef(new Map<string, Expense[]>());
   const [defaultType, setDefaultType] = useState<"credit" | "debit" | "savings">("debit");
 
   useEffect(() => {
@@ -32,8 +39,25 @@ export function ExpenseWorkspace({
   }, [expenses, onExpensesChange]);
 
   const syncAndRefresh = async () => {
-    const allSynced = await processSyncQueue();
-    if (allSynced) {
+    const result = await processSyncQueue();
+
+    if (result.failedActionIds.length > 0) {
+      const rollback = result.failedActionIds
+        .map((id) => rollbackByActionId.current.get(id))
+        .find((snapshot): snapshot is Expense[] => Boolean(snapshot));
+
+      if (rollback) {
+        setExpenses(rollback);
+        await saveLocalExpenses(rollback);
+      }
+
+      result.failedActionIds.forEach((id) => rollbackByActionId.current.delete(id));
+      setSyncError("Couldn't sync the latest change. Your previous data was restored.");
+    }
+
+    // Do not refresh from the server while optimistic actions are still queued,
+    // otherwise the server response could temporarily hide local changes.
+    if (result.remainingCount === 0) {
       try {
         const response = await fetch("/api/expenses");
         if (response.ok) {
@@ -107,106 +131,82 @@ export function ExpenseWorkspace({
   };
 
   const handleSubmit = async (payload: Partial<Expense>) => {
-    return new Promise<void>((resolve, reject) => {
-      startTransition(async () => {
-        try {
-          const isOffline = !navigator.onLine;
+    setIsPending(true);
+    setSyncError(null);
 
-          if (isOffline) {
-            const isEditing = !!editingExpense;
-            const tempId = isEditing ? editingExpense.id : crypto.randomUUID();
-            
-            const offlineExpense: Expense = {
-              id: tempId,
-              user_id: editingExpense?.user_id ?? "offline-user",
-              label: String(payload.label ?? "").trim(),
-              category: String(payload.category ?? "").trim(),
-              amount: String(payload.amount ?? "0"),
-              type: (payload.type ?? "debit") as "credit" | "debit" | "savings",
-              created_at: payload.created_at ?? new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            };
+    const isEditing = !!editingExpense;
+    const expenseId = editingExpense?.id ?? crypto.randomUUID();
+    const optimisticExpense: Expense = {
+      id: expenseId,
+      user_id: editingExpense?.user_id ?? "offline-user",
+      label: String(payload.label ?? "").trim(),
+      category: String(payload.category ?? "").trim(),
+      amount: String(payload.amount ?? "0"),
+      type: (payload.type ?? "debit") as "credit" | "debit" | "savings",
+      pot_id: editingExpense?.pot_id ?? null,
+      created_at: payload.created_at ?? editingExpense?.created_at ?? new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    const previousExpenses = expenses;
+    const nextExpenses = isEditing
+      ? expenses.map((expense) => expense.id === expenseId ? optimisticExpense : expense)
+      : [optimisticExpense, ...expenses];
 
-            // Update local state and IndexedDB cache immediately
-            if (isEditing) {
-              const updated = expenses.map((e) => (e.id === tempId ? offlineExpense : e));
-              setExpenses(updated);
-            } else {
-              setExpenses([offlineExpense, ...expenses]);
-            }
-            await putLocalExpense(offlineExpense);
+    try {
+      setExpenses(nextExpenses);
+      await putLocalExpense(optimisticExpense);
 
-            queueAction(isEditing ? "PUT" : "POST", isEditing ? { ...payload, id: editingExpense.id } : payload as Record<string, unknown>);
-            setIsModalOpen(false);
-            resolve();
-            return;
-          }
+      const actionId = queueAction(
+        isEditing ? "PUT" : "POST",
+        { ...payload, id: expenseId } as Record<string, unknown>
+      );
+      rollbackByActionId.current.set(actionId, previousExpenses);
 
-          const response = await fetch("/api/expenses", {
-            method: editingExpense ? "PUT" : "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(editingExpense ? { ...payload, id: editingExpense.id } : payload)
-          });
+      setIsModalOpen(false);
+      setIsPending(false);
 
-          const body = await response.json();
-          if (!response.ok) throw new Error(body.error ?? "Save failed");
-
-          await putLocalExpense(body.expense);
-
-          if (editingExpense) {
-            setExpenses((current) => current.map((e) => (e.id === editingExpense.id ? body.expense : e)));
-          } else {
-            setExpenses((current) => [body.expense, ...current]);
-          }
-          
-          setIsModalOpen(false);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
+      // Sync after the UI has already reflected the change.
+      void syncAndRefresh();
+    } catch (error) {
+      setExpenses(previousExpenses);
+      await saveLocalExpenses(previousExpenses);
+      setIsPending(false);
+      throw error;
+    }
   };
 
   const handleDelete = async (expenseId: string) => {
-    return new Promise<void>((resolve, reject) => {
-      startTransition(async () => {
-        try {
-          const isOffline = !navigator.onLine;
+    setIsPending(true);
+    setSyncError(null);
+    const previousExpenses = expenses;
 
-          if (isOffline) {
-            await deleteLocalExpense(expenseId);
-            setExpenses((current) => current.filter((e) => e.id !== expenseId));
-            queueAction("DELETE", { id: expenseId });
-            setIsModalOpen(false);
-            resolve();
-            return;
-          }
+    try {
+      const nextExpenses = expenses.filter((expense) => expense.id !== expenseId);
+      setExpenses(nextExpenses);
+      await deleteLocalExpense(expenseId);
 
-          const response = await fetch("/api/expenses", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: expenseId })
-          });
+      const actionId = queueAction("DELETE", { id: expenseId });
+      rollbackByActionId.current.set(actionId, previousExpenses);
 
-          if (!response.ok) {
-            const body = await response.json();
-            throw new Error(body.error ?? "Delete failed");
-          }
-
-          await deleteLocalExpense(expenseId);
-          setExpenses((current) => current.filter((e) => e.id !== expenseId));
-          setIsModalOpen(false);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      });
-    });
+      setIsModalOpen(false);
+      setIsPending(false);
+      void syncAndRefresh();
+    } catch (error) {
+      setExpenses(previousExpenses);
+      await saveLocalExpenses(previousExpenses);
+      setIsPending(false);
+      throw error;
+    }
   };
 
   return (
     <section className={styles.workspace}>
+      {syncError && (
+        <p className={styles.syncError} role="status">
+          {syncError}
+        </p>
+      )}
+
       {activeTab === "add" && expenses.length > 0 && (
         <div className={styles.recentActivity}>
           <h2 className={styles.sectionTitle}>Recent activity</h2>

@@ -6,6 +6,13 @@
   background: var(--color-bg);
 }
 
+.logo {
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-3);
+}
+
 .loader {
   width: 32px;
   height: 32px;

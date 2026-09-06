@@ -7,6 +7,14 @@ export interface QueuedAction {
   payload: Record<string, unknown>;
 }
 
+export interface SyncResult {
+  allSynced: boolean;
+  failedActionIds: string[];
+  remainingCount: number;
+}
+
+let activeSyncPromise: Promise<SyncResult> | null = null;
+
 export function getQueuedActions(): QueuedAction[] {
   if (typeof window === "undefined") return [];
   try {
@@ -31,7 +39,7 @@ export function queueAction(
   action: "POST" | "PUT" | "DELETE", 
   payload: Record<string, unknown>,
   target: "expenses" | "pots" = "expenses"
-): void {
+): string {
   const actions = getQueuedActions();
   const newAction: QueuedAction = {
     id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -41,18 +49,43 @@ export function queueAction(
   };
   actions.push(newAction);
   saveQueuedActions(actions);
+  return newAction.id;
 }
 
-export async function processSyncQueue(): Promise<boolean> {
+export function processSyncQueue(): Promise<SyncResult> {
+  if (activeSyncPromise) return activeSyncPromise;
+
+  activeSyncPromise = (async () => {
+    let result = await processSyncQueueInternal();
+
+    // Drain actions queued while the previous batch was being sent before
+    // releasing the mutex, so rapid consecutive writes are not stranded.
+    while (result.remainingCount === 0 && getQueuedActions().length > 0) {
+      result = await processSyncQueueInternal();
+    }
+
+    return result;
+  })().finally(() => {
+    activeSyncPromise = null;
+  });
+
+  return activeSyncPromise;
+}
+
+async function processSyncQueueInternal(): Promise<SyncResult> {
   const actions = getQueuedActions();
-  if (actions.length === 0) return true;
+  if (actions.length === 0) {
+    return { allSynced: true, failedActionIds: [], remainingCount: 0 };
+  }
 
   console.log(`Processing sync queue: syncing ${actions.length} offline operations...`);
   
   const remainingActions: QueuedAction[] = [];
+  const failedActionIds: string[] = [];
   let allSynced = true;
 
-  for (const item of actions) {
+  for (let index = 0; index < actions.length; index += 1) {
+    const item = actions[index];
     try {
       const target = item.target || "expenses";
       const isDelete = item.action === "DELETE";
@@ -83,17 +116,24 @@ export async function processSyncQueue(): Promise<boolean> {
       if (!response.ok) {
         if (response.status >= 400 && response.status < 500) {
           console.error(`Permanent sync failure (Status ${response.status}) for action:`, item);
+          failedActionIds.push(item.id);
+          allSynced = false;
           continue;
         }
         throw new Error(`Sync failed with status ${response.status}`);
       }
     } catch (err) {
       console.error("Failed to sync queued action (will retry later):", item, err);
-      remainingActions.push(item);
+      remainingActions.push(item, ...actions.slice(index + 1));
       allSynced = false;
+      break;
     }
   }
 
   saveQueuedActions(remainingActions);
-  return allSynced;
+  return {
+    allSynced,
+    failedActionIds,
+    remainingCount: remainingActions.length,
+  };
 }

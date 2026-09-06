@@ -53,7 +53,16 @@ export async function getLocalExpenses(): Promise<Expense[]> {
       const store = tx.objectStore(STORE_NAME);
       const request = store.getAll();
 
-      request.onsuccess = () => resolve(request.result as Expense[]);
+      request.onsuccess = () => {
+        const items = (request.result as Expense[]) || [];
+        items.sort((a, b) => {
+          const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          if (timeB !== timeA) return timeB - timeA;
+          return String(b.id || "").localeCompare(String(a.id || ""));
+        });
+        resolve(items);
+      };
       request.onerror = () => reject(request.error);
     });
   } catch (err) {
@@ -110,7 +119,15 @@ export async function getLocalPots(): Promise<Pot[]> {
       const store = tx.objectStore(POTS_STORE_NAME);
       const request = store.getAll();
 
-      request.onsuccess = () => resolve(request.result as Pot[]);
+      request.onsuccess = () => {
+        const items = (request.result as Pot[]) || [];
+        items.sort((a, b) => {
+          const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return timeA - timeB;
+        });
+        resolve(items);
+      };
       request.onerror = () => reject(request.error);
     });
   } catch (err) {
