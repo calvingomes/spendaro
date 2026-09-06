@@ -6,6 +6,12 @@ export async function middleware(request: NextRequest) {
     request
   });
 
+  // The dashboard validates its session in the browser and through its API
+  // routes. Avoid an extra blocking Supabase round trip before the app shell.
+  if (request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/dashboard") {
+    return response;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -34,5 +40,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)"]
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)"]
 };

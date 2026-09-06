@@ -1,14 +1,19 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
-import { ExpenseAnalytics } from "@/components/expense-analytics/expense-analytics";
 import { ExpenseList } from "@/components/expense-list/expense-list";
 import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { ExpenseModal } from "@/components/expense-modal/expense-modal";
 import { saveLocalExpenses, getLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
 import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-queue";
+
+const ExpenseAnalytics = dynamic(
+  () => import("@/components/expense-analytics/expense-analytics").then((module) => module.ExpenseAnalytics),
+  { ssr: false }
+);
 
 export function ExpenseWorkspace({
   initialExpenses,

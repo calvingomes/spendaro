@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import styles from "./dashboard.module.css";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
@@ -14,52 +14,26 @@ import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
 import type { Expense, Pot, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
-import { getLocalPots, saveLocalPots } from "@/utils/db";
-
-
 export function Dashboard({
   initialExpenses,
+  initialPots,
   user
 }: {
   initialExpenses: Expense[];
+  initialPots: Pot[];
   user: User;
 }) {
   const [expenses, setExpenses] = useState(initialExpenses);
-  const [pots, setPots] = useState<Pot[]>([]);
+  const [pots, setPots] = useState<Pot[]>(initialPots);
   const [activeTab, setActiveTab] = useState<NavTab>("add");
 
   useEffect(() => {
-    const loadInitialData = async () => {
-      const isOffline = typeof window !== "undefined" && !navigator.onLine;
+    setExpenses(initialExpenses);
+  }, [initialExpenses]);
 
-      // 1. Fetch Pots
-      if (isOffline) {
-        const cachedPots = await getLocalPots();
-        if (cachedPots && cachedPots.length > 0) {
-          setPots(cachedPots);
-        }
-      } else {
-        try {
-          const res = await fetch("/api/pots");
-          if (res.ok) {
-            const data = await res.json();
-            setPots(data);
-            await saveLocalPots(data);
-          } else {
-            const cachedPots = await getLocalPots();
-            if (cachedPots && cachedPots.length > 0) setPots(cachedPots);
-          }
-        } catch (err) {
-          console.error("Failed to prefetch pots:", err);
-          const cachedPots = await getLocalPots();
-          if (cachedPots && cachedPots.length > 0) setPots(cachedPots);
-        }
-      }
-
-    };
-
-    loadInitialData();
-  }, []);
+  useEffect(() => {
+    setPots(initialPots);
+  }, [initialPots]);
 
   return (
     <main className={styles.page}>

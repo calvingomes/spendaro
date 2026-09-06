@@ -1,17 +1,23 @@
-const CACHE_NAME = "xpenses-assets-v12";
+const CACHE_NAME = "xpenses-assets-v13";
 const ASSETS_TO_CACHE = [
   "/manifest.webmanifest",
+  "/dashboard",
   "/favicon.ico",
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
   "/apple-icon.png",
+  "/splash/iphone-se.png",
+  "/splash/iphone-15.png",
+  "/splash/iphone-15-pro-max.png",
 ];
 
 // Install: Cache critical assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      return Promise.all(
+        ASSETS_TO_CACHE.map((asset) => cache.add(asset).catch(() => undefined))
+      );
     })
   );
   self.skipWaiting();
@@ -44,6 +50,7 @@ self.addEventListener("fetch", (event) => {
   // Skip caching for internal API endpoints, Supabase operations, and hot-module-reloading
   if (
     url.pathname.startsWith("/api") ||
+    url.pathname.startsWith("/auth") ||
     url.hostname.includes("supabase.co") ||
     url.pathname.includes("_next/webpack-hmr")
   ) {
@@ -102,25 +109,27 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Pages and documents (navigation): Network-First, with a cache fallback
+  // Pages and documents (navigation): serve the cached app shell immediately,
+  // then refresh it in the background for the next launch.
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((networkResponse) => {
+      caches.match(request).then(async (cachedResponse) => {
+        const networkFetch = fetch(request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseToCache);
+              cache.put(request, networkResponse.clone());
             });
           }
           return networkResponse;
-        })
-        .catch(() => {
-          return caches.match(request).then((cachedResponse) => {
-            if (cachedResponse) return cachedResponse;
-            return caches.match("/dashboard");
-          });
-        })
+        });
+
+        if (cachedResponse) {
+          networkFetch.catch(() => undefined);
+          return cachedResponse;
+        }
+
+        return networkFetch.catch(() => caches.match("/dashboard"));
+      })
     );
     return;
   }
