@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type { Expense, Pot } from "@/lib/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { getLocalExpenses, getLocalPots, saveLocalExpenses, saveLocalPots } from "@/utils/db";
+import { getLocalExpenses, getLocalPots, saveLocalExpenses, saveLocalPots, syncCategoriesFromExpenses } from "@/utils/db";
 import { getQueuedActions } from "@/utils/sync-queue";
 
 type AppDataState =
   | { status: "loading" }
   | { status: "unauthenticated" }
+  | { status: "hydrating"; user: User; expenses: Expense[]; pots: Pot[] }
   | { status: "ready"; user: User; expenses: Expense[]; pots: Pot[] };
 
 type AppDataContextValue = {
@@ -34,13 +35,13 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const setExpenses = (expenses: Expense[]) => {
     setAppState((prev) =>
-      prev.status === "ready" ? { ...prev, expenses } : prev
+      prev.status === "ready" || prev.status === "hydrating" ? { ...prev, expenses } : prev
     );
   };
 
   const setPots = (pots: Pot[]) => {
     setAppState((prev) =>
-      prev.status === "ready" ? { ...prev, pots } : prev
+      prev.status === "ready" || prev.status === "hydrating" ? { ...prev, pots } : prev
     );
   };
 
@@ -52,10 +53,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     const supabase = createSupabaseBrowserClient();
 
     const bootstrap = async () => {
-      const [[cachedExpenses, cachedPots], { data: { session } }] = await Promise.all([
-        Promise.all([getLocalExpenses(), getLocalPots()]),
-        supabase.auth.getSession(),
-      ]);
+      const { data: { session } } = await supabase.auth.getSession();
 
       if (cancelled) return;
 
@@ -63,6 +61,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         setAppState({ status: "unauthenticated" });
         return;
       }
+
+      setAppState({ status: "hydrating", user: session.user, expenses: [], pots: [] });
+
+      const [cachedExpenses, cachedPots] = await Promise.all([
+        getLocalExpenses(),
+        getLocalPots(),
+      ]);
+
+      if (cancelled) return;
 
       setAppState({ status: "ready", user: session.user, expenses: cachedExpenses, pots: cachedPots });
 
@@ -78,10 +85,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       if (expensesResponse.ok) {
         const body = await expensesResponse.json();
         if (body.expenses) {
-          await saveLocalExpenses(body.expenses);
+          const next = body.expenses as Expense[];
+          await saveLocalExpenses(next);
+          void syncCategoriesFromExpenses(next);
           setAppState((prev) => {
             if (prev.status !== "ready") return prev;
-            const next = body.expenses as Expense[];
             if (
               prev.expenses.length === next.length &&
               prev.expenses.every(
@@ -100,10 +108,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
       if (potsResponse.ok) {
         const body = await potsResponse.json();
-        await saveLocalPots(body);
+        const next = body as Pot[];
+        await saveLocalPots(next);
         setAppState((prev) => {
           if (prev.status !== "ready") return prev;
-          const next = body as Pot[];
           if (
             prev.pots.length === next.length &&
             prev.pots.every(

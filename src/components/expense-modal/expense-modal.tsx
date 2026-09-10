@@ -10,6 +10,7 @@ import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-togg
 import { Button } from "@/components/ui/button/button";
 import styles from "./expense-modal.module.css";
 import { DEFAULT_CATEGORIES, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
+import { getLocalCategories, saveLocalCategory } from "@/utils/db";
 import type { Expense } from "@/lib/types";
 
 type ExpenseFormState = {
@@ -51,9 +52,20 @@ export function ExpenseModal({
 }: ExpenseModalProps) {
   const [form, setForm] = useState<ExpenseFormState>(emptyForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [storedCategories, setStoredCategories] = useState<string[]>([]);
   const [addedCategories, setAddedCategories] = useState<string[]>([]);
+  const categoriesLoaded = useRef(false);
 
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!categoriesLoaded.current) {
+      categoriesLoaded.current = true;
+      getLocalCategories().then((cats) => {
+        setStoredCategories(cats.map((c) => normalizeText(c)).filter(Boolean));
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -87,13 +99,14 @@ export function ExpenseModal({
     const base = new Set<string>();
 
     addedCategories.forEach((cat) => base.add(normalizeText(cat)));
+    storedCategories.forEach((cat) => base.add(cat));
     expenses.forEach((e) => {
       if (e.category) base.add(normalizeText(e.category));
     });
     DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
 
-    return Array.from(base).sort((a, b) => a.localeCompare(b));
-  }, [expenses, addedCategories]);
+    return Array.from(base).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [expenses, storedCategories, addedCategories]);
 
   const handleAddCategory = (newCat: string) => {
     const normalized = normalizeText(newCat);
@@ -102,6 +115,7 @@ export function ExpenseModal({
     const matchExists = allCategories.some(cat => cat.toLowerCase() === normalized.toLowerCase());
     if (!matchExists) {
       setAddedCategories(current => [normalized, ...current]);
+      void saveLocalCategory(normalized);
     }
 
     setForm(current => ({ ...current, category: normalized }));
@@ -151,6 +165,8 @@ export function ExpenseModal({
         finalCreatedAt = combinedDate.toISOString();
       }
     }
+
+    void saveLocalCategory(normalizedCategory);
 
     const payload = {
       label: normalizedLabel,

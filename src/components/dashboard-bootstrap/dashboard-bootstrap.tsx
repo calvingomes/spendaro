@@ -12,7 +12,13 @@ interface DashboardBootstrapProps {
 export function DashboardBootstrap({ initialModalOpen, onModalClose }: DashboardBootstrapProps = {}) {
   const { state } = useAppData();
 
-  if (state.status !== "ready") return <LoadingContent />;
+  if (state.status === "loading" || state.status === "unauthenticated") {
+    return <LoadingContent />;
+  }
+
+  if (!initialModalOpen && state.status === "hydrating") {
+    return <LoadingContent />;
+  }
 
   return (
     <Dashboard

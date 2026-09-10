@@ -3,7 +3,8 @@ import type { Expense, Pot } from "@/lib/types";
 const DB_NAME = "xpenses-db";
 const STORE_NAME = "expenses";
 const POTS_STORE_NAME = "pots";
-const DB_VERSION = 4;
+const CATEGORIES_STORE_NAME = "categories";
+const DB_VERSION = 5;
 
 export function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -39,6 +40,12 @@ export function openDB(): Promise<IDBDatabase> {
           db.createObjectStore(POTS_STORE_NAME, { keyPath: "id" });
         }
       }
+
+      if (oldVersion < 5) {
+        if (!db.objectStoreNames.contains(CATEGORIES_STORE_NAME)) {
+          db.createObjectStore(CATEGORIES_STORE_NAME, { keyPath: "name" });
+        }
+      }
     };
   });
 }
@@ -48,12 +55,8 @@ export async function saveLocalExpenses(expenses: Expense[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
-    
     store.clear();
-    expenses.forEach((expense) => {
-      store.put(expense);
-    });
-
+    expenses.forEach((expense) => store.put(expense));
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -66,7 +69,6 @@ export async function getLocalExpenses(): Promise<Expense[]> {
       const tx = db.transaction(STORE_NAME, "readonly");
       const store = tx.objectStore(STORE_NAME);
       const request = store.getAll();
-
       request.onsuccess = () => {
         const items = (request.result as Expense[]) || [];
         items.sort((a, b) => {
@@ -91,7 +93,6 @@ export async function putLocalExpense(expense: Expense): Promise<void> {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
     store.put(expense);
-
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -103,7 +104,6 @@ export async function deleteLocalExpense(id: string): Promise<void> {
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
     store.delete(id);
-
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -114,12 +114,8 @@ export async function saveLocalPots(pots: Pot[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(POTS_STORE_NAME, "readwrite");
     const store = tx.objectStore(POTS_STORE_NAME);
-    
     store.clear();
-    pots.forEach((pot) => {
-      store.put(pot);
-    });
-
+    pots.forEach((pot) => store.put(pot));
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -132,7 +128,6 @@ export async function getLocalPots(): Promise<Pot[]> {
       const tx = db.transaction(POTS_STORE_NAME, "readonly");
       const store = tx.objectStore(POTS_STORE_NAME);
       const request = store.getAll();
-
       request.onsuccess = () => {
         const items = (request.result as Pot[]) || [];
         items.sort((a, b) => {
@@ -156,7 +151,6 @@ export async function putLocalPot(pot: Pot): Promise<void> {
     const tx = db.transaction(POTS_STORE_NAME, "readwrite");
     const store = tx.objectStore(POTS_STORE_NAME);
     store.put(pot);
-
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
@@ -168,9 +162,58 @@ export async function deleteLocalPot(id: string): Promise<void> {
     const tx = db.transaction(POTS_STORE_NAME, "readwrite");
     const store = tx.objectStore(POTS_STORE_NAME);
     store.delete(id);
-
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
+export async function getLocalCategories(): Promise<string[]> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(CATEGORIES_STORE_NAME, "readonly");
+      const store = tx.objectStore(CATEGORIES_STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const items = (request.result as { name: string }[]) || [];
+        resolve(items.map((i) => i.name));
+      };
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error("Failed to fetch local categories from IndexedDB:", err);
+    return [];
+  }
+}
+
+export async function saveLocalCategory(name: string): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(CATEGORIES_STORE_NAME, "readwrite");
+      const store = tx.objectStore(CATEGORIES_STORE_NAME);
+      store.put({ name });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.error("Failed to save local category:", err);
+  }
+}
+
+export async function syncCategoriesFromExpenses(expenses: Expense[]): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(CATEGORIES_STORE_NAME, "readwrite");
+      const store = tx.objectStore(CATEGORIES_STORE_NAME);
+      expenses.forEach((e) => {
+        if (e.category) store.put({ name: e.category });
+      });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.error("Failed to sync categories from expenses:", err);
+  }
+}

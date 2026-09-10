@@ -27,8 +27,8 @@ export function Dashboard({
   onModalClose?: () => void;
 }) {
   const { state, setExpenses, setPots } = useAppData();
-  const expenses = state.status === "ready" ? state.expenses : [];
-  const pots = state.status === "ready" ? state.pots : [];
+  const expenses = state.status === "ready" || state.status === "hydrating" ? state.expenses : [];
+  const pots = state.status === "ready" || state.status === "hydrating" ? state.pots : [];
 
   const [activeTab, setActiveTab] = useState<NavTab>("home");
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(initialModalOpen);
