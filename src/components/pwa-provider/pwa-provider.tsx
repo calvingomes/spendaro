@@ -2,11 +2,13 @@
 
 import { useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { AppDataProvider } from "@/context/app-data-context";
 
 export function PwaProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     createSupabaseBrowserClient();
   }, []);
+
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       const isDev =
@@ -16,7 +18,6 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
         window.location.hostname.startsWith("192.168.");
 
       if (isDev) {
-        // Unregister any existing service workers in development to prevent HMR infinite loops
         navigator.serviceWorker.getRegistrations().then((registrations) => {
           for (const registration of registrations) {
             registration.unregister();
@@ -33,5 +34,5 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  return <>{children}</>;
+  return <AppDataProvider>{children}</AppDataProvider>;
 }

@@ -4,14 +4,11 @@ import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle/theme-toggle";
 import { SignOutButton } from "@/components/buttons/sign-out-button/sign-out-button";
 import { User as UserIcon, Mail, Calendar, Settings2 } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
 import styles from "./profile-view.module.css";
+import { useDashboard } from "@/context/dashboard-context";
 
-interface ProfileViewProps {
-  user: User;
-}
-
-export function ProfileView({ user }: ProfileViewProps) {
+export function ProfileView() {
+  const { user } = useDashboard();
   const email = user.email;
   const name = user.user_metadata?.full_name || user.user_metadata?.name || "User";
   const avatarUrl = user.user_metadata?.avatar_url;

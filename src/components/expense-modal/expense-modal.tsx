@@ -6,9 +6,11 @@ import { Modal } from "@/components/ui/modal/modal";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Input } from "@/components/ui/input/input";
 import { CategoryPicker } from "@/components/ui/category-picker/category-picker";
+import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
 import { Button } from "@/components/ui/button/button";
 import styles from "./expense-modal.module.css";
 import { DEFAULT_CATEGORIES, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
+import { getLocalCategories, saveLocalCategory } from "@/utils/db";
 import type { Expense } from "@/lib/types";
 
 type ExpenseFormState = {
@@ -50,29 +52,35 @@ export function ExpenseModal({
 }: ExpenseModalProps) {
   const [form, setForm] = useState<ExpenseFormState>(emptyForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [storedCategories, setStoredCategories] = useState<string[]>([]);
   const [addedCategories, setAddedCategories] = useState<string[]>([]);
+  const categoriesLoaded = useRef(false);
 
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  const isExpenseMode = useMemo(() => {
-    return defaultType === "debit" || (editingExpense && editingExpense.type === "debit");
-  }, [defaultType, editingExpense]);
+  useEffect(() => {
+    if (!categoriesLoaded.current) {
+      categoriesLoaded.current = true;
+      getLocalCategories().then((cats) => {
+        setStoredCategories(cats.map((c) => normalizeText(c)).filter(Boolean));
+      });
+    }
+  }, []);
 
-  // Initialize form state
   useEffect(() => {
     if (isOpen) {
       if (editingExpense) {
         setForm({
           label: editingExpense.label,
           category: editingExpense.category,
-          amount: Math.abs(Number.parseFloat(editingExpense.amount) || 0).toString(),
+          amount: Math.abs(editingExpense.amount || 0).toString(),
           type: editingExpense.type,
           created_at: formatDateForInput(editingExpense.created_at)
         });
       } else {
         setForm({
           ...emptyForm,
-          type: defaultType,
+          type: defaultType === "savings" ? "debit" : defaultType,
           created_at: formatDateForInput(new Date())
         });
       }
@@ -87,18 +95,18 @@ export function ExpenseModal({
     }, 150);
   };
 
-  // Dynamic list of categories (newly added ones + unique historical + defaults)
   const allCategories = useMemo(() => {
     const base = new Set<string>();
 
     addedCategories.forEach((cat) => base.add(normalizeText(cat)));
+    storedCategories.forEach((cat) => base.add(cat));
     expenses.forEach((e) => {
       if (e.category) base.add(normalizeText(e.category));
     });
     DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
 
-    return Array.from(base).sort((a, b) => a.localeCompare(b));
-  }, [expenses, addedCategories]);
+    return Array.from(base).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [expenses, storedCategories, addedCategories]);
 
   const handleAddCategory = (newCat: string) => {
     const normalized = normalizeText(newCat);
@@ -107,12 +115,12 @@ export function ExpenseModal({
     const matchExists = allCategories.some(cat => cat.toLowerCase() === normalized.toLowerCase());
     if (!matchExists) {
       setAddedCategories(current => [normalized, ...current]);
+      void saveLocalCategory(normalized);
     }
 
     setForm(current => ({ ...current, category: normalized }));
   };
 
-  // Humanize selected date for micro-link
   const formatDateDisplay = (dateString: string) => {
     if (!dateString) return "Today";
     const today = localDateString();
@@ -157,12 +165,13 @@ export function ExpenseModal({
         finalCreatedAt = combinedDate.toISOString();
       }
     }
-    const finalAmount = amountNum;
+
+    void saveLocalCategory(normalizedCategory);
 
     const payload = {
       label: normalizedLabel,
       category: normalizedCategory,
-      amount: finalAmount.toString(),
+      amount: amountNum,
       type: form.type,
       created_at: finalCreatedAt
     };
@@ -174,15 +183,11 @@ export function ExpenseModal({
     }
   };
 
-  const modalTitle = useMemo(() => {
-    const action = editingExpense ? "Edit" : "New";
-    return isExpenseMode ? `${action} Expense` : `${action} Income`;
-  }, [editingExpense, isExpenseMode]);
+  const modalTitle = editingExpense
+    ? `Edit ${editingExpense.type === "credit" ? "Income" : "Expense"}`
+    : "New Transaction";
 
-  const submitButtonLabel = useMemo(() => {
-    if (editingExpense) return "Save changes";
-    return isExpenseMode ? "Add Expense" : "Add Income";
-  }, [editingExpense, isExpenseMode]);
+  const submitButtonLabel = editingExpense ? "Save changes" : "Add Transaction";
 
   return (
     <Modal
@@ -192,15 +197,12 @@ export function ExpenseModal({
     >
       <form className={styles.form} onSubmit={handleSubmit}>
 
-        {/* Field 1: Large Centered Amount (Numeric keyboard) */}
-        <AmountInput 
-          value={form.amount} 
+        <AmountInput
+          value={form.amount}
           onChange={(val) => setForm((curr) => ({ ...curr, amount: val }))}
           onFocus={handleInputFocus}
         />
 
-
-        {/* Field 2: Label Input */}
         <Input
           label="Label"
           id="label"
@@ -211,7 +213,6 @@ export function ExpenseModal({
           required
         />
 
-        {/* Field 3: Category Tappable Chips */}
         <CategoryPicker
           value={form.category}
           onChange={(cat) => setForm((curr) => ({ ...curr, category: cat }))}
@@ -220,7 +221,18 @@ export function ExpenseModal({
           onFocus={handleInputFocus}
         />
 
-        {/* Field 4: Unobtrusive Date selector link */}
+        {!editingExpense && (
+          <RectangleToggle
+            options={[
+              { value: "debit", label: "Expense" },
+              { value: "credit", label: "Income" },
+            ]}
+            value={form.type === "savings" ? "debit" : form.type}
+            onChange={(val) => setForm((curr) => ({ ...curr, type: val as "credit" | "debit" }))}
+            colorMap={{ debit: "red", credit: "green" }}
+          />
+        )}
+
         <div
           className={styles.dateLinkContainer}
           onClick={() => dateInputRef.current?.showPicker()}
@@ -239,7 +251,6 @@ export function ExpenseModal({
           />
         </div>
 
-        {/* Footers / Buttons */}
         <div className={styles.formFooter}>
           {errorMessage && <p className={styles.error}>{errorMessage}</p>}
           <div className={styles.footerActions}>

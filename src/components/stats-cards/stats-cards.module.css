@@ -5,15 +5,7 @@
   gap: var(--space-6);
   width: 100%;
   margin-top: var(--space-4);
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   flex-shrink: 0;
-}
-
-.heroHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
 }
 
 .balanceBlock {
@@ -42,15 +34,6 @@
   line-height: 1.1;
   transition: color 0.25s ease;
 }
-
-.actionButtonsRow {
-  display: flex;
-  gap: var(--space-3);
-}
-.primaryActionButton {
-  font-size: var(--text-base);
-}
-
 
 .statsRow {
   display: grid;
@@ -98,8 +81,6 @@
   color: var(--color-red);
 }
 
-
-
 .cardLabel {
   font-size: var(--text-xs);
   font-weight: 600;
@@ -116,20 +97,9 @@
   white-space: nowrap;
 }
 
-.desktopOnly {
-  display: flex !important;
-}
-
-.mobileOnly {
-  display: none !important;
-}
-
 @media (max-width: 600px) {
   .statsRow {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
-    width: 100%;
   }
 
   .statCard {
@@ -148,30 +118,6 @@
     width: 18px;
     height: 18px;
   }
-
-  .heroHeader {
-    display: block;
-  }
-
-  .desktopOnly {
-    display: none !important;
-  }
-
-  .mobileOnly {
-    display: flex !important;
-  }
-
-  .mobileActionContainer .actionButtonsRow {
-    width: 100%;
-    gap: var(--space-2);
-  }
-
-  .mobileActionContainer .primaryActionButton {
-    flex: 1;
-    font-size: var(--text-xl);
-    min-height: 50px;
-    padding: 0 var(--space-3);
-  }
 }
 
 @keyframes fadeIn {
@@ -184,18 +130,4 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.desktopActionContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--space-2);
-}
-
-.mobileActionContainer {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  gap: var(--space-2);
 }

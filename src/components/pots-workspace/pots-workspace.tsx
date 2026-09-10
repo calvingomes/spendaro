@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import { Plus, PiggyBank } from "lucide-react";
 import { PotDetailModal } from "@/components/pot-detail-modal/pot-detail-modal";
@@ -9,15 +11,10 @@ import type { Expense, Pot } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
 import { deleteLocalPot, putLocalExpense, putLocalPot, saveLocalExpenses, saveLocalPots } from "@/utils/db";
 import { getQueuedActions, processSyncQueue, queueAction } from "@/utils/sync-queue";
+import { useDashboard } from "@/context/dashboard-context";
 
-interface PotsWorkspaceProps {
-  expenses: Expense[];
-  onExpensesChange?: (expenses: Expense[]) => void;
-  pots: Pot[];
-  onPotsChange: (pots: Pot[]) => void;
-}
-
-export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }: PotsWorkspaceProps) {
+export function PotsWorkspace() {
+  const { expenses, setExpenses, pots, setPots } = useDashboard();
   const [error, setError] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingPot, setEditingPot] = useState<Pot | null>(null);
@@ -34,8 +31,8 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
         .find((snapshot): snapshot is { pots: Pot[]; expenses: Expense[] } => Boolean(snapshot));
 
       if (rollback) {
-        onPotsChange(rollback.pots);
-        onExpensesChange?.(rollback.expenses);
+        setPots(rollback.pots);
+        setExpenses(rollback.expenses);
         await saveLocalPots(rollback.pots);
         await saveLocalExpenses(rollback.expenses);
       }
@@ -54,14 +51,14 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
 
       if (potsResponse.ok) {
         const data = await potsResponse.json();
-        onPotsChange(data);
+        setPots(data);
         await saveLocalPots(data);
       }
 
       if (expensesResponse.ok) {
         const data = await expensesResponse.json();
-        if (data.expenses && onExpensesChange) {
-          onExpensesChange(data.expenses);
+        if (data.expenses) {
+          setExpenses(data.expenses);
           await saveLocalExpenses(data.expenses);
         }
       }
@@ -100,7 +97,7 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
       ? pots.map((item) => item.id === optimisticPot.id ? optimisticPot : item)
       : [...pots, optimisticPot];
 
-    onPotsChange(nextPots);
+    setPots(nextPots);
     await putLocalPot(optimisticPot);
 
     const actionId = queueAction(
@@ -114,7 +111,7 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
 
   const handlePotDelete = async (potId: string) => {
     const previousPots = pots;
-    onPotsChange(pots.filter((item) => item.id !== potId));
+    setPots(pots.filter((item) => item.id !== potId));
     await deleteLocalPot(potId);
 
     const actionId = queueAction("DELETE", { id: potId }, "pots");
@@ -129,7 +126,7 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
       user_id: "offline-user",
       label: String(payload.label ?? ""),
       category: String(payload.category ?? "Pots"),
-      amount: String(payload.amount ?? "0"),
+      amount: Number(payload.amount ?? 0),
       type: "savings",
       pot_id: payload.pot_id ?? null,
       created_at: payload.created_at ?? new Date().toISOString(),
@@ -137,7 +134,7 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
     };
     const nextExpenses = [optimisticExpense, ...expenses];
 
-    onExpensesChange?.(nextExpenses);
+    setExpenses(nextExpenses);
     await putLocalExpense(optimisticExpense);
 
     const actionId = queueAction("POST", { ...payload, id: optimisticExpense.id }, "expenses");
@@ -145,11 +142,9 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
     void syncAndRefresh();
   };
 
-  // Derive balances for each pot
   const potBalances = pots?.reduce((acc, pot) => {
-    // Find all 'savings' transactions that point to this pot
     const potTxs = expenses.filter(e => e.type === "savings" && e.pot_id === pot.id);
-    const balance = potTxs.reduce((sum, e) => sum + (Number.parseFloat(e.amount) || 0), 0);
+    const balance = potTxs.reduce((sum, e) => sum + (e.amount || 0), 0);
     acc[pot.id] = balance;
     return acc;
   }, {} as Record<string, number>);
@@ -159,7 +154,7 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
       {error && <p className={styles.error} role="alert">{error}</p>}
       <header className={styles.header}>
         <h2 className={styles.title}>Your Pots</h2>
-        <Button 
+        <Button
           variant="primary"
           size="sm"
           onClick={() => {
@@ -174,12 +169,12 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
 
       <div className={styles.potsGrid}>
         {pots.map((pot) => (
-          <div 
-            key={pot.id} 
+          <div
+            key={pot.id}
             className={styles.potCard}
             onClick={() => setSelectedPot(pot)}
           >
-            <div 
+            <div
               className={styles.potIcon}
               style={{
                 color: pot.color || "#f5a623",
@@ -194,7 +189,7 @@ export function PotsWorkspace({ expenses, pots, onPotsChange, onExpensesChange }
                 {formatCurrency(potBalances?.[pot.id] || 0)}
               </p>
               {Number(pot.goal) > 0 && (
-                <span className={styles.potGoalLimit}>Goal: {formatCurrency(pot.goal)}</span>
+                <span className={styles.potGoalLimit}>Goal: {formatCurrency(Number(pot.goal))}</span>
               )}
             </div>
           </div>

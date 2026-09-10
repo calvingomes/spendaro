@@ -42,6 +42,11 @@
   font-weight: 600;
 }
 
+.addDesktopButton {
+  margin-left: auto;
+  color: var(--color-text);
+}
+
 .desktopActiveIndicator {
   position: absolute;
   bottom: -1px;

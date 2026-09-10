@@ -21,8 +21,8 @@ export function parseAmount(value: string) {
   return Number.parseFloat(value);
 }
 
-export function formatCurrency(value: string | number) {
-  const amount = typeof value === "string" ? Number.parseFloat(value) : value;
+export function formatCurrency(value: number) {
+  const amount = value;
   if (amount === undefined || amount === null || Number.isNaN(amount)) return "₹ 0";
   
   const absoluteAmount = Math.abs(amount);
@@ -57,7 +57,7 @@ export function capitalizeWords(value: string) {
 export function calculateAggregates(expenses: Expense[]) {
   return expenses.reduce(
     (acc, e) => {
-      const amount = Number.parseFloat(e.amount) || 0;
+      const amount = e.amount || 0;
       if (e.type === "credit") {
         acc.income += amount;
       } else if (e.type === "debit") {

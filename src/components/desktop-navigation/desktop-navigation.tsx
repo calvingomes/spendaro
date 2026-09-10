@@ -1,14 +1,11 @@
 "use client";
 
-import { ReceiptText, BarChart3, User, PlusCircle, PiggyBank, LucideIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ReceiptText, BarChart3, PlusCircle, PiggyBank, Home, LucideIcon } from "lucide-react";
 import styles from "./desktop-navigation.module.css";
 import clsx from "clsx";
 import type { NavTab } from "@/lib/types";
-
-interface DesktopNavigationProps {
-  activeTab: NavTab;
-  onTabChange: (tab: NavTab) => void;
-}
+import { useDashboard } from "@/context/dashboard-context";
 
 interface TabItem {
   id: NavTab;
@@ -17,14 +14,16 @@ interface TabItem {
 }
 
 const TABS: TabItem[] = [
+  { id: "home", label: "Home", icon: Home },
   { id: "transactions", label: "Transactions", icon: ReceiptText },
-  { id: "pots", label: "Pots", icon: PiggyBank },
-  { id: "add", label: "Add", icon: PlusCircle },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "profile", label: "Profile", icon: User },
+  { id: "pots", label: "Pots", icon: PiggyBank },
 ];
 
-export function DesktopNavigation({ activeTab, onTabChange }: DesktopNavigationProps) {
+export function DesktopNavigation() {
+  const { activeTab, setActiveTab } = useDashboard();
+  const router = useRouter();
+
   return (
     <nav className={styles.desktopNav} aria-label="Desktop navigation">
       <div className={styles.desktopNavInner}>
@@ -35,7 +34,7 @@ export function DesktopNavigation({ activeTab, onTabChange }: DesktopNavigationP
               key={id}
               type="button"
               className={clsx(styles.desktopButton, isActive && styles.activeDesktopButton)}
-              onClick={() => onTabChange(id)}
+              onClick={() => setActiveTab(id)}
             >
               <Icon size={16} className={styles.desktopIcon} />
               <span>{label}</span>
@@ -43,6 +42,15 @@ export function DesktopNavigation({ activeTab, onTabChange }: DesktopNavigationP
             </button>
           );
         })}
+
+        <button
+          type="button"
+          className={clsx(styles.desktopButton, styles.addDesktopButton)}
+          onClick={() => router.push("/add")}
+        >
+          <PlusCircle size={16} className={styles.desktopIcon} />
+          <span>Add</span>
+        </button>
       </div>
     </nav>
   );

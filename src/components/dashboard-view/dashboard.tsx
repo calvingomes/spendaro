@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { User as UserIcon } from "lucide-react";
 import styles from "./dashboard.module.css";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
@@ -11,79 +12,118 @@ import { DesktopNavigation } from "@/components/desktop-navigation/desktop-navig
 import { MobileNavigation } from "@/components/mobile-navigation/mobile-navigation";
 import { ProfileView } from "@/components/profile-view/profile-view";
 import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
-import type { Expense, Pot, NavTab } from "@/lib/types";
+import { DashboardContext } from "@/context/dashboard-context";
+import { useAppData } from "@/context/app-data-context";
+import type { Expense, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
 export function Dashboard({
-  initialExpenses,
-  initialPots,
-  user
+  user,
+  initialModalOpen = false,
+  onModalClose,
 }: {
-  initialExpenses: Expense[];
-  initialPots: Pot[];
   user: User;
+  initialModalOpen?: boolean;
+  onModalClose?: () => void;
 }) {
-  const [expenses, setExpenses] = useState(initialExpenses);
-  const [pots, setPots] = useState<Pot[]>(initialPots);
-  const [activeTab, setActiveTab] = useState<NavTab>("add");
+  const { state, setExpenses, setPots } = useAppData();
+  const expenses = state.status === "ready" || state.status === "hydrating" ? state.expenses : [];
+  const pots = state.status === "ready" || state.status === "hydrating" ? state.pots : [];
 
-  useEffect(() => {
-    setExpenses(initialExpenses);
-  }, [initialExpenses]);
+  const [activeTab, setActiveTab] = useState<NavTab>("home");
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(initialModalOpen);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [modalDefaultType, setModalDefaultType] = useState<"credit" | "debit">("debit");
 
-  useEffect(() => {
-    setPots(initialPots);
-  }, [initialPots]);
+  const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => {
+    setEditingExpense(opts?.editingExpense ?? null);
+    setModalDefaultType(opts?.defaultType ?? "debit");
+    setIsExpenseModalOpen(true);
+  }, []);
+
+  const closeExpenseModal = useCallback(() => {
+    setIsExpenseModalOpen(false);
+    setEditingExpense(null);
+    setActiveTab("home");
+    onModalClose?.();
+  }, [onModalClose]);
+
+  const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
+  const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
 
   return (
-    <main className={styles.page}>
-      <header className={styles.topBar}>
-        <div className={styles.brand}>
-          <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
-          <div>
-            <p className={styles.brandName}>Xpenses</p>
+    <DashboardContext.Provider value={{
+      user,
+      expenses,
+      setExpenses,
+      pots,
+      setPots,
+      activeTab,
+      setActiveTab,
+      isExpenseModalOpen,
+      editingExpense,
+      modalDefaultType,
+      openExpenseModal,
+      closeExpenseModal,
+    }}>
+      <main className={styles.page}>
+        <header className={styles.topBar}>
+          <div className={styles.brand}>
+            <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
+            <div>
+              <p className={styles.brandName}>Xpenses</p>
+            </div>
           </div>
+
+          <button
+            type="button"
+            className={styles.avatarButton}
+            onClick={() => setActiveTab("profile")}
+            aria-label="Open profile"
+          >
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={userName}
+                width={32}
+                height={32}
+                className={styles.avatarImg}
+                unoptimized
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className={styles.avatarPlaceholder}>
+                <UserIcon size={16} />
+              </span>
+            )}
+          </button>
+        </header>
+
+        {!isExpenseModalOpen && <DesktopNavigation />}
+
+        <div className={styles.mainContent}>
+          {activeTab === "home" && (
+            <StatsCards />
+          )}
+
+          {(activeTab === "home" || activeTab === "transactions" || activeTab === "analytics") && (
+            <ExpenseWorkspace />
+          )}
+
+          {activeTab === "profile" && (
+            <ProfileView />
+          )}
+
+          {activeTab === "pots" && (
+            <PotsWorkspace />
+          )}
         </div>
-      </header>
 
-      {/* Desktop Navigation */}
-      <DesktopNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        {!isExpenseModalOpen && <MobileNavigation />}
 
-      <div className={styles.mainContent}>
-        {activeTab === "add" && (
-          <StatsCards expenses={expenses} />
-        )}
-
-        {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during add, transactions and analytics views */}
-        {(activeTab === "add" || activeTab === "transactions" || activeTab === "analytics") && (
-          <ExpenseWorkspace 
-            initialExpenses={expenses} 
-            onExpensesChange={setExpenses} 
-            activeTab={activeTab as "add" | "transactions" | "analytics" | "profile"}
-            onTabChange={setActiveTab as (tab: "add" | "transactions" | "analytics" | "profile") => void}
-          />
-        )}
-
-        {activeTab === "profile" && (
-          <ProfileView user={user} />
-        )}
-
-        {activeTab === "pots" && (
-          <PotsWorkspace 
-            expenses={expenses} 
-            onExpensesChange={setExpenses} 
-            pots={pots} 
-            onPotsChange={setPots} 
-          />
-        )}
-
-      </div>
-
-      {/* Mobile Navigation */}
-      <MobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-
-      <PwaInstallPrompt />
-      <WhatsNewModal />
-    </main>
+        <PwaInstallPrompt />
+        <WhatsNewModal />
+      </main>
+    </DashboardContext.Provider>
   );
 }

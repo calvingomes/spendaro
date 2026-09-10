@@ -3,7 +3,7 @@ export type Expense = {
   user_id: string;
   label: string;
   category: string;
-  amount: string;
+  amount: number;
   type: "credit" | "debit" | "savings";
   pot_id?: string | null;
   created_at: string;
@@ -20,4 +20,4 @@ export type Pot = {
   updated_at: string;
 };
 
-export type NavTab = "add" | "transactions" | "analytics" | "pots" | "profile";
+export type NavTab = "home" | "transactions" | "analytics" | "pots" | "profile";

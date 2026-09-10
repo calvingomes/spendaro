@@ -67,8 +67,8 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
         return false;
       })
       .forEach((e) => {
-        const val = Number.parseFloat(e.amount);
-        if (!Number.isNaN(val)) {
+        const val = e.amount;
+        if (val !== undefined && val !== null) {
           // Normalize categories
           const cat = e.category || "Other";
           const current = map.get(cat) ?? { debits: 0, credits: 0 };

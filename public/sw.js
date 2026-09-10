@@ -1,4 +1,4 @@
-const CACHE_NAME = "xpenses-assets-v13";
+const CACHE_NAME = "xpenses-assets-v14";
 const ASSETS_TO_CACHE = [
   "/manifest.webmanifest",
   "/dashboard",

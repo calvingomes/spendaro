@@ -22,7 +22,7 @@ export function ExpenseRow({
 }: ExpenseRowProps) {
   const isActive = activeCardId === expense.id;
 
-  const isWithdrawal = expense.type === "savings" && (Number.parseFloat(expense.amount) || 0) < 0;
+  const isWithdrawal = expense.type === "savings" && (expense.amount || 0) < 0;
 
   return (
     <tr 
@@ -48,7 +48,7 @@ export function ExpenseRow({
             <ArrowDownLeft className={styles.amountIcon} />
           )}
           {expense.type === "savings" && (isWithdrawal ? "- " : "+ ")}
-          {formatCurrency(Math.abs(Number.parseFloat(expense.amount) || 0))}
+          {formatCurrency(Math.abs(expense.amount || 0))}
         </div>
       </td>
       <td className={styles.categoryCell}>{expense.category}</td>
