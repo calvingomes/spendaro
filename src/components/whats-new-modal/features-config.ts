@@ -1,24 +1,18 @@
-import { Zap, Navigation, LayoutDashboard } from "lucide-react";
+import { TrendingUp, Copy } from "lucide-react";
 
-export const CURRENT_VERSION = "2.0.0";
+export const CURRENT_VERSION = "2.4.0";
 
 export const RELEASE_FEATURES = [
   {
-    id: "modal-on-dashboard",
-    icon: LayoutDashboard,
-    title: "Add Lives on Dashboard",
-    description: "The add transaction modal is now fully integrated into the dashboard — no separate screen, no loading delay."
+    id: "duplicate",
+    icon: Copy,
+    title: "Duplicate a transaction",
+    description: "Every row now has a Duplicate button. Tap it to open the add modal prefilled with that row's label, category, amount, and type."
   },
   {
-    id: "nav-restructure",
-    icon: Navigation,
-    title: "Cleaner Navigation",
-    description: "Bottom nav is now Home, Transactions, +, Pots, Analytics. Profile moved to the top-right avatar."
-  },
-  {
-    id: "instant-open",
-    icon: Zap,
-    title: "Instant on Launch",
-    description: "App opens directly to the add transaction modal. Close it to see your dashboard."
+    id: "top-categories",
+    icon: TrendingUp,
+    title: "Smarter Home Tab",
+    description: "The dashboard now surfaces your top spending categories from the last 30 days."
   }
 ];

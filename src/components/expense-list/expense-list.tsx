@@ -12,10 +12,11 @@ import { ExpenseFilters, type TimeSegment } from "@/components/expense-filters/e
 interface ExpenseListProps {
   expenses: Expense[];
   onEdit: (expense: Expense) => void;
+  onDuplicate?: (expense: Expense) => void;
   isPending: boolean;
 }
 
-export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, onDuplicate, isPending }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
   const [activeType, setActiveType] = useState<"debit" | "credit" | "all">("all");
@@ -156,6 +157,7 @@ export function ExpenseList({ expenses, onEdit, isPending }: ExpenseListProps) {
                   key={expense.id}
                   expense={expense}
                   onEdit={onEdit}
+                  onDuplicate={onDuplicate}
                   isPending={isPending}
                   activeCardId={activeCardId}
                   setActiveCardId={setActiveCardId}

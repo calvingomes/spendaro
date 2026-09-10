@@ -68,3 +68,38 @@ export function calculateAggregates(expenses: Expense[]) {
     { income: 0, expense: 0, savings: 0 }
   );
 }
+
+export function getTopCategoryExpenses(
+  expenses: Expense[],
+  opts: { windowDays: number; limit: number }
+): Expense[] {
+  const cutoff = Date.now() - opts.windowDays * 86400_000;
+
+  const inWindow = expenses.filter(
+    (e) => e.type === "debit" && new Date(e.created_at).getTime() >= cutoff
+  );
+
+  if (inWindow.length === 0) return [];
+
+  const groupMap = new Map<string, { count: number; mostRecent: Expense }>();
+
+  for (const e of inWindow) {
+    const existing = groupMap.get(e.category);
+    if (!existing) {
+      groupMap.set(e.category, { count: 1, mostRecent: e });
+    } else {
+      existing.count += 1;
+      if (new Date(e.created_at).getTime() > new Date(existing.mostRecent.created_at).getTime()) {
+        existing.mostRecent = e;
+      }
+    }
+  }
+
+  return [...groupMap.values()]
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return new Date(b.mostRecent.created_at).getTime() - new Date(a.mostRecent.created_at).getTime();
+    })
+    .slice(0, opts.limit)
+    .map((g) => g.mostRecent);
+}

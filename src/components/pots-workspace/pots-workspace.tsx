@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, PiggyBank } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PotDetailModal } from "@/components/pot-detail-modal/pot-detail-modal";
 import { NewPotModal } from "@/components/new-pot-modal/new-pot-modal";
 import { DeletePotModal } from "@/components/delete-pot-modal/delete-pot-modal";
@@ -18,6 +18,7 @@ export function PotsWorkspace() {
   const [error, setError] = useState<string | null>(null);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingPot, setEditingPot] = useState<Pot | null>(null);
+  const [justAddedPot, setJustAddedPot] = useState<{ potId: string; amount: number } | null>(null);
   const [selectedPot, setSelectedPot] = useState<Pot | null>(null);
   const [deletingPot, setDeletingPot] = useState<Pot | null>(null);
   const rollbackByActionId = useRef(new Map<string, { pots: Pot[]; expenses: Expense[] }>());
@@ -139,6 +140,10 @@ export function PotsWorkspace() {
 
     const actionId = queueAction("POST", { ...payload, id: optimisticExpense.id }, "expenses");
     rollbackByActionId.current.set(actionId, { pots, expenses: previousExpenses });
+
+    setJustAddedPot({ potId: optimisticExpense.pot_id as string, amount: optimisticExpense.amount });
+    setTimeout(() => setJustAddedPot(null), 2800);
+
     void syncAndRefresh();
   };
 
@@ -174,20 +179,30 @@ export function PotsWorkspace() {
             className={styles.potCard}
             onClick={() => setSelectedPot(pot)}
           >
-            <div
-              className={styles.potIcon}
+            <span
+              className={styles.potNameBadge}
               style={{
                 color: pot.color || "#f5a623",
-                backgroundColor: `color-mix(in srgb, ${pot.color || "#f5a623"} 12%, transparent)`
+                backgroundColor: `color-mix(in srgb, ${pot.color || "#f5a623"} 12%, transparent)`,
               }}
             >
-              <PiggyBank size={24} />
-            </div>
-            <h3 className={styles.potName}>{pot.name}</h3>
+              {pot.name}
+            </span>
             <div className={styles.potProgressContainer}>
-              <p className={styles.potBalance}>
-                {formatCurrency(potBalances?.[pot.id] || 0)}
-              </p>
+              <div className={styles.potBalanceRow}>
+                <p className={styles.potBalance}>
+                  {formatCurrency(potBalances?.[pot.id] || 0)}
+                </p>
+                {justAddedPot?.potId === pot.id && (
+                  <span
+                    key={`${pot.id}-${justAddedPot.amount}`}
+                    className={styles.potDelta}
+                    style={{ color: justAddedPot.amount >= 0 ? "var(--color-green)" : "var(--color-red)" }}
+                  >
+                    {justAddedPot.amount >= 0 ? "+" : ""}{formatCurrency(justAddedPot.amount)}
+                  </span>
+                )}
+              </div>
               {Number(pot.goal) > 0 && (
                 <span className={styles.potGoalLimit}>Goal: {formatCurrency(Number(pot.goal))}</span>
               )}

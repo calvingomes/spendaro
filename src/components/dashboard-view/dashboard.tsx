@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { User as UserIcon } from "lucide-react";
 import styles from "./dashboard.module.css";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
+import { ExpenseModal } from "@/components/expense-modal/expense-modal";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt/pwa-install-prompt";
 import { WhatsNewModal } from "@/components/whats-new-modal/whats-new-modal";
@@ -14,6 +15,9 @@ import { ProfileView } from "@/components/profile-view/profile-view";
 import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
 import { DashboardContext } from "@/context/dashboard-context";
 import { useAppData } from "@/context/app-data-context";
+import { saveLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
+import { queueAction } from "@/utils/sync-queue";
+import { useExpenseSync } from "@/hooks/use-expense-sync";
 import type { Expense, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -25,9 +29,18 @@ export function Dashboard({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [prefillFrom, setPrefillFrom] = useState<Expense | null>(null);
   const [modalDefaultType, setModalDefaultType] = useState<"credit" | "debit">("debit");
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const autoOpenFired = useRef(false);
+
+  const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
+    expenses,
+    setExpenses,
+    onSyncError: setSyncError,
+  });
 
   useEffect(() => {
     if (!autoOpenFired.current) {
@@ -36,17 +49,89 @@ export function Dashboard({ user }: { user: User }) {
     }
   }, []);
 
-  const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => {
+  const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null; prefillFrom?: Expense | null }) => {
     setEditingExpense(opts?.editingExpense ?? null);
-    setModalDefaultType(opts?.defaultType ?? "debit");
+    setPrefillFrom(opts?.prefillFrom ?? null);
+    setModalDefaultType(opts?.defaultType ?? opts?.prefillFrom?.type === "credit" ? "credit" : "debit");
     setIsExpenseModalOpen(true);
   }, []);
 
   const closeExpenseModal = useCallback(() => {
     setIsExpenseModalOpen(false);
     setEditingExpense(null);
+    setPrefillFrom(null);
     setActiveTab("home");
   }, []);
+
+  const handleSubmit = async (payload: Partial<Expense>) => {
+    setIsPending(true);
+    setSyncError(null);
+
+    const isEditing = !!editingExpense;
+    const expenseId = editingExpense?.id ?? crypto.randomUUID();
+    const optimisticExpense: Expense = {
+      id: expenseId,
+      user_id: editingExpense?.user_id ?? "offline-user",
+      label: String(payload.label ?? "").trim(),
+      category: String(payload.category ?? "").trim(),
+      amount: Number(payload.amount ?? 0),
+      type: (payload.type ?? "debit") as "credit" | "debit" | "savings",
+      pot_id: editingExpense?.pot_id ?? null,
+      created_at: payload.created_at ?? editingExpense?.created_at ?? new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    const previousExpenses = expenses;
+    const nextExpenses = isEditing
+      ? expenses.map((e) => e.id === expenseId ? optimisticExpense : e)
+      : [optimisticExpense, ...expenses];
+
+    try {
+      setExpenses(nextExpenses);
+      await putLocalExpense(optimisticExpense);
+
+      const actionId = queueAction(
+        isEditing ? "PUT" : "POST",
+        { ...payload, id: expenseId } as Record<string, unknown>
+      );
+      rollbackByActionId.current.set(actionId, previousExpenses);
+
+      closeExpenseModal();
+      setIsPending(false);
+
+      setJustAddedId(expenseId);
+      setTimeout(() => setJustAddedId(null), 2800);
+
+      void syncAndRefresh();
+    } catch (error) {
+      setExpenses(previousExpenses);
+      await saveLocalExpenses(previousExpenses);
+      setIsPending(false);
+      throw error;
+    }
+  };
+
+  const handleDelete = async (expenseId: string) => {
+    setIsPending(true);
+    setSyncError(null);
+    const previousExpenses = expenses;
+
+    try {
+      setExpenses(expenses.filter((e) => e.id !== expenseId));
+      await deleteLocalExpense(expenseId);
+
+      const actionId = queueAction("DELETE", { id: expenseId });
+      rollbackByActionId.current.set(actionId, previousExpenses);
+
+      closeExpenseModal();
+      setIsPending(false);
+      void syncAndRefresh();
+    } catch (error) {
+      setExpenses(previousExpenses);
+      await saveLocalExpenses(previousExpenses);
+      setIsPending(false);
+      throw error;
+    }
+  };
 
   const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
   const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
@@ -62,6 +147,7 @@ export function Dashboard({ user }: { user: User }) {
       setActiveTab,
       isExpenseModalOpen,
       editingExpense,
+      prefillFrom,
       modalDefaultType,
       openExpenseModal,
       closeExpenseModal,
@@ -107,7 +193,7 @@ export function Dashboard({ user }: { user: User }) {
           {activeTab === "home" && <StatsCards />}
 
           {(activeTab === "home" || activeTab === "transactions" || activeTab === "analytics") && (
-            <ExpenseWorkspace />
+            <ExpenseWorkspace syncError={syncError} />
           )}
 
           {activeTab === "profile" && <ProfileView />}
@@ -116,6 +202,18 @@ export function Dashboard({ user }: { user: User }) {
         </div>
 
         {!isExpenseModalOpen && <MobileNavigation />}
+
+        <ExpenseModal
+          isOpen={isExpenseModalOpen}
+          onClose={closeExpenseModal}
+          onSubmit={handleSubmit}
+          onDelete={handleDelete}
+          editingExpense={editingExpense}
+          prefillFrom={prefillFrom}
+          isPending={isPending}
+          expenses={expenses}
+          defaultType={modalDefaultType}
+        />
 
         <PwaInstallPrompt />
         <WhatsNewModal />

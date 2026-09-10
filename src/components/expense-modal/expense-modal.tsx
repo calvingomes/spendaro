@@ -35,6 +35,7 @@ interface ExpenseModalProps {
   onSubmit: (payload: Partial<Expense>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   editingExpense: Expense | null;
+  prefillFrom?: Expense | null;
   isPending: boolean;
   expenses: Expense[];
   defaultType?: "credit" | "debit" | "savings";
@@ -46,6 +47,7 @@ export function ExpenseModal({
   onSubmit,
   onDelete,
   editingExpense,
+  prefillFrom,
   isPending,
   expenses,
   defaultType = "debit"
@@ -77,6 +79,14 @@ export function ExpenseModal({
           type: editingExpense.type,
           created_at: formatDateForInput(editingExpense.created_at)
         });
+      } else if (prefillFrom) {
+        setForm({
+          label: prefillFrom.label,
+          category: prefillFrom.category,
+          amount: Math.abs(prefillFrom.amount || 0).toString(),
+          type: prefillFrom.type === "savings" ? "debit" : prefillFrom.type,
+          created_at: formatDateForInput(new Date())
+        });
       } else {
         setForm({
           ...emptyForm,
@@ -86,7 +96,7 @@ export function ExpenseModal({
       }
       setErrorMessage(null);
     }
-  }, [isOpen, editingExpense, defaultType]);
+  }, [isOpen, editingExpense, prefillFrom, defaultType]);
 
   const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     const target = e.target;
@@ -96,16 +106,25 @@ export function ExpenseModal({
   };
 
   const allCategories = useMemo(() => {
-    const base = new Set<string>();
+    const freqMap = new Map<string, number>();
 
+    expenses.forEach((e) => {
+      if (e.category) {
+        const cat = normalizeText(e.category);
+        freqMap.set(cat, (freqMap.get(cat) ?? 0) + 1);
+      }
+    });
+
+    const base = new Set<string>();
     addedCategories.forEach((cat) => base.add(normalizeText(cat)));
     storedCategories.forEach((cat) => base.add(cat));
-    expenses.forEach((e) => {
-      if (e.category) base.add(normalizeText(e.category));
-    });
+    expenses.forEach((e) => { if (e.category) base.add(normalizeText(e.category)); });
     DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
 
-    return Array.from(base).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    return Array.from(base).filter(Boolean).sort((a, b) => {
+      const diff = (freqMap.get(b) ?? 0) - (freqMap.get(a) ?? 0);
+      return diff !== 0 ? diff : a.localeCompare(b);
+    });
   }, [expenses, storedCategories, addedCategories]);
 
   const handleAddCategory = (newCat: string) => {
@@ -221,13 +240,13 @@ export function ExpenseModal({
           onFocus={handleInputFocus}
         />
 
-        {!editingExpense && (
+        {(form.type === "debit" || form.type === "credit") && (
           <RectangleToggle
             options={[
               { value: "debit", label: "Expense" },
               { value: "credit", label: "Income" },
             ]}
-            value={form.type === "savings" ? "debit" : form.type}
+            value={form.type}
             onChange={(val) => setForm((curr) => ({ ...curr, type: val as "credit" | "debit" }))}
             colorMap={{ debit: "red", credit: "green" }}
           />

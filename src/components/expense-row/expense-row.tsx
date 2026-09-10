@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ArrowDownLeft, Pencil } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Pencil, Copy } from "lucide-react";
 import styles from "./expense-row.module.css";
 import { formatCurrency } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
@@ -8,33 +8,32 @@ import type { Expense } from "@/lib/types";
 interface ExpenseRowProps {
   expense: Expense;
   onEdit: (expense: Expense) => void;
+  onDuplicate?: (expense: Expense) => void;
   isPending: boolean;
   activeCardId: string | null;
   setActiveCardId: (id: string | null) => void;
-  justAdded?: boolean;
 }
 
 export function ExpenseRow({
   expense,
   onEdit,
+  onDuplicate,
   isPending,
   activeCardId,
   setActiveCardId,
-  justAdded = false,
 }: ExpenseRowProps) {
   const isActive = activeCardId === expense.id;
-
   const isWithdrawal = expense.type === "savings" && (expense.amount || 0) < 0;
 
   return (
     <tr
-      className={`${styles.expenseRow} ${isActive ? styles.activeCard : ""} ${justAdded ? styles.justAdded : ""}`}
+      className={`${styles.expenseRow} ${isActive ? styles.activeCard : ""}`}
       onClick={() => setActiveCardId(isActive ? null : expense.id)}
     >
       <td className={styles.labelCell}>{expense.label}</td>
       <td className={`${styles.amountCell} ${
-        expense.type === "credit" 
-          ? styles.positive 
+        expense.type === "credit"
+          ? styles.positive
           : expense.type === "savings"
             ? isWithdrawal
               ? styles.savingsDebit
@@ -59,14 +58,29 @@ export function ExpenseRow({
       </td>
       <td className={styles.actionsCellWrap}>
         <div className={styles.actionsCell}>
-          <button 
-            className={styles.tableButton} 
-            type="button" 
+          {expense.type !== "savings" && onDuplicate && (
+            <button
+              className={styles.tableButton}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate(expense);
+              }}
+              disabled={isPending}
+              title="Duplicate"
+            >
+              <Copy className={styles.tableIcon} />
+              <span>Duplicate</span>
+            </button>
+          )}
+          <button
+            className={styles.tableButton}
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onEdit(expense);
-            }} 
-            disabled={isPending} 
+            }}
+            disabled={isPending}
             title="Edit"
           >
             <Pencil className={styles.tableIcon} />
