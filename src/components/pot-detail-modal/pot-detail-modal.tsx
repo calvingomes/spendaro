@@ -55,7 +55,7 @@ export function PotDetailModal({
       await onTransaction({
         label: view === "add" ? `Added to ${pot.name}` : `Withdrew from ${pot.name}`,
         category: "Pots",
-        amount: finalAmount.toString(),
+        amount: finalAmount,
         type: "savings",
         pot_id: pot.id,
         created_at: new Date().toISOString()

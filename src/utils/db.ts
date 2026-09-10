@@ -3,7 +3,7 @@ import type { Expense, Pot } from "@/lib/types";
 const DB_NAME = "xpenses-db";
 const STORE_NAME = "expenses";
 const POTS_STORE_NAME = "pots";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 export function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -17,13 +17,27 @@ export function openDB(): Promise<IDBDatabase> {
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
 
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = (event) => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
+      const oldVersion = event.oldVersion;
+
+      if (oldVersion < 1) {
         db.createObjectStore(STORE_NAME, { keyPath: "id" });
       }
-      if (!db.objectStoreNames.contains(POTS_STORE_NAME)) {
-        db.createObjectStore(POTS_STORE_NAME, { keyPath: "id" });
+
+      if (oldVersion < 2) {
+        if (!db.objectStoreNames.contains(POTS_STORE_NAME)) {
+          db.createObjectStore(POTS_STORE_NAME, { keyPath: "id" });
+        }
+      }
+
+      if (oldVersion < 4) {
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(POTS_STORE_NAME)) {
+          db.createObjectStore(POTS_STORE_NAME, { keyPath: "id" });
+        }
       }
     };
   });

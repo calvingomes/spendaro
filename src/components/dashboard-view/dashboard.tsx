@@ -11,6 +11,7 @@ import { DesktopNavigation } from "@/components/desktop-navigation/desktop-navig
 import { MobileNavigation } from "@/components/mobile-navigation/mobile-navigation";
 import { ProfileView } from "@/components/profile-view/profile-view";
 import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
+import { DashboardContext } from "@/context/dashboard-context";
 import type { Expense, Pot, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -36,54 +37,42 @@ export function Dashboard({
   }, [initialPots]);
 
   return (
-    <main className={styles.page}>
-      <header className={styles.topBar}>
-        <div className={styles.brand}>
-          <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
-          <div>
-            <p className={styles.brandName}>Xpenses</p>
+    <DashboardContext.Provider value={{ user, expenses, setExpenses, pots, setPots, activeTab, setActiveTab }}>
+      <main className={styles.page}>
+        <header className={styles.topBar}>
+          <div className={styles.brand}>
+            <Image src="/icons/icon-192x192.png" alt="Xpenses Logo" width={24} height={24} className={styles.brandLogo} unoptimized />
+            <div>
+              <p className={styles.brandName}>Xpenses</p>
+            </div>
           </div>
+        </header>
+
+        <DesktopNavigation />
+
+        <div className={styles.mainContent}>
+          {activeTab === "add" && (
+            <StatsCards />
+          )}
+
+          {(activeTab === "add" || activeTab === "transactions" || activeTab === "analytics") && (
+            <ExpenseWorkspace />
+          )}
+
+          {activeTab === "profile" && (
+            <ProfileView />
+          )}
+
+          {activeTab === "pots" && (
+            <PotsWorkspace />
+          )}
         </div>
-      </header>
 
-      {/* Desktop Navigation */}
-      <DesktopNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <MobileNavigation />
 
-      <div className={styles.mainContent}>
-        {activeTab === "add" && (
-          <StatsCards expenses={expenses} />
-        )}
-
-        {/* ExpenseWorkspace handles global events and indexedDB caching, so we keep it mounted during add, transactions and analytics views */}
-        {(activeTab === "add" || activeTab === "transactions" || activeTab === "analytics") && (
-          <ExpenseWorkspace 
-            initialExpenses={expenses} 
-            onExpensesChange={setExpenses} 
-            activeTab={activeTab as "add" | "transactions" | "analytics" | "profile"}
-            onTabChange={setActiveTab as (tab: "add" | "transactions" | "analytics" | "profile") => void}
-          />
-        )}
-
-        {activeTab === "profile" && (
-          <ProfileView user={user} />
-        )}
-
-        {activeTab === "pots" && (
-          <PotsWorkspace 
-            expenses={expenses} 
-            onExpensesChange={setExpenses} 
-            pots={pots} 
-            onPotsChange={setPots} 
-          />
-        )}
-
-      </div>
-
-      {/* Mobile Navigation */}
-      <MobileNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-
-      <PwaInstallPrompt />
-      <WhatsNewModal />
-    </main>
+        <PwaInstallPrompt />
+        <WhatsNewModal />
+      </main>
+    </DashboardContext.Provider>
   );
 }

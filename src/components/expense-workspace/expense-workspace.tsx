@@ -1,117 +1,35 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
 import { ExpenseList } from "@/components/expense-list/expense-list";
 import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { ExpenseModal } from "@/components/expense-modal/expense-modal";
-import { saveLocalExpenses, getLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
-import { queueAction, processSyncQueue, getQueuedActions } from "@/utils/sync-queue";
+import { saveLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
+import { queueAction } from "@/utils/sync-queue";
+import { useDashboard } from "@/context/dashboard-context";
+import { useExpenseSync } from "@/hooks/use-expense-sync";
 
 const ExpenseAnalytics = dynamic(
   () => import("@/components/expense-analytics/expense-analytics").then((module) => module.ExpenseAnalytics),
   { ssr: false }
 );
 
-export function ExpenseWorkspace({
-  initialExpenses,
-  onExpensesChange,
-  activeTab = "transactions",
-  onTabChange
-}: {
-  initialExpenses: Expense[];
-  onExpensesChange?: (expenses: Expense[]) => void;
-  activeTab?: "add" | "transactions" | "analytics" | "profile";
-  onTabChange?: (tab: "add" | "transactions" | "analytics" | "profile") => void;
-}) {
-  const [expenses, setExpenses] = useState(initialExpenses);
+export function ExpenseWorkspace() {
+  const { expenses, setExpenses, activeTab, setActiveTab } = useDashboard();
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const rollbackByActionId = useRef(new Map<string, Expense[]>());
   const [defaultType, setDefaultType] = useState<"credit" | "debit" | "savings">("debit");
 
-  useEffect(() => {
-    onExpensesChange?.(expenses);
-  }, [expenses, onExpensesChange]);
-
-  const syncAndRefresh = async () => {
-    const result = await processSyncQueue();
-
-    if (result.failedActionIds.length > 0) {
-      const rollback = result.failedActionIds
-        .map((id) => rollbackByActionId.current.get(id))
-        .find((snapshot): snapshot is Expense[] => Boolean(snapshot));
-
-      if (rollback) {
-        setExpenses(rollback);
-        await saveLocalExpenses(rollback);
-      }
-
-      result.failedActionIds.forEach((id) => rollbackByActionId.current.delete(id));
-      setSyncError("Couldn't sync the latest change. Your previous data was restored.");
-    }
-
-    // Do not refresh from the server while optimistic actions are still queued,
-    // otherwise the server response could temporarily hide local changes.
-    if (result.remainingCount === 0) {
-      try {
-        const response = await fetch("/api/expenses");
-        if (response.ok) {
-          const body = await response.json();
-          if (body.expenses) {
-            setExpenses(body.expenses);
-            await saveLocalExpenses(body.expenses);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to refresh expenses after online sync:", err);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const initializeLocalCache = async () => {
-      const isOffline = typeof window !== "undefined" && !navigator.onLine;
-      const hasUnsyncedActions = getQueuedActions().length > 0;
-
-      if (!isOffline && hasUnsyncedActions) {
-        // App started online, but has pending offline items. Sync immediately.
-        await syncAndRefresh();
-        return;
-      }
-
-      // If we are offline or have pending offline actions, trust IndexedDB over the cached HTML props
-      if (isOffline || hasUnsyncedActions) {
-        const cached = await getLocalExpenses();
-        if (cached && cached.length > 0) {
-          setExpenses(cached);
-          return;
-        }
-      }
-
-      // If online and fully synced, trust the server's fresh data entirely (even if it's empty)
-      if (initialExpenses !== undefined) {
-        setExpenses(initialExpenses);
-        await saveLocalExpenses(initialExpenses);
-      }
-    };
-    initializeLocalCache();
-  }, [initialExpenses]);
-
-  useEffect(() => {
-    const handleOnlineStatus = () => {
-      if (navigator.onLine) {
-        syncAndRefresh();
-      }
-    };
-
-    window.addEventListener("online", handleOnlineStatus);
-    return () => window.removeEventListener("online", handleOnlineStatus);
-  }, []);
+  const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
+    expenses,
+    setExpenses,
+    onSyncError: setSyncError,
+  });
 
   useEffect(() => {
     const openModal = (e: Event) => {
@@ -141,7 +59,7 @@ export function ExpenseWorkspace({
       user_id: editingExpense?.user_id ?? "offline-user",
       label: String(payload.label ?? "").trim(),
       category: String(payload.category ?? "").trim(),
-      amount: String(payload.amount ?? "0"),
+      amount: Number(payload.amount ?? 0),
       type: (payload.type ?? "debit") as "credit" | "debit" | "savings",
       pot_id: editingExpense?.pot_id ?? null,
       created_at: payload.created_at ?? editingExpense?.created_at ?? new Date().toISOString(),
@@ -165,7 +83,6 @@ export function ExpenseWorkspace({
       setIsModalOpen(false);
       setIsPending(false);
 
-      // Sync after the UI has already reflected the change.
       void syncAndRefresh();
     } catch (error) {
       setExpenses(previousExpenses);
@@ -210,8 +127,8 @@ export function ExpenseWorkspace({
       {activeTab === "add" && expenses.length > 0 && (
         <div className={styles.recentActivity}>
           <h2 className={styles.sectionTitle}>Recent activity</h2>
-          <RecentActivityList 
-            expenses={expenses.slice(0, 10)} 
+          <RecentActivityList
+            expenses={expenses.slice(0, 10)}
             onEdit={handleEdit}
             isPending={isPending}
           />
@@ -220,7 +137,7 @@ export function ExpenseWorkspace({
               <button
                 className={styles.seeMoreButton}
                 type="button"
-                onClick={() => onTabChange?.("transactions")}
+                onClick={() => setActiveTab("transactions")}
               >
                 See all transactions
               </button>
@@ -230,8 +147,8 @@ export function ExpenseWorkspace({
       )}
 
       {activeTab === "transactions" && (
-        <ExpenseList 
-          expenses={expenses} 
+        <ExpenseList
+          expenses={expenses}
           onEdit={handleEdit}
           isPending={isPending}
         />
@@ -241,7 +158,7 @@ export function ExpenseWorkspace({
         <ExpenseAnalytics expenses={expenses} />
       )}
 
-      <ExpenseModal 
+      <ExpenseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSubmit}

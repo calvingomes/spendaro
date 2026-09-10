@@ -3,21 +3,18 @@
 import { useMemo } from "react";
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import styles from "./stats-cards.module.css";
-import type { Expense } from "@/lib/types";
 import { formatCurrency } from "@/utils/expense-utils";
 import { Button } from "@/components/ui/button/button";
+import { useDashboard } from "@/context/dashboard-context";
 
-export function StatsCards({ 
-  expenses
-}: { 
-  expenses: Expense[];
-}) {
+export function StatsCards() {
+  const { expenses } = useDashboard();
+
   const totalIncome = useMemo(
     () =>
       expenses.reduce((total, expense) => {
         if (expense.type !== "credit") return total;
-        const amount = Number.parseFloat(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
+        return total + (expense.amount || 0);
       }, 0),
     [expenses]
   );
@@ -26,8 +23,7 @@ export function StatsCards({
     () =>
       expenses.reduce((total, expense) => {
         if (expense.type === "debit") {
-          const amount = Number.parseFloat(expense.amount);
-          return total + (Number.isNaN(amount) ? 0 : amount);
+          return total + (expense.amount || 0);
         }
         return total;
       }, 0),
@@ -38,8 +34,7 @@ export function StatsCards({
     () =>
       expenses.reduce((total, expense) => {
         if (expense.type !== "savings") return total;
-        const amount = Number.parseFloat(expense.amount);
-        return total + (Number.isNaN(amount) ? 0 : amount);
+        return total + (expense.amount || 0);
       }, 0),
     [expenses]
   );

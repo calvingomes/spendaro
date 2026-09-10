@@ -4,11 +4,7 @@ import { ReceiptText, BarChart3, User, PlusCircle, PiggyBank, LucideIcon } from 
 import styles from "./desktop-navigation.module.css";
 import clsx from "clsx";
 import type { NavTab } from "@/lib/types";
-
-interface DesktopNavigationProps {
-  activeTab: NavTab;
-  onTabChange: (tab: NavTab) => void;
-}
+import { useDashboard } from "@/context/dashboard-context";
 
 interface TabItem {
   id: NavTab;
@@ -24,7 +20,9 @@ const TABS: TabItem[] = [
   { id: "profile", label: "Profile", icon: User },
 ];
 
-export function DesktopNavigation({ activeTab, onTabChange }: DesktopNavigationProps) {
+export function DesktopNavigation() {
+  const { activeTab, setActiveTab } = useDashboard();
+
   return (
     <nav className={styles.desktopNav} aria-label="Desktop navigation">
       <div className={styles.desktopNavInner}>
@@ -35,7 +33,7 @@ export function DesktopNavigation({ activeTab, onTabChange }: DesktopNavigationP
               key={id}
               type="button"
               className={clsx(styles.desktopButton, isActive && styles.activeDesktopButton)}
-              onClick={() => onTabChange(id)}
+              onClick={() => setActiveTab(id)}
             >
               <Icon size={16} className={styles.desktopIcon} />
               <span>{label}</span>

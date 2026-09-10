@@ -65,7 +65,7 @@ export function ExpenseModal({
         setForm({
           label: editingExpense.label,
           category: editingExpense.category,
-          amount: Math.abs(Number.parseFloat(editingExpense.amount) || 0).toString(),
+          amount: Math.abs(editingExpense.amount || 0).toString(),
           type: editingExpense.type,
           created_at: formatDateForInput(editingExpense.created_at)
         });
@@ -162,7 +162,7 @@ export function ExpenseModal({
     const payload = {
       label: normalizedLabel,
       category: normalizedCategory,
-      amount: finalAmount.toString(),
+      amount: finalAmount,
       type: form.type,
       created_at: finalCreatedAt
     };

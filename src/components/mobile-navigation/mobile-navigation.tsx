@@ -5,11 +5,7 @@ import { ReceiptText, BarChart3, User, PlusCircle, PiggyBank, LucideIcon } from 
 import styles from "./mobile-navigation.module.css";
 import clsx from "clsx";
 import type { NavTab } from "@/lib/types";
-
-interface MobileNavigationProps {
-  activeTab: NavTab;
-  onTabChange: (tab: NavTab) => void;
-}
+import { useDashboard } from "@/context/dashboard-context";
 
 interface TabItem {
   id: NavTab;
@@ -25,7 +21,8 @@ const TABS: TabItem[] = [
   { id: "profile", label: "Profile", icon: User },
 ];
 
-export function MobileNavigation({ activeTab, onTabChange }: MobileNavigationProps) {
+export function MobileNavigation() {
+  const { activeTab, setActiveTab } = useDashboard();
   const activeIndex = TABS.findIndex((tab) => tab.id === activeTab);
   const [isShrunk, setIsShrunk] = useState(false);
   const lastScrollRef = useRef(0);
@@ -33,14 +30,12 @@ export function MobileNavigation({ activeTab, onTabChange }: MobileNavigationPro
   useEffect(() => {
     const handleScroll = (e: Event) => {
       const target = e.target;
-      // Read scroll position from the scrolling element (window or any inner container)
       const currentScrollY = target === document
         ? window.scrollY
         : target instanceof HTMLElement ? target.scrollTop : 0;
 
       const delta = currentScrollY - lastScrollRef.current;
 
-      // Ignore tiny movements
       if (Math.abs(delta) < 10) return;
 
       if (delta > 0 && currentScrollY > 30) {
@@ -77,7 +72,7 @@ export function MobileNavigation({ activeTab, onTabChange }: MobileNavigationPro
               key={id}
               type="button"
               className={clsx(styles.mobileButton, isActive && styles.activeMobileButton)}
-              onClick={() => onTabChange(id)}
+              onClick={() => setActiveTab(id)}
             >
               <Icon size={22} className={styles.mobileIcon} />
             </button>
