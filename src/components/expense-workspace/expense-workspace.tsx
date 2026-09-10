@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
 import { ExpenseList } from "@/components/expense-list/expense-list";
@@ -18,12 +18,20 @@ const ExpenseAnalytics = dynamic(
 );
 
 export function ExpenseWorkspace() {
-  const { expenses, setExpenses, activeTab, setActiveTab } = useDashboard();
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const {
+    expenses,
+    setExpenses,
+    activeTab,
+    setActiveTab,
+    isExpenseModalOpen,
+    editingExpense,
+    modalDefaultType,
+    openExpenseModal,
+    closeExpenseModal,
+  } = useDashboard();
+
   const [isPending, setIsPending] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [defaultType, setDefaultType] = useState<"credit" | "debit" | "savings">("debit");
 
   const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
     expenses,
@@ -31,21 +39,8 @@ export function ExpenseWorkspace() {
     onSyncError: setSyncError,
   });
 
-  useEffect(() => {
-    const openModal = (e: Event) => {
-      const customEvent = e as CustomEvent<{ defaultType?: "credit" | "debit" | "savings" }>;
-      const dType = customEvent.detail?.defaultType ?? "debit";
-      setDefaultType(dType);
-      setEditingExpense(null);
-      setIsModalOpen(true);
-    };
-    window.addEventListener("xpenses:add-expense", openModal);
-    return () => window.removeEventListener("xpenses:add-expense", openModal);
-  }, []);
-
   const handleEdit = (expense: Expense) => {
-    setEditingExpense(expense);
-    setIsModalOpen(true);
+    openExpenseModal({ editingExpense: expense });
   };
 
   const handleSubmit = async (payload: Partial<Expense>) => {
@@ -80,7 +75,7 @@ export function ExpenseWorkspace() {
       );
       rollbackByActionId.current.set(actionId, previousExpenses);
 
-      setIsModalOpen(false);
+      closeExpenseModal();
       setIsPending(false);
 
       void syncAndRefresh();
@@ -105,7 +100,7 @@ export function ExpenseWorkspace() {
       const actionId = queueAction("DELETE", { id: expenseId });
       rollbackByActionId.current.set(actionId, previousExpenses);
 
-      setIsModalOpen(false);
+      closeExpenseModal();
       setIsPending(false);
       void syncAndRefresh();
     } catch (error) {
@@ -124,7 +119,7 @@ export function ExpenseWorkspace() {
         </p>
       )}
 
-      {activeTab === "add" && expenses.length > 0 && (
+      {activeTab === "home" && expenses.length > 0 && (
         <div className={styles.recentActivity}>
           <h2 className={styles.sectionTitle}>Recent activity</h2>
           <RecentActivityList
@@ -159,14 +154,14 @@ export function ExpenseWorkspace() {
       )}
 
       <ExpenseModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isExpenseModalOpen}
+        onClose={closeExpenseModal}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
         editingExpense={editingExpense}
         isPending={isPending}
         expenses={expenses}
-        defaultType={defaultType}
+        defaultType={modalDefaultType}
       />
     </section>
   );

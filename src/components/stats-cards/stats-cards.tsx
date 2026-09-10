@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowUpRight, ArrowDownLeft, Plus } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import { formatCurrency } from "@/utils/expense-utils";
-import { Button } from "@/components/ui/button/button";
 import { useDashboard } from "@/context/dashboard-context";
 
 export function StatsCards() {
@@ -41,30 +40,13 @@ export function StatsCards() {
 
   const netBalance = totalIncome - totalExpense - totalSavings;
 
-  const openAddModal = () =>
-    window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }));
-
   return (
     <div className={styles.heroContainer}>
-      <div className={styles.heroHeader}>
-        <div className={styles.balanceBlock}>
-          <span className={styles.balanceLabel}>Balance</span>
-          <h1 className={styles.balanceValue}>
-            {formatCurrency(netBalance)}
-          </h1>
-        </div>
-
-        <div className={`${styles.desktopActionContainer} ${styles.desktopOnly}`}>
-          <Button
-            variant="primary"
-            size="md"
-            className={styles.primaryActionButton}
-            onClick={openAddModal}
-            icon={<Plus size={14} />}
-          >
-            Add
-          </Button>
-        </div>
+      <div className={styles.balanceBlock}>
+        <span className={styles.balanceLabel}>Balance</span>
+        <h1 className={styles.balanceValue}>
+          {formatCurrency(netBalance)}
+        </h1>
       </div>
 
       <div className={styles.statsRow}>
@@ -87,19 +69,6 @@ export function StatsCards() {
           </div>
           <strong className={styles.cardValue}>{formatCurrency(totalExpense)}</strong>
         </article>
-      </div>
-
-      <div className={`${styles.mobileActionContainer} ${styles.mobileOnly}`}>
-        <Button
-          variant="primary"
-          size="md"
-          className={styles.primaryActionButton}
-          onClick={openAddModal}
-          icon={<Plus size={16} />}
-          fullWidth
-        >
-          Add Transaction
-        </Button>
       </div>
     </div>
   );

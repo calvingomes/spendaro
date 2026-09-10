@@ -95,6 +95,14 @@
   transform: scale(1.05);
 }
 
+.addButton {
+  color: var(--color-text);
+}
+
+.addButton:active {
+  transform: scale(0.88);
+}
+
 @media (min-width: 768px) {
   .mobileNav {
     display: none;

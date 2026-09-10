@@ -12,6 +12,11 @@ export type DashboardContextValue = {
   setPots: (pots: Pot[]) => void;
   activeTab: NavTab;
   setActiveTab: (tab: NavTab) => void;
+  isExpenseModalOpen: boolean;
+  editingExpense: Expense | null;
+  modalDefaultType: "credit" | "debit";
+  openExpenseModal: (opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => void;
+  closeExpenseModal: () => void;
 };
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);

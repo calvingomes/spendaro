@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { User as UserIcon } from "lucide-react";
 import styles from "./dashboard.module.css";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
 import { StatsCards } from "@/components/stats-cards/stats-cards";
@@ -12,32 +13,59 @@ import { MobileNavigation } from "@/components/mobile-navigation/mobile-navigati
 import { ProfileView } from "@/components/profile-view/profile-view";
 import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
 import { DashboardContext } from "@/context/dashboard-context";
-import type { Expense, Pot, NavTab } from "@/lib/types";
+import { useAppData } from "@/context/app-data-context";
+import type { Expense, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
 export function Dashboard({
-  initialExpenses,
-  initialPots,
-  user
+  user,
+  initialModalOpen = false,
+  onModalClose,
 }: {
-  initialExpenses: Expense[];
-  initialPots: Pot[];
   user: User;
+  initialModalOpen?: boolean;
+  onModalClose?: () => void;
 }) {
-  const [expenses, setExpenses] = useState(initialExpenses);
-  const [pots, setPots] = useState<Pot[]>(initialPots);
-  const [activeTab, setActiveTab] = useState<NavTab>("add");
+  const { state, setExpenses, setPots } = useAppData();
+  const expenses = state.status === "ready" ? state.expenses : [];
+  const pots = state.status === "ready" ? state.pots : [];
 
-  useEffect(() => {
-    setExpenses(initialExpenses);
-  }, [initialExpenses]);
+  const [activeTab, setActiveTab] = useState<NavTab>("home");
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(initialModalOpen);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [modalDefaultType, setModalDefaultType] = useState<"credit" | "debit">("debit");
 
-  useEffect(() => {
-    setPots(initialPots);
-  }, [initialPots]);
+  const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => {
+    setEditingExpense(opts?.editingExpense ?? null);
+    setModalDefaultType(opts?.defaultType ?? "debit");
+    setIsExpenseModalOpen(true);
+  }, []);
+
+  const closeExpenseModal = useCallback(() => {
+    setIsExpenseModalOpen(false);
+    setEditingExpense(null);
+    setActiveTab("home");
+    onModalClose?.();
+  }, [onModalClose]);
+
+  const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
+  const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
 
   return (
-    <DashboardContext.Provider value={{ user, expenses, setExpenses, pots, setPots, activeTab, setActiveTab }}>
+    <DashboardContext.Provider value={{
+      user,
+      expenses,
+      setExpenses,
+      pots,
+      setPots,
+      activeTab,
+      setActiveTab,
+      isExpenseModalOpen,
+      editingExpense,
+      modalDefaultType,
+      openExpenseModal,
+      closeExpenseModal,
+    }}>
       <main className={styles.page}>
         <header className={styles.topBar}>
           <div className={styles.brand}>
@@ -46,16 +74,39 @@ export function Dashboard({
               <p className={styles.brandName}>Xpenses</p>
             </div>
           </div>
+
+          <button
+            type="button"
+            className={styles.avatarButton}
+            onClick={() => setActiveTab("profile")}
+            aria-label="Open profile"
+          >
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={userName}
+                width={32}
+                height={32}
+                className={styles.avatarImg}
+                unoptimized
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className={styles.avatarPlaceholder}>
+                <UserIcon size={16} />
+              </span>
+            )}
+          </button>
         </header>
 
-        <DesktopNavigation />
+        {!isExpenseModalOpen && <DesktopNavigation />}
 
         <div className={styles.mainContent}>
-          {activeTab === "add" && (
+          {activeTab === "home" && (
             <StatsCards />
           )}
 
-          {(activeTab === "add" || activeTab === "transactions" || activeTab === "analytics") && (
+          {(activeTab === "home" || activeTab === "transactions" || activeTab === "analytics") && (
             <ExpenseWorkspace />
           )}
 
@@ -68,7 +119,7 @@ export function Dashboard({
           )}
         </div>
 
-        <MobileNavigation />
+        {!isExpenseModalOpen && <MobileNavigation />}
 
         <PwaInstallPrompt />
         <WhatsNewModal />
