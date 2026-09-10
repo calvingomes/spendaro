@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, PiggyBank } from "lucide-react";
+import { Plus } from "lucide-react";
 import { PotDetailModal } from "@/components/pot-detail-modal/pot-detail-modal";
 import { NewPotModal } from "@/components/new-pot-modal/new-pot-modal";
 import { DeletePotModal } from "@/components/delete-pot-modal/delete-pot-modal";
@@ -179,16 +179,15 @@ export function PotsWorkspace() {
             className={styles.potCard}
             onClick={() => setSelectedPot(pot)}
           >
-            <div
-              className={styles.potIcon}
+            <span
+              className={styles.potNameBadge}
               style={{
                 color: pot.color || "#f5a623",
-                backgroundColor: `color-mix(in srgb, ${pot.color || "#f5a623"} 12%, transparent)`
+                backgroundColor: `color-mix(in srgb, ${pot.color || "#f5a623"} 12%, transparent)`,
               }}
             >
-              <PiggyBank size={24} />
-            </div>
-            <h3 className={styles.potName}>{pot.name}</h3>
+              {pot.name}
+            </span>
             <div className={styles.potProgressContainer}>
               <div className={styles.potBalanceRow}>
                 <p className={styles.potBalance}>
