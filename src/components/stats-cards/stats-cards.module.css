@@ -43,10 +43,6 @@
   transition: color 0.25s ease;
 }
 
-.actionButtonsRow {
-  display: flex;
-  gap: var(--space-3);
-}
 .primaryActionButton {
   font-size: var(--text-base);
 }
@@ -161,13 +157,8 @@
     display: flex !important;
   }
 
-  .mobileActionContainer .actionButtonsRow {
-    width: 100%;
-    gap: var(--space-2);
-  }
-
   .mobileActionContainer .primaryActionButton {
-    flex: 1;
+    width: 100%;
     font-size: var(--text-xl);
     min-height: 50px;
     padding: 0 var(--space-3);

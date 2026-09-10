@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Plus } from "lucide-react";
 import styles from "./stats-cards.module.css";
 import { formatCurrency } from "@/utils/expense-utils";
 import { Button } from "@/components/ui/button/button";
@@ -41,6 +41,9 @@ export function StatsCards() {
 
   const netBalance = totalIncome - totalExpense - totalSavings;
 
+  const openAddModal = () =>
+    window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }));
+
   return (
     <div className={styles.heroContainer}>
       <div className={styles.heroHeader}>
@@ -52,26 +55,15 @@ export function StatsCards() {
         </div>
 
         <div className={`${styles.desktopActionContainer} ${styles.desktopOnly}`}>
-          <div className={styles.actionButtonsRow}>
-            <Button
-              variant="primary"
-              size="md"
-              className={styles.primaryActionButton}
-              onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
-              icon={<ArrowDownLeft size={14} />}
-            >
-              Debit
-            </Button>
-            <Button
-              variant="primary"
-              size="md"
-              className={styles.primaryActionButton}
-              onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
-              icon={<ArrowUpRight size={14} />}
-            >
-              Credit
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            size="md"
+            className={styles.primaryActionButton}
+            onClick={openAddModal}
+            icon={<Plus size={14} />}
+          >
+            Add
+          </Button>
         </div>
       </div>
 
@@ -98,26 +90,16 @@ export function StatsCards() {
       </div>
 
       <div className={`${styles.mobileActionContainer} ${styles.mobileOnly}`}>
-        <div className={styles.actionButtonsRow}>
-          <Button
-            variant="primary"
-            size="md"
-            className={styles.primaryActionButton}
-            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "debit" } }))}
-            icon={<ArrowDownLeft size={16} />}
-          >
-            Debit
-          </Button>
-          <Button
-            variant="primary"
-            size="md"
-            className={styles.primaryActionButton}
-            onClick={() => window.dispatchEvent(new CustomEvent("xpenses:add-expense", { detail: { defaultType: "credit" } }))}
-            icon={<ArrowUpRight size={16} />}
-          >
-            Credit
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          size="md"
+          className={styles.primaryActionButton}
+          onClick={openAddModal}
+          icon={<Plus size={16} />}
+          fullWidth
+        >
+          Add Transaction
+        </Button>
       </div>
     </div>
   );
