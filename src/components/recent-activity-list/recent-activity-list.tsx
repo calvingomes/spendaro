@@ -8,10 +8,11 @@ import type { Expense } from "@/lib/types";
 interface RecentActivityListProps {
   expenses: Expense[];
   onEdit: (expense: Expense) => void;
+  onDuplicate?: (expense: Expense) => void;
   isPending: boolean;
 }
 
-export function RecentActivityList({ expenses, onEdit, isPending }: RecentActivityListProps) {
+export function RecentActivityList({ expenses, onEdit, onDuplicate, isPending }: RecentActivityListProps) {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
   return (
@@ -38,6 +39,7 @@ export function RecentActivityList({ expenses, onEdit, isPending }: RecentActivi
                   key={expense.id}
                   expense={expense}
                   onEdit={onEdit}
+                  onDuplicate={onDuplicate}
                   isPending={isPending}
                   activeCardId={activeCardId}
                   setActiveCardId={setActiveCardId}

@@ -35,6 +35,7 @@ interface ExpenseModalProps {
   onSubmit: (payload: Partial<Expense>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   editingExpense: Expense | null;
+  prefillFrom?: Expense | null;
   isPending: boolean;
   expenses: Expense[];
   defaultType?: "credit" | "debit" | "savings";
@@ -46,6 +47,7 @@ export function ExpenseModal({
   onSubmit,
   onDelete,
   editingExpense,
+  prefillFrom,
   isPending,
   expenses,
   defaultType = "debit"
@@ -77,6 +79,14 @@ export function ExpenseModal({
           type: editingExpense.type,
           created_at: formatDateForInput(editingExpense.created_at)
         });
+      } else if (prefillFrom) {
+        setForm({
+          label: prefillFrom.label,
+          category: prefillFrom.category,
+          amount: Math.abs(prefillFrom.amount || 0).toString(),
+          type: prefillFrom.type === "savings" ? "debit" : prefillFrom.type,
+          created_at: formatDateForInput(new Date())
+        });
       } else {
         setForm({
           ...emptyForm,
@@ -86,7 +96,7 @@ export function ExpenseModal({
       }
       setErrorMessage(null);
     }
-  }, [isOpen, editingExpense, defaultType]);
+  }, [isOpen, editingExpense, prefillFrom, defaultType]);
 
   const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     const target = e.target;

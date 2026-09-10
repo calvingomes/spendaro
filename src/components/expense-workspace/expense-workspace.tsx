@@ -21,6 +21,10 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
     openExpenseModal({ editingExpense: expense });
   };
 
+  const handleDuplicate = (expense: Expense) => {
+    openExpenseModal({ prefillFrom: expense });
+  };
+
   const topCategories = useMemo(
     () => getTopCategoryExpenses(expenses, { windowDays: 30, limit: 5 }),
     [expenses]
@@ -46,6 +50,7 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
           <RecentActivityList
             expenses={homeExpenses}
             onEdit={handleEdit}
+            onDuplicate={handleDuplicate}
             isPending={false}
           />
           {showSeeMore && (
@@ -66,6 +71,7 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
         <ExpenseList
           expenses={expenses}
           onEdit={handleEdit}
+          onDuplicate={handleDuplicate}
           isPending={false}
         />
       )}

@@ -29,6 +29,7 @@ export function Dashboard({ user }: { user: User }) {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [prefillFrom, setPrefillFrom] = useState<Expense | null>(null);
   const [modalDefaultType, setModalDefaultType] = useState<"credit" | "debit">("debit");
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
@@ -48,15 +49,17 @@ export function Dashboard({ user }: { user: User }) {
     }
   }, []);
 
-  const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => {
+  const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null; prefillFrom?: Expense | null }) => {
     setEditingExpense(opts?.editingExpense ?? null);
-    setModalDefaultType(opts?.defaultType ?? "debit");
+    setPrefillFrom(opts?.prefillFrom ?? null);
+    setModalDefaultType(opts?.defaultType ?? opts?.prefillFrom?.type === "credit" ? "credit" : "debit");
     setIsExpenseModalOpen(true);
   }, []);
 
   const closeExpenseModal = useCallback(() => {
     setIsExpenseModalOpen(false);
     setEditingExpense(null);
+    setPrefillFrom(null);
     setActiveTab("home");
   }, []);
 
@@ -144,6 +147,7 @@ export function Dashboard({ user }: { user: User }) {
       setActiveTab,
       isExpenseModalOpen,
       editingExpense,
+      prefillFrom,
       modalDefaultType,
       openExpenseModal,
       closeExpenseModal,
@@ -205,6 +209,7 @@ export function Dashboard({ user }: { user: User }) {
           onSubmit={handleSubmit}
           onDelete={handleDelete}
           editingExpense={editingExpense}
+          prefillFrom={prefillFrom}
           isPending={isPending}
           expenses={expenses}
           defaultType={modalDefaultType}

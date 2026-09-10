@@ -14,8 +14,13 @@ export type DashboardContextValue = {
   setActiveTab: (tab: NavTab) => void;
   isExpenseModalOpen: boolean;
   editingExpense: Expense | null;
+  prefillFrom: Expense | null;
   modalDefaultType: "credit" | "debit";
-  openExpenseModal: (opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => void;
+  openExpenseModal: (opts?: {
+    defaultType?: "credit" | "debit";
+    editingExpense?: Expense | null;
+    prefillFrom?: Expense | null;
+  }) => void;
   closeExpenseModal: () => void;
   justAddedId: string | null;
   setJustAddedId: (id: string | null) => void;

@@ -1,24 +1,18 @@
-import { TrendingUp, Zap, CheckCircle } from "lucide-react";
+import { TrendingUp, Copy } from "lucide-react";
 
-export const CURRENT_VERSION = "2.3.0";
+export const CURRENT_VERSION = "2.4.0";
 
 export const RELEASE_FEATURES = [
+  {
+    id: "duplicate",
+    icon: Copy,
+    title: "Duplicate a transaction",
+    description: "Every row now has a Duplicate button. Tap it to open the add modal prefilled with that row's label, category, amount, and type."
+  },
   {
     id: "top-categories",
     icon: TrendingUp,
     title: "Smarter Home Tab",
     description: "The dashboard now surfaces your top spending categories from the last 30 days."
-  },
-  {
-    id: "add-from-anywhere",
-    icon: Zap,
-    title: "Add from Anywhere",
-    description: "The + button opens the add modal from every screen — Pots, Analytics, Profile — not just the home tab."
-  },
-  {
-    id: "edit-toggle",
-    icon: CheckCircle,
-    title: "Switch Type on Edit",
-    description: "You can now change a transaction between Expense and Income when editing it."
   }
 ];
