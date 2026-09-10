@@ -11,6 +11,7 @@ interface ExpenseRowProps {
   isPending: boolean;
   activeCardId: string | null;
   setActiveCardId: (id: string | null) => void;
+  justAdded?: boolean;
 }
 
 export function ExpenseRow({
@@ -18,15 +19,16 @@ export function ExpenseRow({
   onEdit,
   isPending,
   activeCardId,
-  setActiveCardId
+  setActiveCardId,
+  justAdded = false,
 }: ExpenseRowProps) {
   const isActive = activeCardId === expense.id;
 
   const isWithdrawal = expense.type === "savings" && (expense.amount || 0) < 0;
 
   return (
-    <tr 
-      className={`${styles.expenseRow} ${isActive ? styles.activeCard : ""}`}
+    <tr
+      className={`${styles.expenseRow} ${isActive ? styles.activeCard : ""} ${justAdded ? styles.justAdded : ""}`}
       onClick={() => setActiveCardId(isActive ? null : expense.id)}
     >
       <td className={styles.labelCell}>{expense.label}</td>

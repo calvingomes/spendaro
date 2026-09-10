@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { ReceiptText, BarChart3, PlusCircle, PiggyBank, Home, LucideIcon } from "lucide-react";
 import styles from "./desktop-navigation.module.css";
 import clsx from "clsx";
@@ -21,8 +20,7 @@ const TABS: TabItem[] = [
 ];
 
 export function DesktopNavigation() {
-  const { activeTab, setActiveTab } = useDashboard();
-  const router = useRouter();
+  const { activeTab, setActiveTab, openExpenseModal } = useDashboard();
 
   return (
     <nav className={styles.desktopNav} aria-label="Desktop navigation">
@@ -46,7 +44,7 @@ export function DesktopNavigation() {
         <button
           type="button"
           className={clsx(styles.desktopButton, styles.addDesktopButton)}
-          onClick={() => router.push("/add")}
+          onClick={() => openExpenseModal()}
         >
           <PlusCircle size={16} className={styles.desktopIcon} />
           <span>Add</span>

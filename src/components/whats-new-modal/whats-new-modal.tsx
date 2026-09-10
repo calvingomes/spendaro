@@ -4,30 +4,33 @@ import { useEffect, useState } from "react";
 import { Modal } from "@/components/ui/modal/modal";
 import styles from "./whats-new-modal.module.css";
 import { CURRENT_VERSION, RELEASE_FEATURES } from "./features-config";
+import { useDashboard } from "@/context/dashboard-context";
 
 const STORAGE_KEY = "xpenses_last_seen_version";
 
 export function WhatsNewModal() {
+  const { isExpenseModalOpen } = useDashboard();
   const [isOpen, setIsOpen] = useState(false);
+  const [shouldShow, setShouldShow] = useState(false);
 
   useEffect(() => {
-    // 1. Explicitly ensure we are inside the installed standalone PWA
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       ("standalone" in window.navigator && (window.navigator as Navigator & { standalone?: boolean }).standalone === true);
 
     if (!isStandalone) return;
 
-    // 2. Gating check for versioning
     const lastSeenVersion = localStorage.getItem(STORAGE_KEY);
     if (lastSeenVersion !== CURRENT_VERSION) {
-      // Short delay to let main dashboard paint first for smooth arrival feel
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-      }, 800);
-      return () => clearTimeout(timer);
+      setShouldShow(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!shouldShow || isExpenseModalOpen) return;
+    const timer = setTimeout(() => setIsOpen(true), 600);
+    return () => clearTimeout(timer);
+  }, [shouldShow, isExpenseModalOpen]);
 
   const handleDismiss = () => {
     localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
@@ -56,9 +59,9 @@ export function WhatsNewModal() {
           ))}
         </div>
 
-        <button 
-          type="button" 
-          className={styles.actionButton} 
+        <button
+          type="button"
+          className={styles.actionButton}
           onClick={handleDismiss}
         >
           Great, let&apos;s go

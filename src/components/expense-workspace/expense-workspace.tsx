@@ -28,6 +28,8 @@ export function ExpenseWorkspace() {
     modalDefaultType,
     openExpenseModal,
     closeExpenseModal,
+    justAddedId,
+    setJustAddedId,
   } = useDashboard();
 
   const [isPending, setIsPending] = useState(false);
@@ -78,6 +80,11 @@ export function ExpenseWorkspace() {
       closeExpenseModal();
       setIsPending(false);
 
+      if (!isEditing) {
+        setJustAddedId(expenseId);
+        setTimeout(() => setJustAddedId(null), 2200);
+      }
+
       void syncAndRefresh();
     } catch (error) {
       setExpenses(previousExpenses);
@@ -126,6 +133,7 @@ export function ExpenseWorkspace() {
             expenses={expenses.slice(0, 10)}
             onEdit={handleEdit}
             isPending={isPending}
+            justAddedId={justAddedId}
           />
           {expenses.length > 10 && (
             <div className={styles.seeMoreContainer}>

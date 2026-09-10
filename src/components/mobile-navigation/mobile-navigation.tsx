@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { ReceiptText, BarChart3, PlusCircle, PiggyBank, Home, LucideIcon } from "lucide-react";
 import styles from "./mobile-navigation.module.css";
 import clsx from "clsx";
@@ -25,8 +24,7 @@ const ADD_SLOT_VISUAL_INDEX = 2;
 const TOTAL_SLOTS = TABS.length + 1;
 
 export function MobileNavigation() {
-  const { activeTab, setActiveTab } = useDashboard();
-  const router = useRouter();
+  const { activeTab, setActiveTab, openExpenseModal } = useDashboard();
   const [isShrunk, setIsShrunk] = useState(false);
   const lastScrollRef = useRef(0);
 
@@ -70,7 +68,7 @@ export function MobileNavigation() {
             key="add-action"
             type="button"
             className={clsx(styles.mobileButton, styles.addButton)}
-            onClick={() => router.push("/add")}
+            onClick={() => openExpenseModal()}
             aria-label="Add transaction"
           >
             <PlusCircle size={26} />
