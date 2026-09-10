@@ -94,7 +94,7 @@
   font-size: var(--text-sm);
   font-weight: 600;
   letter-spacing: -0.01em;
-  animation: potDeltaFloat 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: potDeltaFloat 2.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes potDeltaFloat {
@@ -102,11 +102,11 @@
     opacity: 0;
     transform: translateY(4px);
   }
-  15% {
+  11% {
     opacity: 1;
     transform: translateY(0);
   }
-  70% {
+  85% {
     opacity: 1;
     transform: translateY(0);
   }

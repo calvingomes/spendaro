@@ -129,7 +129,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 280px;
-  animation: lastAddedFloat 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: lastAddedFloat 2.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes lastAddedFloat {
@@ -137,11 +137,11 @@
     opacity: 0;
     transform: translateY(6px);
   }
-  15% {
+  11% {
     opacity: 1;
     transform: translateY(0);
   }
-  70% {
+  85% {
     opacity: 1;
     transform: translateY(0);
   }

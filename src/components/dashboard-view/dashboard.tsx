@@ -96,7 +96,7 @@ export function Dashboard({ user }: { user: User }) {
       setIsPending(false);
 
       setJustAddedId(expenseId);
-      setTimeout(() => setJustAddedId(null), 2200);
+      setTimeout(() => setJustAddedId(null), 2800);
 
       void syncAndRefresh();
     } catch (error) {

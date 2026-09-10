@@ -142,7 +142,7 @@ export function PotsWorkspace() {
     rollbackByActionId.current.set(actionId, { pots, expenses: previousExpenses });
 
     setJustAddedPot({ potId: optimisticExpense.pot_id as string, amount: optimisticExpense.amount });
-    setTimeout(() => setJustAddedPot(null), 2200);
+    setTimeout(() => setJustAddedPot(null), 2800);
 
     void syncAndRefresh();
   };
