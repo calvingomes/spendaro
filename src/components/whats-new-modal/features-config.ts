@@ -1,14 +1,8 @@
 import { Zap, Navigation, Route, PiggyBank } from "lucide-react";
 
-export const CURRENT_VERSION = "1.8.0";
+export const CURRENT_VERSION = "1.9.0";
 
 export const RELEASE_FEATURES = [
-  {
-    id: "add-route",
-    icon: Route,
-    title: "/add is now its own screen",
-    description: "Opening the app takes you straight to the add transaction screen. Close it to land on your dashboard."
-  },
   {
     id: "instant-add",
     icon: Zap,
