@@ -4,39 +4,41 @@ import { useEffect, useState } from "react";
 import { Share, MoreVertical } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import styles from "./pwa-install-prompt.module.css";
+import { useDashboard } from "@/context/dashboard-context";
 
 export function PwaInstallPrompt() {
+  const { isExpenseModalOpen } = useDashboard();
   const [showPrompt, setShowPrompt] = useState(false);
+  const [shouldShow, setShouldShow] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
-    // 1. Check if already running in standalone PWA mode
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       ("standalone" in window.navigator && (window.navigator as Navigator & { standalone?: boolean }).standalone === true);
 
     if (isStandalone) return;
 
-    // 2. Check if prompt was dismissed in this session
     const isDismissed = sessionStorage.getItem("xpenses_pwa_dismissed") === "true";
     if (isDismissed) return;
 
-    // 3. Detect iOS & Android
     const userAgent = window.navigator.userAgent.toLowerCase();
     const detectIOS = /iphone|ipad/.test(userAgent);
     const detectAndroid = /android/.test(userAgent);
     setIsIOS(detectIOS);
     setIsAndroid(detectAndroid);
 
-    // 4. If iOS or Android, show prompt after a short delay (2 seconds) for guaranteed UX
     if (detectIOS || detectAndroid) {
-      const timer = setTimeout(() => {
-        setShowPrompt(true);
-      }, 2000);
-      return () => clearTimeout(timer);
+      setShouldShow(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!shouldShow || isExpenseModalOpen) return;
+    const timer = setTimeout(() => setShowPrompt(true), 2000);
+    return () => clearTimeout(timer);
+  }, [shouldShow, isExpenseModalOpen]);
 
   const handleDismiss = () => {
     sessionStorage.setItem("xpenses_pwa_dismissed", "true");

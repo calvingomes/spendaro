@@ -1,6 +1,6 @@
 import { Zap, Navigation, LayoutDashboard } from "lucide-react";
 
-export const CURRENT_VERSION = "1.9.0";
+export const CURRENT_VERSION = "2.0.0";
 
 export const RELEASE_FEATURES = [
   {
