@@ -1,6 +1,6 @@
 import { TrendingUp, Copy } from "lucide-react";
 
-export const CURRENT_VERSION = "2.4.0";
+export const CURRENT_VERSION = "2.4.1";
 
 export const RELEASE_FEATURES = [
   {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/modal/modal";
 import styles from "./whats-new-modal.module.css";
 import { CURRENT_VERSION, RELEASE_FEATURES } from "./features-config";
@@ -12,6 +12,7 @@ export function WhatsNewModal() {
   const { isExpenseModalOpen } = useDashboard();
   const [isOpen, setIsOpen] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
+  const hasFiredThisSession = useRef(false);
 
   useEffect(() => {
     const isStandalone =
@@ -27,14 +28,18 @@ export function WhatsNewModal() {
   }, []);
 
   useEffect(() => {
-    if (!shouldShow || isExpenseModalOpen) return;
-    const timer = setTimeout(() => setIsOpen(true), 600);
+    if (!shouldShow || isExpenseModalOpen || hasFiredThisSession.current) return;
+    const timer = setTimeout(() => {
+      hasFiredThisSession.current = true;
+      setIsOpen(true);
+    }, 600);
     return () => clearTimeout(timer);
   }, [shouldShow, isExpenseModalOpen]);
 
   const handleDismiss = () => {
     localStorage.setItem(STORAGE_KEY, CURRENT_VERSION);
     setIsOpen(false);
+    setShouldShow(false);
   };
 
   return (
