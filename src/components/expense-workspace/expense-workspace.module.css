@@ -19,7 +19,7 @@
 .recentActivity {
   display: flex;
   flex-direction: column;
-  margin-top: var(--space-7);
+  margin-top: var(--space-5);
   width: 100%;
   flex: 1;
   min-height: 0;

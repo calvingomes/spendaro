@@ -1,19 +1,19 @@
-import { CheckCircle, PiggyBank, Zap } from "lucide-react";
+import { TrendingUp, Zap, CheckCircle } from "lucide-react";
 
-export const CURRENT_VERSION = "2.2.0";
+export const CURRENT_VERSION = "2.3.0";
 
 export const RELEASE_FEATURES = [
+  {
+    id: "top-categories",
+    icon: TrendingUp,
+    title: "Smarter Home Tab",
+    description: "The dashboard now surfaces your top spending categories from the last 30 days."
+  },
   {
     id: "add-from-anywhere",
     icon: Zap,
     title: "Add from Anywhere",
-    description: "The + button now opens the add modal from every screen — Pots, Analytics, Profile — not just the home tab."
-  },
-  {
-    id: "pot-delta",
-    icon: PiggyBank,
-    title: "Pot Balance Feedback",
-    description: "Adding or withdrawing from a pot now shows an animated +/- delta next to the pot balance."
+    description: "The + button opens the add modal from every screen — Pots, Analytics, Profile — not just the home tab."
   },
   {
     id: "edit-toggle",

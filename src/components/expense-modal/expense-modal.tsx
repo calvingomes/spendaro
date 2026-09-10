@@ -96,16 +96,25 @@ export function ExpenseModal({
   };
 
   const allCategories = useMemo(() => {
-    const base = new Set<string>();
+    const freqMap = new Map<string, number>();
 
+    expenses.forEach((e) => {
+      if (e.category) {
+        const cat = normalizeText(e.category);
+        freqMap.set(cat, (freqMap.get(cat) ?? 0) + 1);
+      }
+    });
+
+    const base = new Set<string>();
     addedCategories.forEach((cat) => base.add(normalizeText(cat)));
     storedCategories.forEach((cat) => base.add(cat));
-    expenses.forEach((e) => {
-      if (e.category) base.add(normalizeText(e.category));
-    });
+    expenses.forEach((e) => { if (e.category) base.add(normalizeText(e.category)); });
     DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
 
-    return Array.from(base).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    return Array.from(base).filter(Boolean).sort((a, b) => {
+      const diff = (freqMap.get(b) ?? 0) - (freqMap.get(a) ?? 0);
+      return diff !== 0 ? diff : a.localeCompare(b);
+    });
   }, [expenses, storedCategories, addedCategories]);
 
   const handleAddCategory = (newCat: string) => {
