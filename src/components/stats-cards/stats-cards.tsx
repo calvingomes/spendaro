@@ -7,7 +7,7 @@ import { formatCurrency } from "@/utils/expense-utils";
 import { useDashboard } from "@/context/dashboard-context";
 
 export function StatsCards() {
-  const { expenses } = useDashboard();
+  const { expenses, justAddedId } = useDashboard();
 
   const totalIncome = useMemo(
     () =>
@@ -40,6 +40,8 @@ export function StatsCards() {
 
   const netBalance = totalIncome - totalExpense - totalSavings;
 
+  const justAdded = justAddedId ? expenses.find((e) => e.id === justAddedId) : null;
+
   return (
     <div className={styles.heroContainer}>
       <div className={styles.balanceBlock}>
@@ -47,6 +49,21 @@ export function StatsCards() {
         <h1 className={styles.balanceValue}>
           {formatCurrency(netBalance)}
         </h1>
+        <p
+          key={justAdded?.id ?? "empty"}
+          className={styles.lastAdded}
+          style={{
+            color: justAdded
+              ? justAdded.type === "credit" ? "var(--color-green)" : "var(--color-red)"
+              : "transparent",
+            animation: justAdded ? undefined : "none",
+            pointerEvents: "none",
+          }}
+        >
+          {justAdded
+            ? `${justAdded.type === "credit" ? "+" : "-"}${formatCurrency(justAdded.amount)} · ${justAdded.label}`
+            : "\u00A0"}
+        </p>
       </div>
 
       <div className={styles.statsRow}>

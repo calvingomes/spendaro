@@ -9,10 +9,9 @@ interface RecentActivityListProps {
   expenses: Expense[];
   onEdit: (expense: Expense) => void;
   isPending: boolean;
-  justAddedId?: string | null;
 }
 
-export function RecentActivityList({ expenses, onEdit, isPending, justAddedId }: RecentActivityListProps) {
+export function RecentActivityList({ expenses, onEdit, isPending }: RecentActivityListProps) {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
   return (
@@ -42,7 +41,6 @@ export function RecentActivityList({ expenses, onEdit, isPending, justAddedId }:
                   isPending={isPending}
                   activeCardId={activeCardId}
                   setActiveCardId={setActiveCardId}
-                  justAdded={expense.id === justAddedId}
                 />
               ))}
             </tbody>

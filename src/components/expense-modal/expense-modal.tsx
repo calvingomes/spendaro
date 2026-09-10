@@ -221,13 +221,13 @@ export function ExpenseModal({
           onFocus={handleInputFocus}
         />
 
-        {!editingExpense && (
+        {(form.type === "debit" || form.type === "credit") && (
           <RectangleToggle
             options={[
               { value: "debit", label: "Expense" },
               { value: "credit", label: "Income" },
             ]}
-            value={form.type === "savings" ? "debit" : form.type}
+            value={form.type}
             onChange={(val) => setForm((curr) => ({ ...curr, type: val as "credit" | "debit" }))}
             colorMap={{ debit: "red", credit: "green" }}
           />

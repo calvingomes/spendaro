@@ -11,7 +11,6 @@ interface ExpenseRowProps {
   isPending: boolean;
   activeCardId: string | null;
   setActiveCardId: (id: string | null) => void;
-  justAdded?: boolean;
 }
 
 export function ExpenseRow({
@@ -20,7 +19,6 @@ export function ExpenseRow({
   isPending,
   activeCardId,
   setActiveCardId,
-  justAdded = false,
 }: ExpenseRowProps) {
   const isActive = activeCardId === expense.id;
 
@@ -28,7 +26,7 @@ export function ExpenseRow({
 
   return (
     <tr
-      className={`${styles.expenseRow} ${isActive ? styles.activeCard : ""} ${justAdded ? styles.justAdded : ""}`}
+      className={`${styles.expenseRow} ${isActive ? styles.activeCard : ""}`}
       onClick={() => setActiveCardId(isActive ? null : expense.id)}
     >
       <td className={styles.labelCell}>{expense.label}</td>

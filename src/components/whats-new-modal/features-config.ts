@@ -1,24 +1,24 @@
-import { Zap, Navigation, LayoutDashboard } from "lucide-react";
+import { CheckCircle, PiggyBank, Zap } from "lucide-react";
 
-export const CURRENT_VERSION = "2.0.0";
+export const CURRENT_VERSION = "2.1.0";
 
 export const RELEASE_FEATURES = [
   {
-    id: "modal-on-dashboard",
-    icon: LayoutDashboard,
-    title: "Add Lives on Dashboard",
-    description: "The add transaction modal is now fully integrated into the dashboard — no separate screen, no loading delay."
-  },
-  {
-    id: "nav-restructure",
-    icon: Navigation,
-    title: "Cleaner Navigation",
-    description: "Bottom nav is now Home, Transactions, +, Pots, Analytics. Profile moved to the top-right avatar."
-  },
-  {
-    id: "instant-open",
+    id: "add-from-anywhere",
     icon: Zap,
-    title: "Instant on Launch",
-    description: "App opens directly to the add transaction modal. Close it to see your dashboard."
+    title: "Add from Anywhere",
+    description: "The + button now opens the add modal from every screen — Pots, Analytics, Profile — not just the home tab."
+  },
+  {
+    id: "pot-delta",
+    icon: PiggyBank,
+    title: "Pot Balance Feedback",
+    description: "Adding or withdrawing from a pot now shows an animated +/- delta next to the pot balance."
+  },
+  {
+    id: "edit-toggle",
+    icon: CheckCircle,
+    title: "Switch Type on Edit",
+    description: "You can now change a transaction between Expense and Income when editing it."
   }
 ];

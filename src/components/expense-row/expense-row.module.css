@@ -2,19 +2,6 @@
   color: var(--color-text-secondary);
 }
 
-.justAdded {
-  animation: rowGlow 2s 100ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes rowGlow {
-  0% {
-    background: color-mix(in srgb, var(--color-green) 14%, transparent);
-  }
-  100% {
-    background: transparent;
-  }
-}
-
 .labelCell {
   color: var(--color-text);
   font-weight: 500;
