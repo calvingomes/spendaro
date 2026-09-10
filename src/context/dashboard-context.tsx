@@ -17,6 +17,8 @@ export type DashboardContextValue = {
   modalDefaultType: "credit" | "debit";
   openExpenseModal: (opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => void;
   closeExpenseModal: () => void;
+  justAddedId: string | null;
+  setJustAddedId: (id: string | null) => void;
 };
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);

@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
 
   // The dashboard validates its session in the browser and through its API
   // routes. Avoid an extra blocking Supabase round trip before the app shell.
-  if (request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/dashboard" || request.nextUrl.pathname === "/add") {
+  if (request.nextUrl.pathname === "/" || request.nextUrl.pathname === "/dashboard") {
     return response;
   }
 

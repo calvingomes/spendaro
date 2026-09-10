@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { User as UserIcon } from "lucide-react";
 import styles from "./dashboard.module.css";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
@@ -17,23 +17,24 @@ import { useAppData } from "@/context/app-data-context";
 import type { Expense, NavTab } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
-export function Dashboard({
-  user,
-  initialModalOpen = false,
-  onModalClose,
-}: {
-  user: User;
-  initialModalOpen?: boolean;
-  onModalClose?: () => void;
-}) {
+export function Dashboard({ user }: { user: User }) {
   const { state, setExpenses, setPots } = useAppData();
   const expenses = state.status === "ready" || state.status === "hydrating" ? state.expenses : [];
   const pots = state.status === "ready" || state.status === "hydrating" ? state.pots : [];
 
   const [activeTab, setActiveTab] = useState<NavTab>("home");
-  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(initialModalOpen);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [modalDefaultType, setModalDefaultType] = useState<"credit" | "debit">("debit");
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  const autoOpenFired = useRef(false);
+
+  useEffect(() => {
+    if (!autoOpenFired.current) {
+      autoOpenFired.current = true;
+      setIsExpenseModalOpen(true);
+    }
+  }, []);
 
   const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null }) => {
     setEditingExpense(opts?.editingExpense ?? null);
@@ -45,8 +46,7 @@ export function Dashboard({
     setIsExpenseModalOpen(false);
     setEditingExpense(null);
     setActiveTab("home");
-    onModalClose?.();
-  }, [onModalClose]);
+  }, []);
 
   const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
   const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
@@ -65,6 +65,8 @@ export function Dashboard({
       modalDefaultType,
       openExpenseModal,
       closeExpenseModal,
+      justAddedId,
+      setJustAddedId,
     }}>
       <main className={styles.page}>
         <header className={styles.topBar}>
@@ -102,21 +104,15 @@ export function Dashboard({
         {!isExpenseModalOpen && <DesktopNavigation />}
 
         <div className={styles.mainContent}>
-          {activeTab === "home" && (
-            <StatsCards />
-          )}
+          {activeTab === "home" && <StatsCards />}
 
           {(activeTab === "home" || activeTab === "transactions" || activeTab === "analytics") && (
             <ExpenseWorkspace />
           )}
 
-          {activeTab === "profile" && (
-            <ProfileView />
-          )}
+          {activeTab === "profile" && <ProfileView />}
 
-          {activeTab === "pots" && (
-            <PotsWorkspace />
-          )}
+          {activeTab === "pots" && <PotsWorkspace />}
         </div>
 
         {!isExpenseModalOpen && <MobileNavigation />}
