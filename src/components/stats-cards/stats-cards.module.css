@@ -5,7 +5,6 @@
   gap: var(--space-6);
   width: 100%;
   margin-top: var(--space-4);
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   flex-shrink: 0;
 }
 
