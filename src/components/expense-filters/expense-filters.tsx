@@ -20,9 +20,9 @@ const MONTHS = [
 const QUARTERS = ["Jan - Mar", "Apr - Jun", "Jul - Sep", "Oct - Dec"];
 
 interface ExpenseFiltersProps<T extends string> {
-  activeType: T;
-  onTypeChange: (type: T) => void;
-  typeOptions: TypeOption<T>[];
+  activeType?: T;
+  onTypeChange?: (type: T) => void;
+  typeOptions?: TypeOption<T>[];
   timeSegment: TimeSegment;
   onTimeSegmentChange: (segment: TimeSegment) => void;
   selectedWeekIdx: number;
@@ -35,7 +35,7 @@ interface ExpenseFiltersProps<T extends string> {
   viewToggle?: ReactNode;
 }
 
-export function ExpenseFilters<T extends string>({
+export function ExpenseFilters<T extends string = string>({
   activeType,
   onTypeChange,
   typeOptions,
@@ -66,20 +66,23 @@ export function ExpenseFilters<T extends string>({
     <div className={styles.filterSection}>
       {/* Top Header Row */}
       <div className={styles.header}>
-        <div className={styles.selectWrapper}>
-          <select
-            className={styles.typeSelect}
-            value={activeType}
-            onChange={(e) => onTypeChange(e.target.value as T)}
-          >
-            {typeOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className={styles.selectArrow} size={16} />
-        </div>
+        {typeOptions && activeType !== undefined && onTypeChange && (
+          <div className={styles.selectWrapper}>
+            <select
+              className={styles.typeSelect}
+              value={activeType}
+              onChange={(e) => onTypeChange(e.target.value as T)}
+            >
+              {typeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className={styles.selectArrow} size={16} />
+          </div>
+        )}
+        {!typeOptions && <div className={styles.selectSpacer} aria-hidden="true" />}
 
         {/* Capsule Time Segment Selector */}
         <div className={styles.segmentedControl}>

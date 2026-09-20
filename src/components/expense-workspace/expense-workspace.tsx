@@ -8,6 +8,7 @@ import { ExpenseList } from "@/components/expense-list/expense-list";
 import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { useDashboard } from "@/context/dashboard-context";
 import { getTopCategoryExpenses } from "@/utils/expense-utils";
+import { useExpensePeriodFilter } from "@/hooks/use-expense-period-filter";
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
 
 type WorkspaceView = "transactions" | "analytics";
@@ -20,6 +21,7 @@ const ExpenseAnalytics = dynamic(
 export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
   const { expenses, activeTab, setActiveTab, openExpenseModal } = useDashboard();
   const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("transactions");
+  const periodFilter = useExpensePeriodFilter();
 
   useEffect(() => {
     if (activeTab === "transactions") {
@@ -98,9 +100,14 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
               onDuplicate={handleDuplicate}
               isPending={false}
               viewToggle={viewToggle}
+              {...periodFilter}
             />
           ) : (
-            <ExpenseAnalytics expenses={expenses} viewToggle={viewToggle} />
+            <ExpenseAnalytics
+              expenses={expenses}
+              viewToggle={viewToggle}
+              {...periodFilter}
+            />
           )}
         </>
       )}

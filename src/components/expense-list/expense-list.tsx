@@ -15,21 +15,20 @@ interface ExpenseListProps {
   onDuplicate?: (expense: Expense) => void;
   isPending: boolean;
   viewToggle?: ReactNode;
+  timeSegment: TimeSegment;
+  onTimeSegmentChange: (segment: TimeSegment) => void;
+  selectedWeekIdx: number;
+  onWeekChange: (idx: number) => void;
+  selectedMonthIdx: number;
+  onMonthChange: (idx: number) => void;
+  selectedQuarterIdx: number;
+  onQuarterChange: (idx: number) => void;
 }
 
-export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, viewToggle }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, viewToggle, timeSegment, onTimeSegmentChange, selectedWeekIdx, onWeekChange, selectedMonthIdx, onMonthChange, selectedQuarterIdx, onQuarterChange }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
   const [activeType, setActiveType] = useState<"debit" | "credit" | "all">("all");
 
-  // Dynamic current date states
-  const now = new Date();
-  const currentMonthIdx = now.getMonth();
-  const currentQuarterIdx = Math.floor(currentMonthIdx / 3);
-
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(currentMonthIdx);
-  const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(currentQuarterIdx);
-  const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const [visibleCount, setVisibleCount] = useState(50);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
@@ -101,13 +100,13 @@ export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, viewTogg
             { value: "credit", label: "Income" },
           ]}
           timeSegment={timeSegment}
-          onTimeSegmentChange={setTimeSegment}
+          onTimeSegmentChange={onTimeSegmentChange}
           selectedWeekIdx={selectedWeekIdx}
-          onWeekChange={setSelectedWeekIdx}
+          onWeekChange={onWeekChange}
           selectedMonthIdx={selectedMonthIdx}
-          onMonthChange={setSelectedMonthIdx}
+          onMonthChange={onMonthChange}
           selectedQuarterIdx={selectedQuarterIdx}
-          onQuarterChange={setSelectedQuarterIdx}
+          onQuarterChange={onQuarterChange}
           weeksList={WEEKS_LIST}
         />
 
