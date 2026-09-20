@@ -199,6 +199,14 @@ export function Dashboard({ user }: { user: User }) {
           {activeTab === "profile" && <ProfileView />}
 
           {activeTab === "pots" && <PotsWorkspace />}
+
+          {activeTab === "split" && (
+            <section className={styles.comingSoon}>
+              <span className={styles.comingSoonEyebrow}>Split expenses</span>
+              <h1>Coming soon</h1>
+              <p>Track shared expenses, repayments, and who owes you in one place.</p>
+            </section>
+          )}
         </div>
 
         {!isExpenseModalOpen && <MobileNavigation />}

@@ -1,6 +1,6 @@
 import { LayoutDashboard, Calculator, PiggyBank } from "lucide-react";
 
-export const CURRENT_VERSION = "2.5.0";
+export const CURRENT_VERSION = "2.5.1";
 
 export const RELEASE_FEATURES = [
   {

@@ -33,6 +33,7 @@ interface ExpenseFiltersProps<T extends string> {
   onQuarterChange: (idx: number) => void;
   weeksList: number[];
   viewToggle?: ReactNode;
+  animateInitialScroll?: boolean;
 }
 
 export function ExpenseFilters<T extends string = string>({
@@ -49,18 +50,35 @@ export function ExpenseFilters<T extends string = string>({
   onQuarterChange,
   weeksList,
   viewToggle,
+  animateInitialScroll = false,
 }: ExpenseFiltersProps<T>) {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const hasMountedRef = useRef(false);
 
   // Center scroll whenever segment switches
   useEffect(() => {
     if (carouselRef.current) {
       const activeEl = carouselRef.current.querySelector(`.${styles.activePeriod}`);
       if (activeEl) {
-        activeEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        const isInitialPosition = !hasMountedRef.current;
+        const shouldAnimate = !isInitialPosition || animateInitialScroll;
+        const previousScrollBehavior = carouselRef.current.style.scrollBehavior;
+
+        if (!shouldAnimate) {
+          carouselRef.current.style.scrollBehavior = "auto";
+        }
+
+        activeEl.scrollIntoView({
+          behavior: shouldAnimate ? "smooth" : "auto",
+          inline: "center",
+          block: "nearest",
+        });
+
+        carouselRef.current.style.scrollBehavior = previousScrollBehavior;
       }
     }
-  }, [timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx]);
+    hasMountedRef.current = true;
+  }, [timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx, animateInitialScroll]);
 
   return (
     <div className={styles.filterSection}>

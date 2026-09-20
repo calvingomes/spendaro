@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import styles from "./expense-analytics.module.css";
 import type { Expense } from "@/lib/types";
-import { getWeekRange, getWeeksList } from "@/utils/date-utils";
+import { getWeekRange } from "@/utils/date-utils";
 import { AnimatedCounter } from "@/components/ui/animated-counter/animated-counter";
 import { formatCurrency } from "@/utils/expense-utils";
-import { ExpenseFilters, type TimeSegment } from "@/components/expense-filters/expense-filters";
+import type { TimeSegment } from "@/components/expense-filters/expense-filters";
 
 // Curated Harmony Palette (low-contrast, Sleek HSL colors for dark mode)
 const COLORS = [
@@ -22,11 +22,8 @@ const COLORS = [
   "#a855f7", // Violet
 ];
 
-export function ExpenseAnalytics({ expenses, viewToggle, timeSegment, onTimeSegmentChange, selectedWeekIdx, onWeekChange, selectedMonthIdx, onMonthChange, selectedQuarterIdx, onQuarterChange }: { expenses: Expense[]; viewToggle?: ReactNode; timeSegment: TimeSegment; onTimeSegmentChange: (segment: TimeSegment) => void; selectedWeekIdx: number; onWeekChange: (idx: number) => void; selectedMonthIdx: number; onMonthChange: (idx: number) => void; selectedQuarterIdx: number; onQuarterChange: (idx: number) => void }) {
+export function ExpenseAnalytics({ expenses, timeSegment, selectedWeekIdx, selectedMonthIdx, selectedQuarterIdx }: { expenses: Expense[]; timeSegment: TimeSegment; selectedWeekIdx: number; selectedMonthIdx: number; selectedQuarterIdx: number }) {
 
-
-  // Dynamically calculate weeks based on oldest expense (fallback to at least 6 weeks)
-  const WEEKS_LIST = useMemo(() => getWeeksList(expenses), [expenses]);
 
   // Memoized filtered data calculations
   const categoryData = useMemo(() => {
@@ -90,19 +87,6 @@ export function ExpenseAnalytics({ expenses, viewToggle, timeSegment, onTimeSegm
 
   return (
     <article className={styles.card}>
-      <ExpenseFilters
-        viewToggle={viewToggle}
-        timeSegment={timeSegment}
-        onTimeSegmentChange={onTimeSegmentChange}
-        selectedWeekIdx={selectedWeekIdx}
-        onWeekChange={onWeekChange}
-        selectedMonthIdx={selectedMonthIdx}
-        onMonthChange={onMonthChange}
-        selectedQuarterIdx={selectedQuarterIdx}
-        onQuarterChange={onQuarterChange}
-        weeksList={WEEKS_LIST}
-      />
-
       {categoryData.length > 0 ? (
         <>
           {/* Pie Chart Box */}

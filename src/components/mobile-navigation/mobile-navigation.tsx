@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ReceiptText, PlusCircle, PiggyBank, Home, LucideIcon } from "lucide-react";
+import { ReceiptText, PlusCircle, PiggyBank, Home, UsersRound, LucideIcon } from "lucide-react";
 import styles from "./mobile-navigation.module.css";
 import clsx from "clsx";
 import type { NavTab } from "@/lib/types";
@@ -17,6 +17,7 @@ const TABS: TabItem[] = [
   { id: "home", icon: Home },
   { id: "transactions", icon: ReceiptText },
   { id: "pots", icon: PiggyBank },
+  { id: "split", icon: UsersRound },
 ];
 
 const ADD_SLOT_VISUAL_INDEX = 2;

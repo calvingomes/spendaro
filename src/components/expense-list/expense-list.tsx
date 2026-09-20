@@ -1,39 +1,31 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import styles from "./expense-list.module.css";
 import { ExpenseRow } from "../expense-row/expense-row";
-import { getWeekRange, getWeeksList } from "@/utils/date-utils";
+import { getWeekRange } from "@/utils/date-utils";
 import { calculateAggregates, formatCurrency } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
-import { ExpenseFilters, type TimeSegment } from "@/components/expense-filters/expense-filters";
+import type { TimeSegment } from "@/components/expense-filters/expense-filters";
 
 interface ExpenseListProps {
   expenses: Expense[];
   onEdit: (expense: Expense) => void;
   onDuplicate?: (expense: Expense) => void;
   isPending: boolean;
-  viewToggle?: ReactNode;
+  activeType: "debit" | "credit" | "all";
   timeSegment: TimeSegment;
-  onTimeSegmentChange: (segment: TimeSegment) => void;
   selectedWeekIdx: number;
-  onWeekChange: (idx: number) => void;
   selectedMonthIdx: number;
-  onMonthChange: (idx: number) => void;
   selectedQuarterIdx: number;
-  onQuarterChange: (idx: number) => void;
 }
 
-export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, viewToggle, timeSegment, onTimeSegmentChange, selectedWeekIdx, onWeekChange, selectedMonthIdx, onMonthChange, selectedQuarterIdx, onQuarterChange }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, activeType, timeSegment, selectedWeekIdx, selectedMonthIdx, selectedQuarterIdx }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeType, setActiveType] = useState<"debit" | "credit" | "all">("all");
 
   const [visibleCount, setVisibleCount] = useState(50);
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
-
-  // Dynamically calculate weeks based on oldest expense (fallback to at least 6 weeks)
-  const WEEKS_LIST = useMemo(() => getWeeksList(expenses), [expenses]);
 
   // Memoized filtered data calculations
   const filteredExpenses = useMemo(() => {
@@ -90,26 +82,6 @@ export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, viewTogg
   return (
     <article className={styles.listCard}>
       <div className={styles.sectionHeader}>
-        <ExpenseFilters
-          activeType={activeType}
-          onTypeChange={setActiveType}
-          viewToggle={viewToggle}
-          typeOptions={[
-            { value: "all", label: "All Transactions" },
-            { value: "debit", label: "Expenses" },
-            { value: "credit", label: "Income" },
-          ]}
-          timeSegment={timeSegment}
-          onTimeSegmentChange={onTimeSegmentChange}
-          selectedWeekIdx={selectedWeekIdx}
-          onWeekChange={onWeekChange}
-          selectedMonthIdx={selectedMonthIdx}
-          onMonthChange={onMonthChange}
-          selectedQuarterIdx={selectedQuarterIdx}
-          onQuarterChange={onQuarterChange}
-          weeksList={WEEKS_LIST}
-        />
-
         {/* Row 3: Search box (left) + Aggregates (right) */}
         <div className={styles.filterActionsRow}>
           <div className={styles.searchBox}>

@@ -20,4 +20,4 @@ export type Pot = {
   updated_at: string;
 };
 
-export type NavTab = "home" | "transactions" | "pots" | "profile";
+export type NavTab = "home" | "transactions" | "pots" | "split" | "profile";
