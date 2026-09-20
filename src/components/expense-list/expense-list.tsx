@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import styles from "./expense-list.module.css";
 import { ExpenseRow } from "../expense-row/expense-row";
@@ -14,9 +14,10 @@ interface ExpenseListProps {
   onEdit: (expense: Expense) => void;
   onDuplicate?: (expense: Expense) => void;
   isPending: boolean;
+  viewToggle?: ReactNode;
 }
 
-export function ExpenseList({ expenses, onEdit, onDuplicate, isPending }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, viewToggle }: ExpenseListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
   const [activeType, setActiveType] = useState<"debit" | "credit" | "all">("all");
@@ -93,6 +94,7 @@ export function ExpenseList({ expenses, onEdit, onDuplicate, isPending }: Expens
         <ExpenseFilters
           activeType={activeType}
           onTypeChange={setActiveType}
+          viewToggle={viewToggle}
           typeOptions={[
             { value: "all", label: "All Transactions" },
             { value: "debit", label: "Expenses" },

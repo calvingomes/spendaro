@@ -192,7 +192,7 @@ export function Dashboard({ user }: { user: User }) {
         <div className={styles.mainContent}>
           {activeTab === "home" && <StatsCards />}
 
-          {(activeTab === "home" || activeTab === "transactions" || activeTab === "analytics") && (
+          {(activeTab === "home" || activeTab === "transactions") && (
             <ExpenseWorkspace syncError={syncError} />
           )}
 

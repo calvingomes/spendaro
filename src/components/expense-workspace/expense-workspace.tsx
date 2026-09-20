@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
@@ -8,6 +8,9 @@ import { ExpenseList } from "@/components/expense-list/expense-list";
 import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { useDashboard } from "@/context/dashboard-context";
 import { getTopCategoryExpenses } from "@/utils/expense-utils";
+import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
+
+type WorkspaceView = "transactions" | "analytics";
 
 const ExpenseAnalytics = dynamic(
   () => import("@/components/expense-analytics/expense-analytics").then((module) => module.ExpenseAnalytics),
@@ -16,6 +19,24 @@ const ExpenseAnalytics = dynamic(
 
 export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
   const { expenses, activeTab, setActiveTab, openExpenseModal } = useDashboard();
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("transactions");
+
+  useEffect(() => {
+    if (activeTab === "transactions") {
+      setWorkspaceView("transactions");
+    }
+  }, [activeTab]);
+
+  const viewToggle = (
+    <RectangleToggle
+      options={[
+        { value: "transactions" as const, label: "Transactions" },
+        { value: "analytics" as const, label: "Analytics" },
+      ]}
+      value={workspaceView}
+      onChange={setWorkspaceView}
+    />
+  );
 
   const handleEdit = (expense: Expense) => {
     openExpenseModal({ editingExpense: expense });
@@ -68,16 +89,20 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
       )}
 
       {activeTab === "transactions" && (
-        <ExpenseList
-          expenses={expenses}
-          onEdit={handleEdit}
-          onDuplicate={handleDuplicate}
-          isPending={false}
-        />
-      )}
+        <>
 
-      {activeTab === "analytics" && (
-        <ExpenseAnalytics expenses={expenses} />
+          {workspaceView === "transactions" ? (
+            <ExpenseList
+              expenses={expenses}
+              onEdit={handleEdit}
+              onDuplicate={handleDuplicate}
+              isPending={false}
+              viewToggle={viewToggle}
+            />
+          ) : (
+            <ExpenseAnalytics expenses={expenses} viewToggle={viewToggle} />
+          )}
+        </>
       )}
     </section>
   );

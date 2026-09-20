@@ -83,6 +83,36 @@
   font-weight: 600;
 }
 
+.viewToggle {
+  width: min(100%, 320px);
+  margin: 0 auto;
+}
+
+@media (max-width: 430px) {
+  .viewToggle {
+    width: 100%;
+  }
+
+  .header {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .selectWrapper {
+    padding-inline: 10px;
+    flex-shrink: 0;
+  }
+
+  .typeSelect,
+  .segmentButton {
+    font-size: 11px;
+  }
+
+  .segmentButton {
+    padding-inline: 8px;
+  }
+}
+
 .carouselContainer {
   width: 100%;
   overflow: hidden;

@@ -1,6 +1,6 @@
 "use client";
 
-import { ReceiptText, BarChart3, PlusCircle, PiggyBank, Home, LucideIcon } from "lucide-react";
+import { ReceiptText, PlusCircle, PiggyBank, Home, LucideIcon } from "lucide-react";
 import styles from "./desktop-navigation.module.css";
 import clsx from "clsx";
 import type { NavTab } from "@/lib/types";
@@ -15,7 +15,6 @@ interface TabItem {
 const TABS: TabItem[] = [
   { id: "home", label: "Home", icon: Home },
   { id: "transactions", label: "Transactions", icon: ReceiptText },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "pots", label: "Pots", icon: PiggyBank },
 ];
 

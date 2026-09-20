@@ -1,18 +1,24 @@
-import { TrendingUp, Copy } from "lucide-react";
+import { LayoutDashboard, Calculator, PiggyBank } from "lucide-react";
 
-export const CURRENT_VERSION = "2.4.1";
+export const CURRENT_VERSION = "2.5.0";
 
 export const RELEASE_FEATURES = [
   {
-    id: "duplicate",
-    icon: Copy,
-    title: "Duplicate a transaction",
-    description: "Every row now has a Duplicate button. Tap it to open the add modal prefilled with that row's label, category, amount, and type."
+    id: "consolidated-view",
+    icon: LayoutDashboard,
+    title: "Consolidated Transactions view",
+    description: "Transactions and Analytics now live together in one screen with a simple toggle between views."
   },
   {
-    id: "top-categories",
-    icon: TrendingUp,
-    title: "Smarter Home Tab",
-    description: "The dashboard now surfaces your top spending categories from the last 30 days."
+    id: "net-expenses",
+    icon: Calculator,
+    title: "Net Expenses",
+    description: "See your actual spending after same-category income and reimbursements are accounted for."
+  },
+  {
+    id: "pots-balance",
+    icon: PiggyBank,
+    title: "Pots affect available balance",
+    description: "Money added to a pot now reduces the available main balance until it is moved back."
   }
 ];

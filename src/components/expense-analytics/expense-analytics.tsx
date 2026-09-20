@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import styles from "./expense-analytics.module.css";
 import type { Expense } from "@/lib/types";
@@ -22,7 +22,7 @@ const COLORS = [
   "#a855f7", // Violet
 ];
 
-export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
+export function ExpenseAnalytics({ expenses, viewToggle }: { expenses: Expense[]; viewToggle?: ReactNode }) {
   const [activeType, setActiveType] = useState<"debit" | "credit" | "net">("net");
   const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
 
@@ -113,6 +113,7 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
       <ExpenseFilters
         activeType={activeType}
         onTypeChange={setActiveType}
+        viewToggle={viewToggle}
         typeOptions={[
           { value: "debit", label: "Expenses" },
           { value: "credit", label: "Income" },

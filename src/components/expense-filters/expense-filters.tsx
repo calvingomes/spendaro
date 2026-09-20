@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import styles from "./expense-filters.module.css";
 import { getWeekLabel } from "@/utils/date-utils";
@@ -32,6 +32,7 @@ interface ExpenseFiltersProps<T extends string> {
   selectedQuarterIdx: number;
   onQuarterChange: (idx: number) => void;
   weeksList: number[];
+  viewToggle?: ReactNode;
 }
 
 export function ExpenseFilters<T extends string>({
@@ -47,6 +48,7 @@ export function ExpenseFilters<T extends string>({
   selectedQuarterIdx,
   onQuarterChange,
   weeksList,
+  viewToggle,
 }: ExpenseFiltersProps<T>) {
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +95,7 @@ export function ExpenseFilters<T extends string>({
           ))}
         </div>
       </div>
+
 
       {/* Date Carousel row (centered & scrollable) */}
       {timeSegment !== "all" && (
@@ -145,6 +148,7 @@ export function ExpenseFilters<T extends string>({
           </div>
         </div>
       )}
+      {viewToggle && <div className={styles.viewToggle}>{viewToggle}</div>}
     </div>
   );
 }
