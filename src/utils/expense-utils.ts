@@ -2,6 +2,16 @@ import type { Expense } from "@/lib/types";
 
 export const DEFAULT_CATEGORIES = ["Bills", "Entertainment", "Food", "Investment", "Salary", "Savings", "Shopping", "Subscriptions", "Travel"];
 
+export const SPLIT_CATEGORY_TAG = "__split__";
+
+export function displayCategory(cat: string): string {
+  return cat === SPLIT_CATEGORY_TAG ? "Splits" : cat;
+}
+
+export function isSplitCategory(cat: string): boolean {
+  return cat === SPLIT_CATEGORY_TAG;
+}
+
 /** Returns YYYY-MM-DD in the user's LOCAL timezone (avoids UTC shift). */
 export function localDateString(date: Date = new Date()) {
   const pad = (value: number) => String(value).padStart(2, "0");
@@ -76,7 +86,7 @@ export function getTopCategoryExpenses(
   const cutoff = Date.now() - opts.windowDays * 86400_000;
 
   const inWindow = expenses.filter(
-    (e) => e.type === "debit" && new Date(e.created_at).getTime() >= cutoff
+    (e) => e.type === "debit" && !isSplitCategory(e.category) && new Date(e.created_at).getTime() >= cutoff
   );
 
   if (inWindow.length === 0) return [];

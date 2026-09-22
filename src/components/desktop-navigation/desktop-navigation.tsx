@@ -1,6 +1,6 @@
 "use client";
 
-import { ReceiptText, PlusCircle, PiggyBank, Home, LucideIcon } from "lucide-react";
+import { ReceiptText, PlusCircle, PiggyBank, Home, UsersRound, LucideIcon } from "lucide-react";
 import styles from "./desktop-navigation.module.css";
 import clsx from "clsx";
 import type { NavTab } from "@/lib/types";
@@ -16,6 +16,7 @@ const TABS: TabItem[] = [
   { id: "home", label: "Home", icon: Home },
   { id: "transactions", label: "Transactions", icon: ReceiptText },
   { id: "pots", label: "Pots", icon: PiggyBank },
+  { id: "split", label: "Split", icon: UsersRound },
 ];
 
 export function DesktopNavigation() {

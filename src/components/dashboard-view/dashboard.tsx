@@ -13,18 +13,25 @@ import { DesktopNavigation } from "@/components/desktop-navigation/desktop-navig
 import { MobileNavigation } from "@/components/mobile-navigation/mobile-navigation";
 import { ProfileView } from "@/components/profile-view/profile-view";
 import { PotsWorkspace } from "@/components/pots-workspace/pots-workspace";
+import { SplitsWorkspace } from "@/components/splits-workspace/splits-workspace";
+import { SplitModal } from "@/components/split-modal/split-modal";
+import { PeerDetailModal } from "@/components/peer-detail-modal/peer-detail-modal";
+import { RepaymentModal } from "@/components/repayment-modal/repayment-modal";
+import { VoidSplitModal } from "@/components/void-split-modal/void-split-modal";
 import { DashboardContext } from "@/context/dashboard-context";
 import { useAppData } from "@/context/app-data-context";
 import { saveLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
 import { queueAction } from "@/utils/sync-queue";
 import { useExpenseSync } from "@/hooks/use-expense-sync";
-import type { Expense, NavTab } from "@/lib/types";
+import type { Expense, NavTab, Peer, Split } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
 export function Dashboard({ user }: { user: User }) {
-  const { state, setExpenses, setPots } = useAppData();
+  const { state, setExpenses, setPots, setPeers, setSplits } = useAppData();
   const expenses = state.status === "ready" || state.status === "hydrating" ? state.expenses : [];
   const pots = state.status === "ready" || state.status === "hydrating" ? state.pots : [];
+  const peers = state.status === "ready" || state.status === "hydrating" ? state.peers : [];
+  const splits = state.status === "ready" || state.status === "hydrating" ? state.splits : [];
 
   const [activeTab, setActiveTab] = useState<NavTab>("home");
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
@@ -34,6 +41,10 @@ export function Dashboard({ user }: { user: User }) {
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
+  const [activePeerId, setActivePeerId] = useState<string | null>(null);
+  const [repaymentPeerId, setRepaymentPeerId] = useState<string | null>(null);
+  const [voidingSplitId, setVoidingSplitId] = useState<string | null>(null);
   const autoOpenFired = useRef(false);
 
   const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
@@ -62,6 +73,11 @@ export function Dashboard({ user }: { user: User }) {
     setPrefillFrom(null);
     setActiveTab("home");
   }, []);
+
+  const openSplitModal = useCallback(() => setIsSplitModalOpen(true), []);
+  const closeSplitModal = useCallback(() => setIsSplitModalOpen(false), []);
+  const openPeerDetail = useCallback((peerId: string) => setActivePeerId(peerId), []);
+  const closePeerDetail = useCallback(() => setActivePeerId(null), []);
 
   const handleSubmit = async (payload: Partial<Expense>) => {
     setIsPending(true);
@@ -133,6 +149,11 @@ export function Dashboard({ user }: { user: User }) {
     }
   };
 
+  const setPeersLocal = useCallback((p: Peer[]) => setPeers(p), [setPeers]);
+  const setSplitsLocal = useCallback((s: Split[]) => setSplits(s), [setSplits]);
+
+  const anyModalOpen = isExpenseModalOpen || isSplitModalOpen || Boolean(activePeerId) || Boolean(repaymentPeerId) || Boolean(voidingSplitId);
+
   const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
   const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
 
@@ -143,6 +164,10 @@ export function Dashboard({ user }: { user: User }) {
       setExpenses,
       pots,
       setPots,
+      peers,
+      setPeers: setPeersLocal,
+      splits,
+      setSplits: setSplitsLocal,
       activeTab,
       setActiveTab,
       isExpenseModalOpen,
@@ -153,6 +178,12 @@ export function Dashboard({ user }: { user: User }) {
       closeExpenseModal,
       justAddedId,
       setJustAddedId,
+      isSplitModalOpen,
+      openSplitModal,
+      closeSplitModal,
+      activePeerId,
+      openPeerDetail,
+      closePeerDetail,
     }}>
       <main className={styles.page}>
         <header className={styles.topBar}>
@@ -187,7 +218,7 @@ export function Dashboard({ user }: { user: User }) {
           </button>
         </header>
 
-        {!isExpenseModalOpen && <DesktopNavigation />}
+        {!anyModalOpen && <DesktopNavigation />}
 
         <div className={styles.mainContent}>
           {activeTab === "home" && <StatsCards />}
@@ -200,16 +231,10 @@ export function Dashboard({ user }: { user: User }) {
 
           {activeTab === "pots" && <PotsWorkspace />}
 
-          {activeTab === "split" && (
-            <section className={styles.comingSoon}>
-              <span className={styles.comingSoonEyebrow}>Split expenses</span>
-              <h1>Coming soon</h1>
-              <p>Track shared expenses, repayments, and who owes you in one place.</p>
-            </section>
-          )}
+          {activeTab === "split" && <SplitsWorkspace />}
         </div>
 
-        {!isExpenseModalOpen && <MobileNavigation />}
+        {!anyModalOpen && <MobileNavigation />}
 
         <ExpenseModal
           isOpen={isExpenseModalOpen}
@@ -221,6 +246,28 @@ export function Dashboard({ user }: { user: User }) {
           isPending={isPending}
           expenses={expenses}
           defaultType={modalDefaultType}
+        />
+
+        <SplitModal
+          isOpen={isSplitModalOpen}
+          onClose={closeSplitModal}
+        />
+
+        <PeerDetailModal
+          peerId={activePeerId}
+          onClose={closePeerDetail}
+          onRepay={(peerId) => { setActivePeerId(null); setRepaymentPeerId(peerId); }}
+          onVoid={(splitId) => { setActivePeerId(null); setVoidingSplitId(splitId); }}
+        />
+
+        <RepaymentModal
+          peerId={repaymentPeerId}
+          onClose={() => setRepaymentPeerId(null)}
+        />
+
+        <VoidSplitModal
+          splitId={voidingSplitId}
+          onClose={() => setVoidingSplitId(null)}
         />
 
         <PwaInstallPrompt />

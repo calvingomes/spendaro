@@ -3,21 +3,23 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import type { Expense, Pot } from "@/lib/types";
+import type { Expense, Peer, Pot, Split } from "@/lib/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { getLocalExpenses, getLocalPots, saveLocalExpenses, saveLocalPots, syncCategoriesFromExpenses } from "@/utils/db";
+import { getLocalExpenses, getLocalPeers, getLocalPots, getLocalSplits, saveLocalExpenses, saveLocalPeers, saveLocalPots, saveLocalSplits, syncCategoriesFromExpenses } from "@/utils/db";
 import { getQueuedActions } from "@/utils/sync-queue";
 
 type AppDataState =
   | { status: "loading" }
   | { status: "unauthenticated" }
-  | { status: "hydrating"; user: User; expenses: Expense[]; pots: Pot[] }
-  | { status: "ready"; user: User; expenses: Expense[]; pots: Pot[] };
+  | { status: "hydrating"; user: User; expenses: Expense[]; pots: Pot[]; peers: Peer[]; splits: Split[] }
+  | { status: "ready"; user: User; expenses: Expense[]; pots: Pot[]; peers: Peer[]; splits: Split[] };
 
 type AppDataContextValue = {
   state: AppDataState;
   setExpenses: (expenses: Expense[]) => void;
   setPots: (pots: Pot[]) => void;
+  setPeers: (peers: Peer[]) => void;
+  setSplits: (splits: Split[]) => void;
 };
 
 const AppDataContext = createContext<AppDataContextValue | null>(null);
@@ -45,6 +47,18 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const setPeers = (peers: Peer[]) => {
+    setAppState((prev) =>
+      prev.status === "ready" || prev.status === "hydrating" ? { ...prev, peers } : prev
+    );
+  };
+
+  const setSplits = (splits: Split[]) => {
+    setAppState((prev) =>
+      prev.status === "ready" || prev.status === "hydrating" ? { ...prev, splits } : prev
+    );
+  };
+
   useEffect(() => {
     if (bootstrapped.current) return;
     bootstrapped.current = true;
@@ -62,22 +76,26 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      setAppState({ status: "hydrating", user: session.user, expenses: [], pots: [] });
+      setAppState({ status: "hydrating", user: session.user, expenses: [], pots: [], peers: [], splits: [] });
 
-      const [cachedExpenses, cachedPots] = await Promise.all([
+      const [cachedExpenses, cachedPots, cachedPeers, cachedSplits] = await Promise.all([
         getLocalExpenses(),
         getLocalPots(),
+        getLocalPeers(),
+        getLocalSplits(),
       ]);
 
       if (cancelled) return;
 
-      setAppState({ status: "ready", user: session.user, expenses: cachedExpenses, pots: cachedPots });
+      setAppState({ status: "ready", user: session.user, expenses: cachedExpenses, pots: cachedPots, peers: cachedPeers, splits: cachedSplits });
 
       if (getQueuedActions().length > 0) return;
 
-      const [expensesResponse, potsResponse] = await Promise.all([
+      const [expensesResponse, potsResponse, peersResponse, splitsResponse] = await Promise.all([
         fetch("/api/expenses"),
         fetch("/api/pots"),
+        fetch("/api/peers"),
+        fetch("/api/splits"),
       ]);
 
       if (cancelled) return;
@@ -117,14 +135,32 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
             prev.pots.every(
               (item, idx) =>
                 item.id === next[idx].id &&
-                item.name === next[idx].name &&
-                item.goal === next[idx].goal &&
-                item.color === next[idx].color
+                item.name === next[idx].name
             )
           ) {
             return prev;
           }
           return { ...prev, pots: next };
+        });
+      }
+
+      if (peersResponse.ok) {
+        const body = await peersResponse.json();
+        const next = (body.peers || body) as Peer[];
+        await saveLocalPeers(next);
+        setAppState((prev) => {
+          if (prev.status !== "ready") return prev;
+          return { ...prev, peers: next };
+        });
+      }
+
+      if (splitsResponse.ok) {
+        const body = await splitsResponse.json();
+        const next = (body.splits || body) as Split[];
+        await saveLocalSplits(next);
+        setAppState((prev) => {
+          if (prev.status !== "ready") return prev;
+          return { ...prev, splits: next };
         });
       }
     };
@@ -141,7 +177,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }, [state.status, router]);
 
   return (
-    <AppDataContext.Provider value={{ state, setExpenses, setPots }}>
+    <AppDataContext.Provider value={{ state, setExpenses, setPots, setPeers, setSplits }}>
       {children}
     </AppDataContext.Provider>
   );

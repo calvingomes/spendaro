@@ -2,7 +2,7 @@
 
 import { ArrowUpRight, ArrowDownLeft, Pencil, Copy } from "lucide-react";
 import styles from "./expense-row.module.css";
-import { formatCurrency } from "@/utils/expense-utils";
+import { displayCategory, formatCurrency, isSplitCategory } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
 
 interface ExpenseRowProps {
@@ -24,6 +24,7 @@ export function ExpenseRow({
 }: ExpenseRowProps) {
   const isActive = activeCardId === expense.id;
   const isWithdrawal = expense.type === "savings" && (expense.amount || 0) < 0;
+  const isSplit = isSplitCategory(expense.category);
 
   return (
     <tr
@@ -52,13 +53,16 @@ export function ExpenseRow({
           {formatCurrency(Math.abs(expense.amount || 0))}
         </div>
       </td>
-      <td className={styles.categoryCell}>{expense.category}</td>
+      <td className={styles.categoryCell}>
+        <span className={styles.categoryText}>{displayCategory(expense.category)}</span>
+        {isSplit && <span className={styles.splitBadge}>Split</span>}
+      </td>
       <td className={styles.dateCell}>
         {new Date(expense.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
       </td>
       <td className={styles.actionsCellWrap}>
         <div className={styles.actionsCell}>
-          {expense.type !== "savings" && onDuplicate && (
+          {!isSplit && expense.type !== "savings" && onDuplicate && (
             <button
               className={styles.tableButton}
               type="button"

@@ -9,7 +9,7 @@ import { CategoryPicker } from "@/components/ui/category-picker/category-picker"
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
 import { Button } from "@/components/ui/button/button";
 import styles from "./expense-modal.module.css";
-import { DEFAULT_CATEGORIES, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
+import { DEFAULT_CATEGORIES, SPLIT_CATEGORY_TAG, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
 import { getLocalCategories, saveLocalCategory } from "@/utils/db";
 import type { Expense } from "@/lib/types";
 
@@ -118,10 +118,10 @@ export function ExpenseModal({
     const base = new Set<string>();
     addedCategories.forEach((cat) => base.add(normalizeText(cat)));
     storedCategories.forEach((cat) => base.add(cat));
-    expenses.forEach((e) => { if (e.category) base.add(normalizeText(e.category)); });
+    expenses.forEach((e) => { if (e.category && e.category !== SPLIT_CATEGORY_TAG) base.add(normalizeText(e.category)); });
     DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
 
-    return Array.from(base).filter(Boolean).sort((a, b) => {
+    return Array.from(base).filter((c) => Boolean(c) && c !== SPLIT_CATEGORY_TAG).sort((a, b) => {
       const diff = (freqMap.get(b) ?? 0) - (freqMap.get(a) ?? 0);
       return diff !== 0 ? diff : a.localeCompare(b);
     });
@@ -130,6 +130,7 @@ export function ExpenseModal({
   const handleAddCategory = (newCat: string) => {
     const normalized = normalizeText(newCat);
     if (!normalized) return;
+    if (normalized.toLowerCase() === "splits" || normalized.startsWith("_")) return;
 
     const matchExists = allCategories.some(cat => cat.toLowerCase() === normalized.toLowerCase());
     if (!matchExists) {

@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 import type { User } from "@supabase/supabase-js";
-import type { Expense, NavTab, Pot } from "@/lib/types";
+import type { Expense, NavTab, Peer, Pot, Split } from "@/lib/types";
 
 export type DashboardContextValue = {
   user: User;
@@ -10,6 +10,10 @@ export type DashboardContextValue = {
   setExpenses: (expenses: Expense[]) => void;
   pots: Pot[];
   setPots: (pots: Pot[]) => void;
+  peers: Peer[];
+  setPeers: (peers: Peer[]) => void;
+  splits: Split[];
+  setSplits: (splits: Split[]) => void;
   activeTab: NavTab;
   setActiveTab: (tab: NavTab) => void;
   isExpenseModalOpen: boolean;
@@ -24,6 +28,12 @@ export type DashboardContextValue = {
   closeExpenseModal: () => void;
   justAddedId: string | null;
   setJustAddedId: (id: string | null) => void;
+  isSplitModalOpen: boolean;
+  openSplitModal: () => void;
+  closeSplitModal: () => void;
+  activePeerId: string | null;
+  openPeerDetail: (peerId: string) => void;
+  closePeerDetail: () => void;
 };
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);

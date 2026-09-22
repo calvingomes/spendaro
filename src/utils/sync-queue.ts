@@ -1,9 +1,9 @@
 const QUEUE_KEY = "xpenses_offline_queue";
 
 export interface QueuedAction {
-  id: string; // Unique ID for this queued action
-  action: "POST" | "PUT" | "DELETE";
-  target?: "expenses" | "pots";
+  id: string;
+  action: "POST" | "PUT" | "DELETE" | "REPAY" | "PATCH";
+  target?: "expenses" | "pots" | "peers" | "splits";
   payload: Record<string, unknown>;
 }
 
@@ -36,9 +36,9 @@ export function saveQueuedActions(actions: QueuedAction[]): void {
 }
 
 export function queueAction(
-  action: "POST" | "PUT" | "DELETE", 
+  action: "POST" | "PUT" | "DELETE" | "REPAY" | "PATCH",
   payload: Record<string, unknown>,
-  target: "expenses" | "pots" = "expenses"
+  target: "expenses" | "pots" | "peers" | "splits" = "expenses"
 ): string {
   const actions = getQueuedActions();
   const newAction: QueuedAction = {
@@ -58,8 +58,6 @@ export function processSyncQueue(): Promise<SyncResult> {
   activeSyncPromise = (async () => {
     let result = await processSyncQueueInternal();
 
-    // Drain actions queued while the previous batch was being sent before
-    // releasing the mutex, so rapid consecutive writes are not stranded.
     while (result.remainingCount === 0 && getQueuedActions().length > 0) {
       result = await processSyncQueueInternal();
     }
@@ -79,7 +77,7 @@ async function processSyncQueueInternal(): Promise<SyncResult> {
   }
 
   console.log(`Processing sync queue: syncing ${actions.length} offline operations...`);
-  
+
   const remainingActions: QueuedAction[] = [];
   const failedActionIds: string[] = [];
   let allSynced = true;
@@ -89,25 +87,33 @@ async function processSyncQueueInternal(): Promise<SyncResult> {
     try {
       const target = item.target || "expenses";
       const isDelete = item.action === "DELETE";
-      
+      const isRepay = item.action === "REPAY";
+      const isPatch = item.action === "PATCH";
+
       let url = "/api/expenses";
-      if (target === "pots") {
-        url = "/api/pots";
+      if (target === "pots") url = "/api/pots";
+      if (target === "peers") url = "/api/peers";
+      if (target === "splits") url = "/api/splits";
+      if (isRepay) url = "/api/splits/repayments";
+      if (isPatch && target === "splits" && item.payload.id) {
+        url = `/api/splits?id=${item.payload.id}&action=${item.payload.action}`;
       }
 
       if (isDelete && item.payload.id) {
-        if (target === "pots") {
-          url = `/api/pots?id=${item.payload.id}`;
-        }
+        if (target === "pots") url = `/api/pots?id=${item.payload.id}`;
+        if (target === "peers") url = `/api/peers?id=${item.payload.id}`;
       }
 
       const fetchOptions: RequestInit = {
-        method: item.action,
+        method: isRepay ? "POST" : isPatch ? "PATCH" : isDelete && target === "pots" ? "DELETE" : item.action,
         headers: { "Content-Type": "application/json" },
       };
 
-      // Only add body if it's not a GET/DELETE request with query params
       if (!isDelete || target === "expenses") {
+        fetchOptions.body = JSON.stringify(item.payload);
+      }
+
+      if (isRepay) {
         fetchOptions.body = JSON.stringify(item.payload);
       }
 

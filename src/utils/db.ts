@@ -1,10 +1,12 @@
-import type { Expense, Pot } from "@/lib/types";
+import type { Expense, Peer, Pot, Split } from "@/lib/types";
 
 const DB_NAME = "xpenses-db";
 const STORE_NAME = "expenses";
 const POTS_STORE_NAME = "pots";
 const CATEGORIES_STORE_NAME = "categories";
-const DB_VERSION = 5;
+const PEERS_STORE_NAME = "peers";
+const SPLITS_STORE_NAME = "splits";
+const DB_VERSION = 6;
 
 export function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -44,6 +46,14 @@ export function openDB(): Promise<IDBDatabase> {
       if (oldVersion < 5) {
         if (!db.objectStoreNames.contains(CATEGORIES_STORE_NAME)) {
           db.createObjectStore(CATEGORIES_STORE_NAME, { keyPath: "name" });
+        }
+      }
+      if (oldVersion < 6) {
+        if (!db.objectStoreNames.contains(PEERS_STORE_NAME)) {
+          db.createObjectStore(PEERS_STORE_NAME, { keyPath: "id" });
+        }
+        if (!db.objectStoreNames.contains(SPLITS_STORE_NAME)) {
+          db.createObjectStore(SPLITS_STORE_NAME, { keyPath: "id" });
         }
       }
     };
@@ -216,4 +226,84 @@ export async function syncCategoriesFromExpenses(expenses: Expense[]): Promise<v
   } catch (err) {
     console.error("Failed to sync categories from expenses:", err);
   }
+}
+
+export async function saveLocalPeers(peers: Peer[]): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(PEERS_STORE_NAME, "readwrite");
+    const store = tx.objectStore(PEERS_STORE_NAME);
+    store.clear();
+    peers.forEach((p) => store.put(p));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getLocalPeers(): Promise<Peer[]> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(PEERS_STORE_NAME, "readonly");
+      const store = tx.objectStore(PEERS_STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = () => resolve((request.result as Peer[]) || []);
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error("Failed to fetch local peers:", err);
+    return [];
+  }
+}
+
+export async function putLocalPeer(peer: Peer): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(PEERS_STORE_NAME, "readwrite");
+    tx.objectStore(PEERS_STORE_NAME).put(peer);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function saveLocalSplits(splits: Split[]): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SPLITS_STORE_NAME, "readwrite");
+    const store = tx.objectStore(SPLITS_STORE_NAME);
+    store.clear();
+    splits.forEach((s) => store.put(s));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export async function getLocalSplits(): Promise<Split[]> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SPLITS_STORE_NAME, "readonly");
+      const store = tx.objectStore(SPLITS_STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const items = (request.result as Split[]) || [];
+        items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        resolve(items);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  } catch (err) {
+    console.error("Failed to fetch local splits:", err);
+    return [];
+  }
+}
+
+export async function putLocalSplit(split: Split): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SPLITS_STORE_NAME, "readwrite");
+    tx.objectStore(SPLITS_STORE_NAME).put(split);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
 }
