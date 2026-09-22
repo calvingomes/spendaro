@@ -14,6 +14,9 @@ export type DashboardContextValue = {
   setPeers: (peers: Peer[]) => void;
   splits: Split[];
   setSplits: (splits: Split[]) => void;
+  categories: string[];
+  addCategory: (name: string) => void;
+  removeCategory: (name: string) => void;
   activeTab: NavTab;
   setActiveTab: (tab: NavTab) => void;
   isExpenseModalOpen: boolean;

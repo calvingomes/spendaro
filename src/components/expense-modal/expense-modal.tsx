@@ -9,9 +9,9 @@ import { CategoryPicker } from "@/components/ui/category-picker/category-picker"
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
 import { Button } from "@/components/ui/button/button";
 import styles from "./expense-modal.module.css";
-import { DEFAULT_CATEGORIES, SPLIT_CATEGORY_TAG, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
-import { getLocalCategories, saveLocalCategory } from "@/utils/db";
+import { SPLIT_CATEGORY_TAG, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
+import { useDashboard } from "@/context/dashboard-context";
 
 type ExpenseFormState = {
   label: string;
@@ -52,22 +52,10 @@ export function ExpenseModal({
   expenses,
   defaultType = "debit"
 }: ExpenseModalProps) {
+  const { categories, addCategory, removeCategory } = useDashboard();
   const [form, setForm] = useState<ExpenseFormState>(emptyForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [storedCategories, setStoredCategories] = useState<string[]>([]);
-  const [addedCategories, setAddedCategories] = useState<string[]>([]);
-  const categoriesLoaded = useRef(false);
-
   const dateInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!categoriesLoaded.current) {
-      categoriesLoaded.current = true;
-      getLocalCategories().then((cats) => {
-        setStoredCategories(cats.map((c) => normalizeText(c)).filter(Boolean));
-      });
-    }
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -106,38 +94,20 @@ export function ExpenseModal({
   };
 
   const allCategories = useMemo(() => {
-    const freqMap = new Map<string, number>();
-
-    expenses.forEach((e) => {
-      if (e.category) {
-        const cat = normalizeText(e.category);
-        freqMap.set(cat, (freqMap.get(cat) ?? 0) + 1);
-      }
-    });
-
-    const base = new Set<string>();
-    addedCategories.forEach((cat) => base.add(normalizeText(cat)));
-    storedCategories.forEach((cat) => base.add(cat));
-    expenses.forEach((e) => { if (e.category && e.category !== SPLIT_CATEGORY_TAG) base.add(normalizeText(e.category)); });
-    DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
-
-    return Array.from(base).filter((c) => Boolean(c) && c !== SPLIT_CATEGORY_TAG).sort((a, b) => {
-      const diff = (freqMap.get(b) ?? 0) - (freqMap.get(a) ?? 0);
-      return diff !== 0 ? diff : a.localeCompare(b);
-    });
-  }, [expenses, storedCategories, addedCategories]);
+    const base = new Set(categories);
+    if (editingExpense?.category && editingExpense.category !== SPLIT_CATEGORY_TAG) {
+      base.add(editingExpense.category);
+    }
+    if (prefillFrom?.category && prefillFrom.category !== SPLIT_CATEGORY_TAG) {
+      base.add(prefillFrom.category);
+    }
+    return Array.from(base).filter(Boolean);
+  }, [categories, editingExpense, prefillFrom]);
 
   const handleAddCategory = (newCat: string) => {
     const normalized = normalizeText(newCat);
-    if (!normalized) return;
-    if (normalized.toLowerCase() === "splits" || normalized.startsWith("_")) return;
-
-    const matchExists = allCategories.some(cat => cat.toLowerCase() === normalized.toLowerCase());
-    if (!matchExists) {
-      setAddedCategories(current => [normalized, ...current]);
-      void saveLocalCategory(normalized);
-    }
-
+    if (!normalized || normalized.toLowerCase() === "splits" || normalized.startsWith("_")) return;
+    addCategory(normalized);
     setForm(current => ({ ...current, category: normalized }));
   };
 
@@ -186,7 +156,7 @@ export function ExpenseModal({
       }
     }
 
-    void saveLocalCategory(normalizedCategory);
+    addCategory(normalizedCategory);
 
     const payload = {
       label: normalizedLabel,
@@ -238,6 +208,10 @@ export function ExpenseModal({
           onChange={(cat) => setForm((curr) => ({ ...curr, category: cat }))}
           categories={allCategories}
           onAddCategory={handleAddCategory}
+          onRemoveCategory={(cat) => {
+            removeCategory(cat);
+            if (form.category === cat) setForm((curr) => ({ ...curr, category: "" }));
+          }}
           onFocus={handleInputFocus}
         />
 

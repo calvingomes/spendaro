@@ -9,8 +9,7 @@ import { CategoryPicker } from "@/components/ui/category-picker/category-picker"
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
 import { Button } from "@/components/ui/button/button";
 import styles from "./split-modal.module.css";
-import { DEFAULT_CATEGORIES, SPLIT_CATEGORY_TAG, formatCurrency, formatDateForInput, normalizeText, parseAmount } from "@/utils/expense-utils";
-import { getLocalCategories, putLocalExpense, putLocalPeer, putLocalSplit, saveLocalCategory } from "@/utils/db";
+import { SPLIT_CATEGORY_TAG, formatCurrency, formatDateForInput, normalizeText, parseAmount } from "@/utils/expense-utils";import { putLocalExpense, putLocalPeer, putLocalSplit } from "@/utils/db";
 import { queueAction } from "@/utils/sync-queue";
 import { useDashboard } from "@/context/dashboard-context";
 import type { Expense, Peer, Split } from "@/lib/types";
@@ -43,7 +42,7 @@ interface SplitModalProps {
 }
 
 export function SplitModal({ isOpen, onClose }: SplitModalProps) {
-  const { expenses, setExpenses, peers, setPeers, splits, setSplits, user } = useDashboard();
+  const { expenses, setExpenses, peers, setPeers, splits, setSplits, user, categories, addCategory, removeCategory } = useDashboard();
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState<Step1Form>(emptyStep1);
   const [splitMethod, setSplitMethod] = useState<SplitMethod>("equal");
@@ -52,20 +51,8 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const [showPeerInput, setShowPeerInput] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [storedCategories, setStoredCategories] = useState<string[]>([]);
-  const [addedCategories, setAddedCategories] = useState<string[]>([]);
-  const categoriesLoaded = useRef(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const peerInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!categoriesLoaded.current) {
-      categoriesLoaded.current = true;
-      getLocalCategories().then((cats) => {
-        setStoredCategories(cats.map((c) => normalizeText(c)).filter(Boolean));
-      });
-    }
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -85,24 +72,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
     }
   }, [showPeerInput]);
 
-  const allCategories = useMemo(() => {
-    const freqMap = new Map<string, number>();
-    expenses.forEach((e) => {
-      if (e.category && e.category !== SPLIT_CATEGORY_TAG) {
-        const cat = normalizeText(e.category);
-        freqMap.set(cat, (freqMap.get(cat) ?? 0) + 1);
-      }
-    });
-    const base = new Set<string>();
-    addedCategories.forEach((c) => base.add(normalizeText(c)));
-    storedCategories.forEach((c) => { if (c !== SPLIT_CATEGORY_TAG) base.add(c); });
-    expenses.forEach((e) => { if (e.category && e.category !== SPLIT_CATEGORY_TAG) base.add(normalizeText(e.category)); });
-    DEFAULT_CATEGORIES.forEach((c) => base.add(normalizeText(c)));
-    return Array.from(base).filter((c) => Boolean(c) && c !== SPLIT_CATEGORY_TAG).sort((a, b) => {
-      const diff = (freqMap.get(b) ?? 0) - (freqMap.get(a) ?? 0);
-      return diff !== 0 ? diff : a.localeCompare(b);
-    });
-  }, [expenses, storedCategories, addedCategories]);
+  const allCategories = useMemo(() => Array.from(new Set(categories)).filter(Boolean), [categories]);
 
   const totalAmount = parseAmount(form.amount) || 0;
 
@@ -271,7 +241,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       await putLocalExpense(sourceExpense);
       await putLocalExpense(ledgerExpense);
       await putLocalSplit(newSplit);
-      void saveLocalCategory(form.category);
+      addCategory(form.category);
 
       queueAction("POST", {
         id: sourceId,
@@ -319,9 +289,12 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
             onAddCategory={(newCat) => {
               const normalized = normalizeText(newCat);
               if (!normalized || normalized.toLowerCase() === "splits" || normalized.startsWith("_")) return;
-              setAddedCategories((prev) => [normalized, ...prev]);
+              addCategory(normalized);
               setForm((c) => ({ ...c, category: normalized }));
-              void saveLocalCategory(normalized);
+            }}
+            onRemoveCategory={(cat) => {
+              removeCategory(cat);
+              if (form.category === cat) setForm((c) => ({ ...c, category: "" }));
             }}
           />
           <div

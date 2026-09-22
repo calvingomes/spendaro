@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type { Expense, Peer, Pot, Split } from "@/lib/types";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { getLocalExpenses, getLocalPeers, getLocalPots, getLocalSplits, saveLocalExpenses, saveLocalPeers, saveLocalPots, saveLocalSplits, syncCategoriesFromExpenses } from "@/utils/db";
+import { DEFAULT_CATEGORIES, SPLIT_CATEGORY_TAG, normalizeText } from "@/utils/expense-utils";
+import { getLocalCategories, getLocalExpenses, getLocalPeers, getLocalPots, getLocalSplits, saveLocalCategory, deleteLocalCategory, saveLocalExpenses, saveLocalPeers, saveLocalPots, saveLocalSplits, syncCategoriesFromExpenses } from "@/utils/db";
 import { getQueuedActions } from "@/utils/sync-queue";
 
 type AppDataState =
@@ -20,6 +21,9 @@ type AppDataContextValue = {
   setPots: (pots: Pot[]) => void;
   setPeers: (peers: Peer[]) => void;
   setSplits: (splits: Split[]) => void;
+  categories: string[];
+  addCategory: (name: string) => void;
+  removeCategory: (name: string) => void;
 };
 
 const AppDataContext = createContext<AppDataContextValue | null>(null);
@@ -33,6 +37,7 @@ export function useAppData(): AppDataContextValue {
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [state, setAppState] = useState<AppDataState>({ status: "loading" });
+  const [categories, setCategories] = useState<string[]>([]);
   const bootstrapped = useRef(false);
 
   const setExpenses = (expenses: Expense[]) => {
@@ -57,6 +62,21 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     setAppState((prev) =>
       prev.status === "ready" || prev.status === "hydrating" ? { ...prev, splits } : prev
     );
+  };
+
+  const addCategory = (name: string) => {
+    const normalized = normalizeText(name);
+    if (!normalized || normalized === SPLIT_CATEGORY_TAG) return;
+    setCategories((prev) =>
+      prev.some((c) => c.toLowerCase() === normalized.toLowerCase()) ? prev : [normalized, ...prev]
+    );
+    void saveLocalCategory(normalized);
+  };
+
+  const removeCategory = (name: string) => {
+    const normalized = normalizeText(name);
+    setCategories((prev) => prev.filter((c) => c.toLowerCase() !== normalized.toLowerCase()));
+    void deleteLocalCategory(normalized);
   };
 
   useEffect(() => {
@@ -87,6 +107,10 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
       if (cancelled) return;
 
+      await syncCategoriesFromExpenses(cachedExpenses, DEFAULT_CATEGORIES);
+      const cachedCategories = await getLocalCategories();
+      setCategories(cachedCategories.filter((c) => c !== SPLIT_CATEGORY_TAG));
+
       setAppState({ status: "ready", user: session.user, expenses: cachedExpenses, pots: cachedPots, peers: cachedPeers, splits: cachedSplits });
 
       if (getQueuedActions().length > 0) return;
@@ -105,7 +129,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         if (body.expenses) {
           const next = body.expenses as Expense[];
           await saveLocalExpenses(next);
-          void syncCategoriesFromExpenses(next);
           setAppState((prev) => {
             if (prev.status !== "ready") return prev;
             if (
@@ -130,16 +153,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         await saveLocalPots(next);
         setAppState((prev) => {
           if (prev.status !== "ready") return prev;
-          if (
-            prev.pots.length === next.length &&
-            prev.pots.every(
-              (item, idx) =>
-                item.id === next[idx].id &&
-                item.name === next[idx].name
-            )
-          ) {
-            return prev;
-          }
+          if (prev.pots.length === next.length && prev.pots.every((item, idx) => item.id === next[idx].id && item.name === next[idx].name)) return prev;
           return { ...prev, pots: next };
         });
       }
@@ -148,20 +162,14 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         const body = await peersResponse.json();
         const next = (body.peers || body) as Peer[];
         await saveLocalPeers(next);
-        setAppState((prev) => {
-          if (prev.status !== "ready") return prev;
-          return { ...prev, peers: next };
-        });
+        setAppState((prev) => prev.status !== "ready" ? prev : { ...prev, peers: next });
       }
 
       if (splitsResponse.ok) {
         const body = await splitsResponse.json();
         const next = (body.splits || body) as Split[];
         await saveLocalSplits(next);
-        setAppState((prev) => {
-          if (prev.status !== "ready") return prev;
-          return { ...prev, splits: next };
-        });
+        setAppState((prev) => prev.status !== "ready" ? prev : { ...prev, splits: next });
       }
     };
 
@@ -177,7 +185,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   }, [state.status, router]);
 
   return (
-    <AppDataContext.Provider value={{ state, setExpenses, setPots, setPeers, setSplits }}>
+    <AppDataContext.Provider value={{ state, setExpenses, setPots, setPeers, setSplits, categories, addCategory, removeCategory }}>
       {children}
     </AppDataContext.Provider>
   );

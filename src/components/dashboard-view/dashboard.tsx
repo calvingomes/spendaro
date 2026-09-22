@@ -27,7 +27,7 @@ import type { Expense, NavTab, Peer, Split } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
 export function Dashboard({ user }: { user: User }) {
-  const { state, setExpenses, setPots, setPeers, setSplits } = useAppData();
+  const { state, setExpenses, setPots, setPeers, setSplits, categories, addCategory, removeCategory } = useAppData();
   const expenses = state.status === "ready" || state.status === "hydrating" ? state.expenses : [];
   const pots = state.status === "ready" || state.status === "hydrating" ? state.pots : [];
   const peers = state.status === "ready" || state.status === "hydrating" ? state.peers : [];
@@ -168,6 +168,9 @@ export function Dashboard({ user }: { user: User }) {
       setPeers: setPeersLocal,
       splits,
       setSplits: setSplitsLocal,
+      categories,
+      addCategory,
+      removeCategory,
       activeTab,
       setActiveTab,
       isExpenseModalOpen,

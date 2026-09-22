@@ -12,7 +12,7 @@
   letter-spacing: 0.05em;
 }
 
-.chipsRow {
+.scrollWrapper {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -22,8 +22,21 @@
   -ms-overflow-style: none;
 }
 
-.chipsRow::-webkit-scrollbar {
+.scrollWrapper::-webkit-scrollbar {
   display: none;
+}
+
+.chipsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chipsRow {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
 }
 
 .chip {
@@ -38,6 +51,7 @@
   white-space: nowrap;
   transition: all 0.15s ease;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .chip:hover:not(.chipActive) {
@@ -50,6 +64,21 @@
   border-color: var(--color-text);
   color: var(--color-bg);
   font-weight: 600;
+}
+
+.chipRemoving {
+  position: relative;
+}
+
+.removeOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(123, 123, 123, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
 }
 
 .addCategoryChip {

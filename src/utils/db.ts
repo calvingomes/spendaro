@@ -1,5 +1,11 @@
 import type { Expense, Peer, Pot, Split } from "@/lib/types";
 
+function normalizeCategory(name: string): string {
+  const t = name.trim();
+  if (!t) return "";
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+}
+
 const DB_NAME = "xpenses-db";
 const STORE_NAME = "expenses";
 const POTS_STORE_NAME = "pots";
@@ -211,14 +217,35 @@ export async function saveLocalCategory(name: string): Promise<void> {
   }
 }
 
-export async function syncCategoriesFromExpenses(expenses: Expense[]): Promise<void> {
+export async function deleteLocalCategory(name: string): Promise<void> {
   try {
     const db = await openDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(CATEGORIES_STORE_NAME, "readwrite");
+      tx.objectStore(CATEGORIES_STORE_NAME).delete(name);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.error("Failed to delete local category:", err);
+  }
+}
+
+export async function syncCategoriesFromExpenses(expenses: Expense[], defaultCategories: string[] = []): Promise<void> {
+  try {
+    const existing = await getLocalCategories();
+    if (existing.length > 0) return;
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(CATEGORIES_STORE_NAME, "readwrite");
       const store = tx.objectStore(CATEGORIES_STORE_NAME);
-      expenses.forEach((e) => {
-        if (e.category) store.put({ name: e.category });
+      const seen = new Set<string>();
+      [...defaultCategories, ...expenses.map((e) => e.category)].forEach((name) => {
+        if (name && !seen.has(name.toLowerCase())) {
+          const n = normalizeCategory(name);
+          seen.add(n.toLowerCase());
+          store.put({ name: n });
+        }
       });
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
