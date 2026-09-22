@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 import styles from "./expense-filters.module.css";
 import { getWeekLabel } from "@/utils/date-utils";
@@ -20,9 +20,9 @@ const MONTHS = [
 const QUARTERS = ["Jan - Mar", "Apr - Jun", "Jul - Sep", "Oct - Dec"];
 
 interface ExpenseFiltersProps<T extends string> {
-  activeType: T;
-  onTypeChange: (type: T) => void;
-  typeOptions: TypeOption<T>[];
+  activeType?: T;
+  onTypeChange?: (type: T) => void;
+  typeOptions?: TypeOption<T>[];
   timeSegment: TimeSegment;
   onTimeSegmentChange: (segment: TimeSegment) => void;
   selectedWeekIdx: number;
@@ -32,9 +32,11 @@ interface ExpenseFiltersProps<T extends string> {
   selectedQuarterIdx: number;
   onQuarterChange: (idx: number) => void;
   weeksList: number[];
+  viewToggle?: ReactNode;
+  animateInitialScroll?: boolean;
 }
 
-export function ExpenseFilters<T extends string>({
+export function ExpenseFilters<T extends string = string>({
   activeType,
   onTypeChange,
   typeOptions,
@@ -47,37 +49,58 @@ export function ExpenseFilters<T extends string>({
   selectedQuarterIdx,
   onQuarterChange,
   weeksList,
+  viewToggle,
+  animateInitialScroll = false,
 }: ExpenseFiltersProps<T>) {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const hasMountedRef = useRef(false);
 
   // Center scroll whenever segment switches
   useEffect(() => {
     if (carouselRef.current) {
       const activeEl = carouselRef.current.querySelector(`.${styles.activePeriod}`);
       if (activeEl) {
-        activeEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        const isInitialPosition = !hasMountedRef.current;
+        const shouldAnimate = !isInitialPosition || animateInitialScroll;
+        const previousScrollBehavior = carouselRef.current.style.scrollBehavior;
+
+        if (!shouldAnimate) {
+          carouselRef.current.style.scrollBehavior = "auto";
+        }
+
+        activeEl.scrollIntoView({
+          behavior: shouldAnimate ? "smooth" : "auto",
+          inline: "center",
+          block: "nearest",
+        });
+
+        carouselRef.current.style.scrollBehavior = previousScrollBehavior;
       }
     }
-  }, [timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx]);
+    hasMountedRef.current = true;
+  }, [timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx, animateInitialScroll]);
 
   return (
     <div className={styles.filterSection}>
       {/* Top Header Row */}
       <div className={styles.header}>
-        <div className={styles.selectWrapper}>
-          <select
-            className={styles.typeSelect}
-            value={activeType}
-            onChange={(e) => onTypeChange(e.target.value as T)}
-          >
-            {typeOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className={styles.selectArrow} size={16} />
-        </div>
+        {typeOptions && activeType !== undefined && onTypeChange && (
+          <div className={styles.selectWrapper}>
+            <select
+              className={styles.typeSelect}
+              value={activeType}
+              onChange={(e) => onTypeChange(e.target.value as T)}
+            >
+              {typeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className={styles.selectArrow} size={16} />
+          </div>
+        )}
+        {!typeOptions && <div className={styles.selectSpacer} aria-hidden="true" />}
 
         {/* Capsule Time Segment Selector */}
         <div className={styles.segmentedControl}>
@@ -93,6 +116,7 @@ export function ExpenseFilters<T extends string>({
           ))}
         </div>
       </div>
+
 
       {/* Date Carousel row (centered & scrollable) */}
       {timeSegment !== "all" && (
@@ -145,6 +169,7 @@ export function ExpenseFilters<T extends string>({
           </div>
         </div>
       )}
+      {viewToggle && <div className={styles.viewToggle}>{viewToggle}</div>}
     </div>
   );
 }

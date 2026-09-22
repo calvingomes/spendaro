@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import styles from "./expense-analytics.module.css";
 import type { Expense } from "@/lib/types";
-import { getWeekRange, getWeeksList } from "@/utils/date-utils";
+import { getWeekRange } from "@/utils/date-utils";
 import { AnimatedCounter } from "@/components/ui/animated-counter/animated-counter";
 import { formatCurrency } from "@/utils/expense-utils";
-import { ExpenseFilters, type TimeSegment } from "@/components/expense-filters/expense-filters";
+import type { TimeSegment } from "@/components/expense-filters/expense-filters";
 
 // Curated Harmony Palette (low-contrast, Sleek HSL colors for dark mode)
 const COLORS = [
@@ -22,21 +22,8 @@ const COLORS = [
   "#a855f7", // Violet
 ];
 
-export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
-  const [activeType, setActiveType] = useState<"debit" | "credit" | "net">("net");
-  const [timeSegment, setTimeSegment] = useState<TimeSegment>("month");
+export function ExpenseAnalytics({ expenses, timeSegment, selectedWeekIdx, selectedMonthIdx, selectedQuarterIdx }: { expenses: Expense[]; timeSegment: TimeSegment; selectedWeekIdx: number; selectedMonthIdx: number; selectedQuarterIdx: number }) {
 
-  // Dynamic current date states
-  const now = new Date();
-  const currentMonthIdx = now.getMonth();
-  const currentQuarterIdx = Math.floor(currentMonthIdx / 3);
-
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(currentMonthIdx);
-  const [selectedQuarterIdx, setSelectedQuarterIdx] = useState(currentQuarterIdx);
-  const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
-
-  // Dynamically calculate weeks based on oldest expense (fallback to at least 6 weeks)
-  const WEEKS_LIST = useMemo(() => getWeeksList(expenses), [expenses]);
 
   // Memoized filtered data calculations
   const categoryData = useMemo(() => {
@@ -44,11 +31,7 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
     const currentYear = new Date().getFullYear();
 
     expenses
-      .filter((e) =>
-        activeType === "net"
-          ? e.type === "debit" || e.type === "credit"
-          : e.type === activeType
-      )
+      .filter((e) => e.type === "debit" || e.type === "credit")
       .filter((e) => {
         const expenseDate = new Date(e.created_at);
         const expYear = expenseDate.getFullYear();
@@ -73,12 +56,8 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
           const cat = e.category || "Other";
           const current = map.get(cat) ?? { debits: 0, credits: 0 };
 
-          if (activeType === "net") {
-            if (e.type === "debit") current.debits += val;
-            if (e.type === "credit") current.credits += val;
-          } else {
-            current.debits += val;
-          }
+          if (e.type === "debit") current.debits += val;
+          if (e.type === "credit") current.credits += val;
 
           map.set(cat, current);
         }
@@ -88,13 +67,11 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
       .map(([name, amounts]) => ({
         name,
         // Net is spending after same-category refunds, never a cash balance.
-        value: activeType === "net"
-          ? Math.max(0, amounts.debits - amounts.credits)
-          : amounts.debits,
+        value: Math.max(0, amounts.debits - amounts.credits),
       }))
-      .filter((item) => activeType !== "net" || item.value > 0)
+      .filter((item) => item.value > 0)
       .sort((a, b) => b.value - a.value);
-  }, [expenses, activeType, timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx]);
+  }, [expenses, timeSegment, selectedMonthIdx, selectedQuarterIdx, selectedWeekIdx]);
 
   // Aggregate Total Sum
   const totalAmount = useMemo(() => {
@@ -110,25 +87,6 @@ export function ExpenseAnalytics({ expenses }: { expenses: Expense[] }) {
 
   return (
     <article className={styles.card}>
-      <ExpenseFilters
-        activeType={activeType}
-        onTypeChange={setActiveType}
-        typeOptions={[
-          { value: "debit", label: "Expenses" },
-          { value: "credit", label: "Income" },
-          { value: "net", label: "Net Expenses" },
-        ]}
-        timeSegment={timeSegment}
-        onTimeSegmentChange={setTimeSegment}
-        selectedWeekIdx={selectedWeekIdx}
-        onWeekChange={setSelectedWeekIdx}
-        selectedMonthIdx={selectedMonthIdx}
-        onMonthChange={setSelectedMonthIdx}
-        selectedQuarterIdx={selectedQuarterIdx}
-        onQuarterChange={setSelectedQuarterIdx}
-        weeksList={WEEKS_LIST}
-      />
-
       {categoryData.length > 0 ? (
         <>
           {/* Pie Chart Box */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import styles from "./expense-workspace.module.css";
 import type { Expense } from "@/lib/types";
@@ -8,6 +8,12 @@ import { ExpenseList } from "@/components/expense-list/expense-list";
 import { RecentActivityList } from "@/components/recent-activity-list/recent-activity-list";
 import { useDashboard } from "@/context/dashboard-context";
 import { getTopCategoryExpenses } from "@/utils/expense-utils";
+import { useExpensePeriodFilter } from "@/hooks/use-expense-period-filter";
+import { ExpenseFilters } from "@/components/expense-filters/expense-filters";
+import { getWeeksList } from "@/utils/date-utils";
+import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
+
+type WorkspaceView = "transactions" | "analytics";
 
 const ExpenseAnalytics = dynamic(
   () => import("@/components/expense-analytics/expense-analytics").then((module) => module.ExpenseAnalytics),
@@ -16,6 +22,34 @@ const ExpenseAnalytics = dynamic(
 
 export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
   const { expenses, activeTab, setActiveTab, openExpenseModal } = useDashboard();
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("transactions");
+  const periodFilter = useExpensePeriodFilter();
+  const resetPeriodFilter = periodFilter.reset;
+  const transactionsViewMountedRef = useRef(false);
+  const animateInitialScroll = !transactionsViewMountedRef.current;
+  const [activeType, setActiveType] = useState<"debit" | "credit" | "all">("all");
+  const weeksList = useMemo(() => getWeeksList(expenses), [expenses]);
+
+  useEffect(() => {
+    if (activeTab === "transactions") {
+      setWorkspaceView("transactions");
+      transactionsViewMountedRef.current = true;
+    } else {
+      transactionsViewMountedRef.current = false;
+      resetPeriodFilter();
+    }
+  }, [activeTab, resetPeriodFilter]);
+
+  const viewToggle = (
+    <RectangleToggle
+      options={[
+        { value: "transactions" as const, label: "Transactions" },
+        { value: "analytics" as const, label: "Analytics" },
+      ]}
+      value={workspaceView}
+      onChange={setWorkspaceView}
+    />
+  );
 
   const handleEdit = (expense: Expense) => {
     openExpenseModal({ editingExpense: expense });
@@ -68,16 +102,37 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
       )}
 
       {activeTab === "transactions" && (
-        <ExpenseList
-          expenses={expenses}
-          onEdit={handleEdit}
-          onDuplicate={handleDuplicate}
-          isPending={false}
-        />
-      )}
+        <>
+          <ExpenseFilters
+            activeType={workspaceView === "transactions" ? activeType : undefined}
+            onTypeChange={workspaceView === "transactions" ? setActiveType : undefined}
+            typeOptions={workspaceView === "transactions" ? [
+              { value: "all", label: "All Transactions" },
+              { value: "debit", label: "Expenses" },
+              { value: "credit", label: "Income" },
+            ] : undefined}
+            viewToggle={viewToggle}
+            animateInitialScroll={animateInitialScroll}
+            weeksList={weeksList}
+            {...periodFilter}
+          />
 
-      {activeTab === "analytics" && (
-        <ExpenseAnalytics expenses={expenses} />
+          {workspaceView === "transactions" ? (
+            <ExpenseList
+              expenses={expenses}
+              onEdit={handleEdit}
+              onDuplicate={handleDuplicate}
+              isPending={false}
+              activeType={activeType}
+              {...periodFilter}
+            />
+          ) : (
+            <ExpenseAnalytics
+              expenses={expenses}
+              {...periodFilter}
+            />
+          )}
+        </>
       )}
     </section>
   );
