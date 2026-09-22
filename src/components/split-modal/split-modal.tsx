@@ -7,9 +7,11 @@ import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Input } from "@/components/ui/input/input";
 import { CategoryPicker } from "@/components/ui/category-picker/category-picker";
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
+import { DateInput } from "@/components/ui/date-input/date-input";
 import { Button } from "@/components/ui/button/button";
 import styles from "./split-modal.module.css";
-import { SPLIT_CATEGORY_TAG, formatCurrency, formatDateForInput, normalizeText, parseAmount } from "@/utils/expense-utils";import { putLocalExpense, putLocalPeer, putLocalSplit } from "@/utils/db";
+import { SPLIT_CATEGORY_TAG, formatCurrency, formatDateForInput, normalizeText, parseAmount } from "@/utils/expense-utils";
+import { putLocalExpense, putLocalPeer, putLocalSplit } from "@/utils/db";
 import { queueAction } from "@/utils/sync-queue";
 import { useDashboard } from "@/context/dashboard-context";
 import type { Expense, Peer, Split } from "@/lib/types";
@@ -51,8 +53,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const [showPeerInput, setShowPeerInput] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
-  const peerInputRef = useRef<HTMLInputElement>(null);
+    const peerInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -74,7 +75,10 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
 
   const allCategories = useMemo(() => Array.from(new Set(categories)).filter(Boolean), [categories]);
 
-  const totalAmount = parseAmount(form.amount) || 0;
+  const handleAddCategory = (newCat: string) => {
+    addCategory(newCat);
+    setForm((c) => ({ ...c, category: normalizeText(newCat) }));
+  };const totalAmount = parseAmount(form.amount) || 0;
 
   const autoDistribute = (entries: PeerEntry[], method: SplitMethod): PeerEntry[] => {
     if (entries.length === 0) return entries;
@@ -120,14 +124,6 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const handleRemovePeer = (peerId: string) => {
     const updated = peerEntries.filter((e) => e.peer_id !== peerId);
     setPeerEntries(autoDistribute(updated, splitMethod));
-  };
-
-  const formatDateDisplay = (dateString: string) => {
-    if (!dateString) return "Today";
-    const today = new Date().toISOString().split("T")[0];
-    if (dateString === today) return "Today";
-    const d = new Date(dateString);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
   const validateStep1 = () => {
@@ -286,34 +282,16 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
             value={form.category}
             onChange={(cat) => setForm((c) => ({ ...c, category: cat }))}
             categories={allCategories}
-            onAddCategory={(newCat) => {
-              const normalized = normalizeText(newCat);
-              if (!normalized || normalized.toLowerCase() === "splits" || normalized.startsWith("_")) return;
-              addCategory(normalized);
-              setForm((c) => ({ ...c, category: normalized }));
-            }}
+            onAddCategory={handleAddCategory}
             onRemoveCategory={(cat) => {
               removeCategory(cat);
               if (form.category === cat) setForm((c) => ({ ...c, category: "" }));
             }}
           />
-          <div
-            className={styles.dateLinkContainer}
-            onClick={() => dateInputRef.current?.showPicker()}
-            style={{ cursor: "pointer" }}
-          >
-            <div className={styles.dateLink}>
-              <span className={styles.dateValue}>{formatDateDisplay(form.created_at)}</span>
-              <span className={styles.changeAction}> · change</span>
-            </div>
-            <input
-              ref={dateInputRef}
-              type="date"
-              className={styles.hiddenDateInput}
-              value={form.created_at}
-              onChange={(e) => setForm((c) => ({ ...c, created_at: e.target.value }))}
-            />
-          </div>
+          <DateInput
+            value={form.created_at}
+            onChange={(val) => setForm((c) => ({ ...c, created_at: val }))}
+          />
           {error && <p className={styles.error}>{error}</p>}
           <Button type="button" variant="primary" size="lg" fullWidth onClick={handleNext} icon={<ArrowRight size={14} />}>
             Next — Split with

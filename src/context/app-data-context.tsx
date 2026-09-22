@@ -66,7 +66,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const addCategory = (name: string) => {
     const normalized = normalizeText(name);
-    if (!normalized || normalized === SPLIT_CATEGORY_TAG) return;
+    if (!normalized || normalized === SPLIT_CATEGORY_TAG || normalized.toLowerCase() === "splits" || normalized.startsWith("_")) return;
     setCategories((prev) =>
       prev.some((c) => c.toLowerCase() === normalized.toLowerCase()) ? prev : [normalized, ...prev]
     );

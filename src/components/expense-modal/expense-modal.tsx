@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Input } from "@/components/ui/input/input";
 import { CategoryPicker } from "@/components/ui/category-picker/category-picker";
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
+import { DateInput } from "@/components/ui/date-input/date-input";
 import { Button } from "@/components/ui/button/button";
 import styles from "./expense-modal.module.css";
-import { SPLIT_CATEGORY_TAG, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
+import { SPLIT_CATEGORY_TAG, formatDateForInput, parseAmount, normalizeText } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
 import { useDashboard } from "@/context/dashboard-context";
 
@@ -55,7 +56,6 @@ export function ExpenseModal({
   const { categories, addCategory, removeCategory } = useDashboard();
   const [form, setForm] = useState<ExpenseFormState>(emptyForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -105,21 +105,8 @@ export function ExpenseModal({
   }, [categories, editingExpense, prefillFrom]);
 
   const handleAddCategory = (newCat: string) => {
-    const normalized = normalizeText(newCat);
-    if (!normalized || normalized.toLowerCase() === "splits" || normalized.startsWith("_")) return;
-    addCategory(normalized);
-    setForm(current => ({ ...current, category: normalized }));
-  };
-
-  const formatDateDisplay = (dateString: string) => {
-    if (!dateString) return "Today";
-    const today = localDateString();
-    const yesterday = localDateString(new Date(Date.now() - 86400000));
-    if (dateString === today) return "Today";
-    if (dateString === yesterday) return "Yesterday";
-
-    const dateObj = new Date(dateString);
-    return dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    addCategory(newCat);
+    setForm(current => ({ ...current, category: normalizeText(newCat) }));
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -227,23 +214,10 @@ export function ExpenseModal({
           />
         )}
 
-        <div
-          className={styles.dateLinkContainer}
-          onClick={() => dateInputRef.current?.showPicker()}
-          style={{ cursor: "pointer" }}
-        >
-          <div className={styles.dateLink}>
-            <span className={styles.dateValue}>{formatDateDisplay(form.created_at)}</span>
-            <span className={styles.changeAction}> · change</span>
-          </div>
-          <input
-            ref={dateInputRef}
-            type="date"
-            className={styles.hiddenDateInput}
-            value={form.created_at}
-            onChange={(e) => setForm((curr) => ({ ...curr, created_at: e.target.value }))}
-          />
-        </div>
+        <DateInput
+          value={form.created_at}
+          onChange={(val) => setForm((curr) => ({ ...curr, created_at: val }))}
+        />
 
         <div className={styles.formFooter}>
           {errorMessage && <p className={styles.error}>{errorMessage}</p>}

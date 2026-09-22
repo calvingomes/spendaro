@@ -171,31 +171,6 @@
   color: var(--color-text);
 }
 
-.dateLinkContainer {
-  position: relative;
-}
-
-.dateLink {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-}
-
-.dateValue {
-  font-weight: 500;
-}
-
-.changeAction {
-  color: var(--color-text-tertiary);
-}
-
-.hiddenDateInput {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-
 .error {
   color: var(--color-red);
   font-size: var(--text-sm);

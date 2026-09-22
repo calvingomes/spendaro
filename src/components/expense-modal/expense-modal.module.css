@@ -18,55 +18,6 @@
   letter-spacing: 0.05em;
 }
 
-/* Date Selector link */
-.dateLinkContainer {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-top: -4px;
-}
-
-.dateLink {
-  font-size: var(--text-sm);
-  background: transparent;
-  border: none;
-  transition: all 0.15s ease;
-  outline: none;
-  padding: 0;
-}
-
-.dateValue {
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  transition: color 0.15s ease;
-}
-
-.changeAction {
-  font-weight: 400;
-  color: var(--color-text-tertiary);
-  transition: color 0.15s ease;
-}
-
-.dateLinkContainer:hover .dateValue {
-  color: var(--color-text);
-}
-
-.dateLinkContainer:hover .changeAction {
-  color: var(--color-text-secondary);
-}
-
-.hiddenDateInput {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  pointer-events: none;
-}
-
 /* Footer / Submit */
 .formFooter {
   display: flex;
@@ -126,8 +77,4 @@
   height: 14px;
 }
 
-@media (max-width: 640px) {
-  .hiddenDateInput {
-    pointer-events: auto;
-  }
-}
+
