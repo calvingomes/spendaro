@@ -43,8 +43,9 @@ export function CategoryPicker({
     setShowAddCategory(false);
   };
 
-  const row1 = categories.filter((_, i) => i % 2 === 0);
-  const row2 = categories.filter((_, i) => i % 2 === 1);
+  const useTwoRows = categories.length > 3;
+  const row1 = useTwoRows ? categories.filter((_, i) => i % 2 === 0) : categories;
+  const row2 = useTwoRows ? categories.filter((_, i) => i % 2 === 1) : [];
 
   const renderChip = (cat: string) => {
     const isActive = value.toLowerCase() === cat.toLowerCase();

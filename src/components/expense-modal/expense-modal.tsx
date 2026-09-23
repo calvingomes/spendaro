@@ -101,7 +101,12 @@ export function ExpenseModal({
     if (prefillFrom?.category && prefillFrom.category !== SPLIT_CATEGORY_TAG) {
       base.add(prefillFrom.category);
     }
-    return Array.from(base).filter(Boolean);
+    const list = Array.from(base).filter(Boolean);
+    const selected = editingExpense?.category;
+    if (selected && selected !== SPLIT_CATEGORY_TAG) {
+      return [selected, ...list.filter((c) => c !== selected)];
+    }
+    return list;
   }, [categories, editingExpense, prefillFrom]);
 
   const handleAddCategory = (newCat: string) => {
