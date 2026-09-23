@@ -60,18 +60,21 @@ export function Dashboard({ user }: { user: User }) {
     }
   }, []);
 
+  const returnToTab = useRef<NavTab>("home");
+
   const openExpenseModal = useCallback((opts?: { defaultType?: "credit" | "debit"; editingExpense?: Expense | null; prefillFrom?: Expense | null }) => {
+    returnToTab.current = activeTab;
     setEditingExpense(opts?.editingExpense ?? null);
     setPrefillFrom(opts?.prefillFrom ?? null);
     setModalDefaultType(opts?.defaultType ?? opts?.prefillFrom?.type === "credit" ? "credit" : "debit");
     setIsExpenseModalOpen(true);
-  }, []);
+  }, [activeTab]);
 
   const closeExpenseModal = useCallback(() => {
     setIsExpenseModalOpen(false);
     setEditingExpense(null);
     setPrefillFrom(null);
-    setActiveTab("home");
+    setActiveTab(returnToTab.current === "transactions" ? "transactions" : "home");
   }, []);
 
   const openSplitModal = useCallback(() => setIsSplitModalOpen(true), []);
