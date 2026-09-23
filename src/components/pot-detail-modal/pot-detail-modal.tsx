@@ -82,7 +82,7 @@ export function PotDetailModal({
     : balance >= goal ? "You've reached your goal 🎉"
     : view === "add"
       ? projectedBalance >= goal
-        ? "🎉 This will complete your goal!"
+        ? "This will complete your goal 🎉"
         : `${formatCurrency(remainingAfterAction ?? 0)} more to reach your goal`
       : `${formatCurrency(remainingAfterAction ?? 0)} remaining to reach your goal`;
 

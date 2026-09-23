@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Input } from "@/components/ui/input/input";
@@ -167,7 +167,7 @@ export function ExpenseModal({
 
   const modalTitle = editingExpense
     ? `Edit ${editingExpense.type === "credit" ? "Income" : "Expense"}`
-    : "New Transaction";
+    : "New Expense";
 
   const submitButtonLabel = editingExpense ? "Save changes" : "Add Transaction";
 
@@ -227,17 +227,6 @@ export function ExpenseModal({
         <div className={styles.formFooter}>
           {errorMessage && <p className={styles.error}>{errorMessage}</p>}
           <div className={styles.footerActions}>
-            {editingExpense && (
-              <button
-                className={styles.deleteButton}
-                type="button"
-                onClick={() => onDelete(editingExpense.id)}
-                disabled={isPending}
-              >
-                <Trash2 className={styles.tableIcon} />
-                Delete
-              </button>
-            )}
             <Button
               type="submit"
               variant="primary"
@@ -253,6 +242,19 @@ export function ExpenseModal({
             >
               {isPending ? "Saving..." : submitButtonLabel}
             </Button>
+            {editingExpense && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                onClick={() => onDelete(editingExpense.id)}
+                disabled={isPending}
+                fullWidth
+                className={styles.deleteButton}
+              >
+                Delete Expense
+              </Button>
+            )}
           </div>
         </div>
 
