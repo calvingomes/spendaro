@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button/button";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
 import styles from "./pot-detail-modal.module.css";
+import { formatCurrency } from "@/utils/expense-utils";
 import type { Pot, Expense } from "@/lib/types";
 
 interface PotDetailModalProps {
@@ -74,6 +75,16 @@ export function PotDetailModal({
   };
 
   const numAmount = Number.parseFloat(amount) || 0;
+  const goal = Number(pot.goal) || 0;
+  const projectedBalance = view === "add" ? balance + numAmount : balance - numAmount;
+  const remainingAfterAction = goal > 0 ? Math.max(0, goal - projectedBalance) : null;
+  const goalHint = goal <= 0 ? null
+    : balance >= goal ? "You've reached your goal 🎉"
+    : view === "add"
+      ? projectedBalance >= goal
+        ? "🎉 This will complete your goal!"
+        : `${formatCurrency(remainingAfterAction ?? 0)} more to reach your goal`
+      : `${formatCurrency(remainingAfterAction ?? 0)} remaining to reach your goal`;
 
   return (
     <Modal
@@ -100,6 +111,12 @@ export function PotDetailModal({
             setErrorMsg("");
           }}
         />
+
+        {goalHint && (
+          <p className={styles.goalHint}>
+            {goalHint}
+          </p>
+        )}
 
         <RectangleToggle
           options={[
