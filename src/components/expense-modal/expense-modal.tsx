@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Plus, Pencil } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Input } from "@/components/ui/input/input";
 import { CategoryPicker } from "@/components/ui/category-picker/category-picker";
 import { RectangleToggle } from "@/components/ui/rectangle-toggle/rectangle-toggle";
+import { DateInput } from "@/components/ui/date-input/date-input";
 import { Button } from "@/components/ui/button/button";
 import styles from "./expense-modal.module.css";
-import { DEFAULT_CATEGORIES, formatDateForInput, localDateString, parseAmount, normalizeText } from "@/utils/expense-utils";
-import { getLocalCategories, saveLocalCategory } from "@/utils/db";
+import { SPLIT_CATEGORY_TAG, formatDateForInput, parseAmount, normalizeText } from "@/utils/expense-utils";
 import type { Expense } from "@/lib/types";
+import { useDashboard } from "@/context/dashboard-context";
 
 type ExpenseFormState = {
   label: string;
@@ -52,22 +53,9 @@ export function ExpenseModal({
   expenses,
   defaultType = "debit"
 }: ExpenseModalProps) {
+  const { categories, addCategory, removeCategory } = useDashboard();
   const [form, setForm] = useState<ExpenseFormState>(emptyForm);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [storedCategories, setStoredCategories] = useState<string[]>([]);
-  const [addedCategories, setAddedCategories] = useState<string[]>([]);
-  const categoriesLoaded = useRef(false);
-
-  const dateInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!categoriesLoaded.current) {
-      categoriesLoaded.current = true;
-      getLocalCategories().then((cats) => {
-        setStoredCategories(cats.map((c) => normalizeText(c)).filter(Boolean));
-      });
-    }
-  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -106,49 +94,24 @@ export function ExpenseModal({
   };
 
   const allCategories = useMemo(() => {
-    const freqMap = new Map<string, number>();
-
-    expenses.forEach((e) => {
-      if (e.category) {
-        const cat = normalizeText(e.category);
-        freqMap.set(cat, (freqMap.get(cat) ?? 0) + 1);
-      }
-    });
-
-    const base = new Set<string>();
-    addedCategories.forEach((cat) => base.add(normalizeText(cat)));
-    storedCategories.forEach((cat) => base.add(cat));
-    expenses.forEach((e) => { if (e.category) base.add(normalizeText(e.category)); });
-    DEFAULT_CATEGORIES.forEach((cat) => base.add(normalizeText(cat)));
-
-    return Array.from(base).filter(Boolean).sort((a, b) => {
-      const diff = (freqMap.get(b) ?? 0) - (freqMap.get(a) ?? 0);
-      return diff !== 0 ? diff : a.localeCompare(b);
-    });
-  }, [expenses, storedCategories, addedCategories]);
+    const base = new Set(categories);
+    if (editingExpense?.category && editingExpense.category !== SPLIT_CATEGORY_TAG) {
+      base.add(editingExpense.category);
+    }
+    if (prefillFrom?.category && prefillFrom.category !== SPLIT_CATEGORY_TAG) {
+      base.add(prefillFrom.category);
+    }
+    const list = Array.from(base).filter(Boolean);
+    const selected = editingExpense?.category;
+    if (selected && selected !== SPLIT_CATEGORY_TAG) {
+      return [selected, ...list.filter((c) => c !== selected)];
+    }
+    return list;
+  }, [categories, editingExpense, prefillFrom]);
 
   const handleAddCategory = (newCat: string) => {
-    const normalized = normalizeText(newCat);
-    if (!normalized) return;
-
-    const matchExists = allCategories.some(cat => cat.toLowerCase() === normalized.toLowerCase());
-    if (!matchExists) {
-      setAddedCategories(current => [normalized, ...current]);
-      void saveLocalCategory(normalized);
-    }
-
-    setForm(current => ({ ...current, category: normalized }));
-  };
-
-  const formatDateDisplay = (dateString: string) => {
-    if (!dateString) return "Today";
-    const today = localDateString();
-    const yesterday = localDateString(new Date(Date.now() - 86400000));
-    if (dateString === today) return "Today";
-    if (dateString === yesterday) return "Yesterday";
-
-    const dateObj = new Date(dateString);
-    return dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    addCategory(newCat);
+    setForm(current => ({ ...current, category: normalizeText(newCat) }));
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -185,7 +148,7 @@ export function ExpenseModal({
       }
     }
 
-    void saveLocalCategory(normalizedCategory);
+    addCategory(normalizedCategory);
 
     const payload = {
       label: normalizedLabel,
@@ -204,7 +167,7 @@ export function ExpenseModal({
 
   const modalTitle = editingExpense
     ? `Edit ${editingExpense.type === "credit" ? "Income" : "Expense"}`
-    : "New Transaction";
+    : "New Expense";
 
   const submitButtonLabel = editingExpense ? "Save changes" : "Add Transaction";
 
@@ -237,6 +200,10 @@ export function ExpenseModal({
           onChange={(cat) => setForm((curr) => ({ ...curr, category: cat }))}
           categories={allCategories}
           onAddCategory={handleAddCategory}
+          onRemoveCategory={(cat) => {
+            removeCategory(cat);
+            if (form.category === cat) setForm((curr) => ({ ...curr, category: "" }));
+          }}
           onFocus={handleInputFocus}
         />
 
@@ -252,38 +219,14 @@ export function ExpenseModal({
           />
         )}
 
-        <div
-          className={styles.dateLinkContainer}
-          onClick={() => dateInputRef.current?.showPicker()}
-          style={{ cursor: "pointer" }}
-        >
-          <div className={styles.dateLink}>
-            <span className={styles.dateValue}>{formatDateDisplay(form.created_at)}</span>
-            <span className={styles.changeAction}> · change</span>
-          </div>
-          <input
-            ref={dateInputRef}
-            type="date"
-            className={styles.hiddenDateInput}
-            value={form.created_at}
-            onChange={(e) => setForm((curr) => ({ ...curr, created_at: e.target.value }))}
-          />
-        </div>
+        <DateInput
+          value={form.created_at}
+          onChange={(val) => setForm((curr) => ({ ...curr, created_at: val }))}
+        />
 
         <div className={styles.formFooter}>
           {errorMessage && <p className={styles.error}>{errorMessage}</p>}
           <div className={styles.footerActions}>
-            {editingExpense && (
-              <button
-                className={styles.deleteButton}
-                type="button"
-                onClick={() => onDelete(editingExpense.id)}
-                disabled={isPending}
-              >
-                <Trash2 className={styles.tableIcon} />
-                Delete
-              </button>
-            )}
             <Button
               type="submit"
               variant="primary"
@@ -299,6 +242,19 @@ export function ExpenseModal({
             >
               {isPending ? "Saving..." : submitButtonLabel}
             </Button>
+            {editingExpense && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                onClick={() => onDelete(editingExpense.id)}
+                disabled={isPending}
+                fullWidth
+                className={styles.deleteButton}
+              >
+                Delete Expense
+              </Button>
+            )}
           </div>
         </div>
 

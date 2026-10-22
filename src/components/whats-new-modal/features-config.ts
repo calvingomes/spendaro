@@ -1,6 +1,6 @@
-import { LayoutDashboard, Calculator, PiggyBank } from "lucide-react";
+import { LayoutDashboard, Calculator, UsersRound } from "lucide-react";
 
-export const CURRENT_VERSION = "2.5.1";
+export const CURRENT_VERSION = "2.6.0";
 
 export const RELEASE_FEATURES = [
   {
@@ -16,9 +16,9 @@ export const RELEASE_FEATURES = [
     description: "See your actual spending after same-category income and reimbursements are accounted for."
   },
   {
-    id: "pots-balance",
-    icon: PiggyBank,
-    title: "Pots affect available balance",
-    description: "Money added to a pot now reduces the available main balance until it is moved back."
+    id: "splits-screen",
+    icon: UsersRound,
+    title: "Split expenses",
+    description: "Track shared bills with friends. Your share hits analytics instantly; peer repayments keep your balance in sync over time."
   }
 ];

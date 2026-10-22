@@ -85,3 +85,14 @@ export function getWeeksList(expenses: { created_at: string | Date }[]): number[
   const count = Math.max(6, weeksDiff);
   return Array.from({ length: count }, (_, idx) => idx);
 }
+
+export function formatDateDisplay(dateString: string): string {
+  if (!dateString) return "Today";
+  const today = new Date();
+  const todayStr = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
+  const yesterday = new Date(Date.now() - 86400000);
+  const yesterdayStr = [yesterday.getFullYear(), String(yesterday.getMonth() + 1).padStart(2, "0"), String(yesterday.getDate()).padStart(2, "0")].join("-");
+  if (dateString === todayStr) return "Today";
+  if (dateString === yesterdayStr) return "Yesterday";
+  return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}

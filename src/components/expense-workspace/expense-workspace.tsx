@@ -66,7 +66,6 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
 
   const isRankedMode = topCategories.length > 0;
   const homeExpenses = isRankedMode ? topCategories : expenses.slice(0, 10);
-  const showSeeMore = isRankedMode ? expenses.length > 5 : expenses.length > 10;
 
   return (
     <section className={styles.workspace}>
@@ -87,17 +86,6 @@ export function ExpenseWorkspace({ syncError }: { syncError: string | null }) {
             onDuplicate={handleDuplicate}
             isPending={false}
           />
-          {showSeeMore && (
-            <div className={styles.seeMoreContainer}>
-              <button
-                className={styles.seeMoreButton}
-                type="button"
-                onClick={() => setActiveTab("transactions")}
-              >
-                See all transactions
-              </button>
-            </div>
-          )}
         </div>
       )}
 

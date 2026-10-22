@@ -34,6 +34,12 @@
   color: var(--color-text);
 }
 
+.goalHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
 
 .actionButtonsContainer {
   display: flex;
@@ -51,4 +57,3 @@ button.deleteButton {
 button.deleteButton:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-red) 8%, transparent);
 }
-

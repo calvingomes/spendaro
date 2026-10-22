@@ -7,6 +7,7 @@ import type { Expense } from "@/lib/types";
 import { getWeekRange } from "@/utils/date-utils";
 import { AnimatedCounter } from "@/components/ui/animated-counter/animated-counter";
 import { formatCurrency } from "@/utils/expense-utils";
+import { SPLIT_CATEGORY_TAG } from "@/utils/expense-utils";
 import type { TimeSegment } from "@/components/expense-filters/expense-filters";
 
 // Curated Harmony Palette (low-contrast, Sleek HSL colors for dark mode)
@@ -31,7 +32,7 @@ export function ExpenseAnalytics({ expenses, timeSegment, selectedWeekIdx, selec
     const currentYear = new Date().getFullYear();
 
     expenses
-      .filter((e) => e.type === "debit" || e.type === "credit")
+      .filter((e) => (e.type === "debit" || e.type === "credit") && e.category !== SPLIT_CATEGORY_TAG)
       .filter((e) => {
         const expenseDate = new Date(e.created_at);
         const expYear = expenseDate.getFullYear();
