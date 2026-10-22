@@ -1,6 +1,6 @@
 import { LayoutDashboard, Calculator, UsersRound } from "lucide-react";
 
-export const CURRENT_VERSION = "2.6.0";
+export const CURRENT_VERSION = "2.6.1";
 
 export const RELEASE_FEATURES = [
   {
