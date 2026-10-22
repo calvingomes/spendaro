@@ -13,7 +13,7 @@
   margin: 0;
   font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -59,10 +59,6 @@
   border-radius: var(--radius-2);
 }
 
-.splitRow.voided {
-  opacity: 0.5;
-}
-
 .splitInfo {
   display: flex;
   flex-direction: column;
@@ -97,43 +93,4 @@
   font-weight: 700;
   color: var(--color-text);
   white-space: nowrap;
-}
-
-.voidButton {
-  padding: 2px var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-1);
-  background: transparent;
-  color: var(--color-text-tertiary);
-  font-size: var(--text-xs);
-  cursor: pointer;
-}
-
-.voidButton:hover {
-  border-color: var(--color-red);
-  color: var(--color-red);
-}
-
-.voidedSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.voidedToggle {
-  background: transparent;
-  border: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--text-xs);
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-}
-
-.voidedBadge {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }

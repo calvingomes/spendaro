@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Modal } from "@/components/ui/modal/modal";
 import { Button } from "@/components/ui/button/button";
 import styles from "./peer-detail-modal.module.css";
@@ -11,12 +10,11 @@ interface PeerDetailModalProps {
   peerId: string | null;
   onClose: () => void;
   onRepay: (peerId: string) => void;
-  onVoid: (splitId: string, peerId: string) => void;
+  onSettle: (splitId: string, peerId: string) => void;
 }
 
-export function PeerDetailModal({ peerId, onClose, onRepay, onVoid }: PeerDetailModalProps) {
+export function PeerDetailModal({ peerId, onClose, onRepay, onSettle }: PeerDetailModalProps) {
   const { peers, splits } = useDashboard();
-  const [showVoided, setShowVoided] = useState(false);
 
   const peer = peerId ? peers.find((p) => p.id === peerId) : null;
   if (!peer) return null;
@@ -25,8 +23,10 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onVoid }: PeerDetail
     s.peer_breakdown.some((pb) => pb.peer_id === peer.id)
   );
 
-  const openSplits = peerSplits.filter((s) => s.status === "open" && s.peer_breakdown.find((pb) => pb.peer_id === peer.id)?.status !== "voided");
-  const voidedSplits = peerSplits.filter((s) => s.status === "voided" || s.peer_breakdown.find((pb) => pb.peer_id === peer.id)?.status === "voided");
+  const openSplits = peerSplits.filter((s) => {
+    const entry = s.peer_breakdown.find((pb) => pb.peer_id === peer.id);
+    return s.status === "open" && entry?.status !== "voided" && Boolean(entry && entry.amount_owed > entry.amount_repaid);
+  });
 
   const totalOutstanding = openSplits.reduce((sum, s) => {
     const entry = s.peer_breakdown.find((pb) => pb.peer_id === peer.id);
@@ -77,13 +77,14 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onVoid }: PeerDetail
                   </div>
                   <div className={styles.splitRight}>
                     <span className={styles.splitRemaining}>{formatCurrency(remaining)}</span>
-                    <button
+                    <Button
                       type="button"
-                      className={styles.voidButton}
-                      onClick={() => onVoid(s.id, peer.id)}
+                      variant="primary"
+                      size="sm"
+                      onClick={() => onSettle(s.id, peer.id)}
                     >
-                      Void
-                    </button>
+                      Settle up
+                    </Button>
                   </div>
                 </div>
               );
@@ -91,28 +92,6 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onVoid }: PeerDetail
           </div>
         )}
 
-        {voidedSplits.length > 0 && (
-          <div className={styles.voidedSection}>
-            <button
-              type="button"
-              className={styles.voidedToggle}
-              onClick={() => setShowVoided((v) => !v)}
-            >
-              {showVoided ? "Hide" : "Show"} voided ({voidedSplits.length})
-            </button>
-            {showVoided && voidedSplits.map((s) => (
-              <div key={s.id} className={`${styles.splitRow} ${styles.voided}`}>
-                <div className={styles.splitInfo}>
-                  <span className={styles.splitLabel}>{s.label}</span>
-                  <span className={styles.splitMeta}>
-                    {displayCategory(s.category)} · {new Date(s.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}
-                  </span>
-                </div>
-                <span className={styles.voidedBadge}>Voided</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </Modal>
   );

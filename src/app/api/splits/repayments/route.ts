@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { peer_id, amount, date } = body;
+  const { peer_id, split_id, amount, date } = body;
   if (!peer_id || amount == null) return NextResponse.json({ error: "peer_id and amount required" }, { status: 400 });
 
   const repaymentAmount = Number(amount);
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   const allocatable = (openRows || [])
     .filter((row) => {
       const split = row.splits as unknown as { created_at: string; status: string } | null;
-      return split?.status === "open" && row.status !== "voided" && row.amount_owed > row.amount_repaid;
+      return split?.status === "open" && row.status !== "voided" && row.amount_owed > row.amount_repaid && (!split_id || row.split_id === split_id);
     })
     .sort((a, b) => {
       const sa = a.splits as unknown as { created_at: string } | null;
