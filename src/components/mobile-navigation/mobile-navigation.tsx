@@ -17,7 +17,7 @@ const TABS: TabItem[] = [
   { id: "home", icon: Home },
   { id: "transactions", icon: ReceiptText },
   { id: "pots", icon: PiggyBank },
-  { id: "split", icon: UsersRound },
+  // { id: "split", icon: UsersRound },
 ];
 
 const ADD_SLOT_VISUAL_INDEX = 2;

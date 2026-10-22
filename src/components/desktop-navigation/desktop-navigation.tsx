@@ -16,7 +16,7 @@ const TABS: TabItem[] = [
   { id: "home", label: "Home", icon: Home },
   { id: "transactions", label: "Transactions", icon: ReceiptText },
   { id: "pots", label: "Pots", icon: PiggyBank },
-  { id: "split", label: "Split", icon: UsersRound },
+  // { id: "split", label: "Split", icon: UsersRound },
 ];
 
 export function DesktopNavigation() {
