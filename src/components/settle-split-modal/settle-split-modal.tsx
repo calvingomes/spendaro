@@ -42,7 +42,7 @@ export function SettleSplitModal({ splitId, peerId, onClose, onVoid }: SettleSpl
       label: `Repayment · ${peer.name}`,
       category: "__split__",
       amount: remaining,
-      type: "credit",
+      type: split.direction === "i_owe_them" ? "debit" : "credit",
       created_at: now,
       updated_at: now,
     };

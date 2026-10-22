@@ -17,20 +17,29 @@ export function SplitsWorkspace() {
   const settledTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   const peerBalances = useMemo(() => peers.map((peer) => {
-    const outstanding = splits
+    const balances = splits
       .filter((s) => s.status === "open")
-      .reduce((sum, s) => {
+      .reduce((total, s) => {
         const entry = s.peer_breakdown.find((pb) => pb.peer_id === peer.id);
-        if (!entry || entry.status === "voided") return sum;
-        return sum + Math.max(0, entry.amount_owed - entry.amount_repaid);
-      }, 0);
-    return { ...peer, outstanding };
+        if (!entry || entry.status === "voided") return total;
+        const remaining = Math.max(0, entry.amount_owed - entry.amount_repaid);
+        if (s.direction === "i_owe_them") total.iOwe += remaining;
+        else total.owedToMe += remaining;
+        return total;
+      }, { owedToMe: 0, iOwe: 0 });
+    const outstanding = balances.owedToMe + balances.iOwe;
+    return { ...peer, ...balances, outstanding, netBalance: balances.owedToMe - balances.iOwe };
   }).filter((p) => {
     const hasAnySplit = splits.some((s) =>
       s.peer_breakdown.some((pb) => pb.peer_id === p.id)
     );
     return hasAnySplit;
-  }).sort((a, b) => b.outstanding - a.outstanding || a.name.localeCompare(b.name)), [peers, splits]);
+  }).sort((a, b) => {
+    const rank = (balance: number) => balance > 0 ? 0 : balance === 0 ? 1 : 2;
+    return rank(a.netBalance) - rank(b.netBalance)
+      || (a.netBalance > 0 ? b.netBalance - a.netBalance : a.netBalance - b.netBalance)
+      || a.name.localeCompare(b.name);
+  }), [peers, splits]);
 
   const historyRows = useMemo(() => splits.flatMap((split) => split.peer_breakdown.flatMap((entry) => {
     const peer = peers.find((item) => item.id === entry.peer_id);
@@ -160,13 +169,12 @@ export function SplitsWorkspace() {
                 <span className={styles.peerName}>{peer.name.charAt(0).toUpperCase() + peer.name.slice(1)}</span>
               </span>
               <div className={styles.peerBalance}>
-                {peer.outstanding > 0 ? (
-                  <>
-                    <span className={styles.owesLabel}>owes you</span>
-                    <strong className={styles.owesAmount}>{formatCurrency(peer.outstanding)}</strong>
-                  </>
+                {peer.netBalance > 0 ? (
+                  <span className={styles.peerBalanceLine}><span className={styles.owesLabel}>owes you</span><strong className={styles.owesAmount}>{formatCurrency(peer.netBalance)}</strong></span>
+                ) : peer.netBalance < 0 ? (
+                  <span className={styles.peerBalanceLine}><span className={styles.owesLabel}>you owe</span><strong className={styles.youOweAmount}>{formatCurrency(Math.abs(peer.netBalance))}</strong></span>
                 ) : (
-                  <span className={styles.settledLabel}>Fully settled</span>
+                  <span className={styles.settledLabel}>{peer.outstanding === 0 ? "Fully settled" : "Balanced"}</span>
                 )}
               </div>
             </button>

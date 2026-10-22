@@ -100,12 +100,16 @@ create table if not exists public.splits (
   category text not null,
   my_share numeric(12, 2) not null check (my_share >= 0),
   peer_total numeric(12, 2) not null check (peer_total >= 0),
+  direction text not null default 'they_owe_me' check (direction in ('they_owe_me', 'i_owe_them')),
   split_method text not null check (split_method in ('equal', 'percentage', 'specific')),
   note text,
   status text not null default 'open' check (status in ('open', 'voided')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.splits
+  add column if not exists direction text not null default 'they_owe_me' check (direction in ('they_owe_me', 'i_owe_them'));
 
 alter table public.splits enable row level security;
 

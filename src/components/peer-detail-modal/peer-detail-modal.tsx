@@ -28,11 +28,15 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onSettle }: PeerDeta
     return s.status === "open" && entry?.status !== "voided" && Boolean(entry && entry.amount_owed > entry.amount_repaid);
   });
 
-  const totalOutstanding = openSplits.reduce((sum, s) => {
+  const { totalOwedToMe, totalIOwe } = openSplits.reduce((totals, s) => {
     const entry = s.peer_breakdown.find((pb) => pb.peer_id === peer.id);
-    if (!entry) return sum;
-    return entry.status === "voided" ? sum : sum + Math.max(0, entry.amount_owed - entry.amount_repaid);
-  }, 0);
+    if (!entry || entry.status === "voided") return totals;
+    const remaining = Math.max(0, entry.amount_owed - entry.amount_repaid);
+    if (s.direction === "i_owe_them") totals.totalIOwe += remaining;
+    else totals.totalOwedToMe += remaining;
+    return totals;
+  }, { totalOwedToMe: 0, totalIOwe: 0 });
+  const totalOutstanding = totalOwedToMe + totalIOwe;
 
   const title = peer.name;
 
@@ -41,10 +45,20 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onSettle }: PeerDeta
       <div className={styles.container}>
         <div className={styles.summary}>
           {totalOutstanding > 0 ? (
-            <>
-              <p className={styles.summaryLabel}>Owes you</p>
-              <p className={styles.summaryAmount}>{formatCurrency(totalOutstanding)}</p>
-            </>
+            <div className={styles.summaryBalances}>
+              {totalOwedToMe > 0 && (
+                <div className={styles.summaryBalance}>
+                  <p className={styles.summaryLabel}>Owes you</p>
+                  <p className={styles.summaryAmount}>{formatCurrency(totalOwedToMe)}</p>
+                </div>
+              )}
+              {totalIOwe > 0 && (
+                <div className={styles.summaryBalance}>
+                  <p className={styles.summaryLabel}>You owe</p>
+                  <p className={styles.youOweSummaryAmount}>{formatCurrency(totalIOwe)}</p>
+                </div>
+              )}
+            </div>
           ) : (
             <p className={styles.settledSummary}>All settled up</p>
           )}
@@ -76,7 +90,9 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onSettle }: PeerDeta
                     </span>
                   </div>
                   <div className={styles.splitRight}>
-                    <span className={styles.splitRemaining}>{formatCurrency(remaining)}</span>
+                    <span className={`${styles.splitRemaining} ${s.direction === "i_owe_them" ? styles.splitYouOwe : styles.splitOwedToYou}`}>
+                      {s.direction === "i_owe_them" ? `-${formatCurrency(remaining)}` : formatCurrency(remaining)}
+                    </span>
                     <Button
                       type="button"
                       variant="primary"

@@ -57,6 +57,7 @@ export type Split = {
   category: string;
   my_share: number;
   peer_total: number;
+  direction?: "they_owe_me" | "i_owe_them";
   split_method: "equal" | "percentage" | "specific";
   note: string | null;
   status: "open" | "voided";

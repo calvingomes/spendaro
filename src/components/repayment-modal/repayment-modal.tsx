@@ -80,6 +80,7 @@ export function RepaymentModal({ peerId, onClose }: RepaymentModalProps) {
         const allocated = Math.min(remaining, rowRemaining);
 
         updatedSplits[splitIdx].peer_breakdown[pbIdx].amount_repaid += allocated;
+        const expenseType = split.direction === "i_owe_them" ? "debit" : "credit";
 
         const creditExpense: Expense = {
           id: crypto.randomUUID(),
@@ -87,7 +88,7 @@ export function RepaymentModal({ peerId, onClose }: RepaymentModalProps) {
           label: `Repayment · ${peer.name}`,
           category: SPLIT_CATEGORY_TAG,
           amount: allocated,
-          type: "credit",
+          type: expenseType,
           created_at: now,
           updated_at: now,
         };

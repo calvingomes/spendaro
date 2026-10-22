@@ -9,6 +9,16 @@
   padding: var(--space-4) 0 var(--space-2);
 }
 
+.summaryBalances {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.summaryBalance {
+  min-width: 0;
+}
+
 .summaryLabel {
   margin: 0;
   font-size: var(--text-xs);
@@ -24,6 +34,14 @@
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--color-green);
+}
+
+.youOweSummaryAmount {
+  margin: var(--space-1) 0 0;
+  color: var(--color-amber);
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
 }
 
 .settledSummary {
@@ -93,4 +111,12 @@
   font-weight: 700;
   color: var(--color-text);
   white-space: nowrap;
+}
+
+.splitOwedToYou {
+  color: var(--color-green);
+}
+
+.splitYouOwe {
+  color: var(--color-amber);
 }

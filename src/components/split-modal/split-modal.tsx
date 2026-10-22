@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import { ArrowRight, ArrowLeft, Plus, Check } from "lucide-react";
+import { ArrowLeft, Plus, Check } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Input } from "@/components/ui/input/input";
@@ -17,6 +17,7 @@ import { useDashboard } from "@/context/dashboard-context";
 import type { Expense, Peer, Split } from "@/lib/types";
 
 type SplitMethod = "equal" | "specific";
+type SplitDirection = "they_owe_me" | "i_owe_them";
 
 type PeerEntry = {
   peer_id: string;
@@ -49,6 +50,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState<Step1Form>(emptyStep1);
   const [splitMethod, setSplitMethod] = useState<SplitMethod>("equal");
+  const [direction, setDirection] = useState<SplitDirection>("they_owe_me");
   const [peerEntries, setPeerEntries] = useState<PeerEntry[]>([]);
   const [specificMyShare, setSpecificMyShare] = useState<number | null>(null);
   const [myShareIsManual, setMyShareIsManual] = useState(false);
@@ -68,6 +70,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       setMyShareIsManual(false);
       setIncludeMe(true);
       setSplitMethod("equal");
+      setDirection("they_owe_me");
       setNewPeerName("");
       setShowPeerInput(false);
       setError(null);
@@ -85,7 +88,17 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const handleAddCategory = (newCat: string) => {
     addCategory(newCat);
     setForm((c) => ({ ...c, category: normalizeText(newCat) }));
-  };const totalAmount = parseAmount(form.amount) || 0;
+  };
+  const totalAmount = parseAmount(form.amount) || 0;
+
+  const handleDirectionChange = (nextDirection: SplitDirection) => {
+    setDirection(nextDirection);
+    setPeerEntries([]);
+    setSpecificMyShare(null);
+    setMyShareIsManual(false);
+    setIncludeMe(true);
+    setError(null);
+  };
 
   const autoDistribute = (entries: PeerEntry[], method: SplitMethod, hasMe = includeMe): PeerEntry[] => {
     if (entries.length === 0) return entries;
@@ -99,7 +112,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   };
 
   const peerTotal = peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
-  const myShare = includeMe
+  const myShare = direction === "i_owe_them" ? totalAmount : includeMe
     ? splitMethod === "specific" && specificMyShare !== null
       ? specificMyShare
       : Math.max(0, totalAmount - peerTotal)
@@ -115,7 +128,13 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       setShowPeerInput(false);
       return;
     }
-    const newEntry: PeerEntry = { peer_id: peerId, name: trimmed, amount_owed: 0 };
+    const newEntry: PeerEntry = { peer_id: peerId, name: trimmed, amount_owed: direction === "i_owe_them" ? totalAmount : 0 };
+    if (direction === "i_owe_them") {
+      setPeerEntries([newEntry]);
+      setNewPeerName("");
+      setShowPeerInput(false);
+      return;
+    }
     const updatedEntries = [...peerEntries, newEntry];
     const updated = splitMethod === "specific" ? redistributeSpecific(updatedEntries) : autoDistribute(updatedEntries, splitMethod);
     setPeerEntries(updated);
@@ -127,6 +146,10 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
     const selected = peerEntries.some((entry) => entry.peer_id === peer.id);
     if (selected) {
       handleRemovePeer(peer.id);
+      return;
+    }
+    if (direction === "i_owe_them") {
+      setPeerEntries([{ peer_id: peer.id, name: peer.name, amount_owed: totalAmount }]);
       return;
     }
     setPeerEntries((prev) => {
@@ -218,6 +241,10 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   };
 
   const validateStep2 = () => {
+    if (direction === "i_owe_them") {
+      if (peerEntries.length !== 1) { setError("Select who paid for you."); return false; }
+      return true;
+    }
     if (peerEntries.length === 0 && includeMe) { setError("Add at least one person to split with."); return false; }
     if (peerEntries.length === 0 && !includeMe) { setError("Add at least one person to cover this expense."); return false; }
     const adjustedPeerTotal = peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
@@ -257,8 +284,8 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       const peerLedgerId = crypto.randomUUID();
       const splitId = crypto.randomUUID();
 
-      const effectivePeerTotal = peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
-      const effectiveMyShare = includeMe ? myShare : 0;
+      const effectivePeerTotal = direction === "i_owe_them" ? 0 : peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
+      const effectiveMyShare = direction === "i_owe_them" ? totalAmount : includeMe ? myShare : 0;
 
       const sourceExpense: Expense = {
         id: sourceId,
@@ -308,6 +335,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         category: form.category,
         my_share: effectiveMyShare,
         peer_total: effectivePeerTotal,
+        direction,
         split_method: splitMethod,
         note: null,
         status: "open",
@@ -339,6 +367,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         my_share: effectiveMyShare,
         peer_total: effectivePeerTotal,
         split_method: splitMethod,
+        direction,
         date: now,
         peers: peerEntries.map((e) => ({ peer_id: e.peer_id, amount_owed: e.amount_owed })),
       }, "splits");
@@ -351,12 +380,20 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
     }
   };
 
-  const title = step === 1 ? "Add split" : "Who's splitting?";
+  const title = step === 1 ? "Add split" : direction === "i_owe_them" ? "Who paid?" : "Who's splitting?";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       {step === 1 ? (
         <div className={styles.form}>
+          <RectangleToggle
+            options={[
+              { value: "they_owe_me", label: "I paid" },
+              { value: "i_owe_them", label: "They paid" },
+            ]}
+            value={direction}
+            onChange={(value) => handleDirectionChange(value as SplitDirection)}
+          />
           <AmountInput
             value={form.amount}
             onChange={(val) => setForm((c) => ({ ...c, amount: val }))}
@@ -390,19 +427,44 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         </div>
       ) : (
         <div className={styles.form}>
-          <div className={styles.methodRow}>
-            <RectangleToggle
-              options={[
-                { value: "equal", label: "Equal" },
-                { value: "specific", label: "Specific" },
-              ]}
-              value={splitMethod}
-              onChange={(v) => handleMethodChange(v as SplitMethod)}
-            />
-          </div>
+          {direction === "they_owe_me" && (
+            <div className={styles.methodRow}>
+              <RectangleToggle
+                options={[
+                  { value: "equal", label: "Equal" },
+                  { value: "specific", label: "Specific" },
+                ]}
+                value={splitMethod}
+                onChange={(v) => handleMethodChange(v as SplitMethod)}
+              />
+            </div>
+          )}
 
           <div className={styles.peersSection}>
             <div className={styles.participantList}>
+              {direction === "i_owe_them" ? (
+                <>
+                  <p className={styles.participantPrompt}>Who paid for you?</p>
+                  {Array.from(new Map([...peers.map((peer) => [peer.id, peer] as const), ...peerEntries.map((entry) => [entry.peer_id, { id: entry.peer_id, name: entry.name }] as const)]).values()).map((peer) => {
+                    const selected = selectedPeerIds.has(peer.id);
+                    return (
+                      <button
+                        key={peer.id}
+                        type="button"
+                        className={`${styles.participantOption} ${selected ? styles.participantSelected : ""}`}
+                        aria-pressed={selected}
+                        onClick={() => handleTogglePeer({ ...peer, user_id: user.id, created_at: "", updated_at: "" })}
+                      >
+                        <span className={styles.selectionMark}>{selected && <Check size={13} />}</span>
+                        <span className={styles.peerInitial}>{peer.name.charAt(0).toUpperCase()}</span>
+                        <span className={styles.peerName}>{peer.name}</span>
+                        {selected && <span className={styles.participantAmount}>{formatCurrency(totalAmount)}</span>}
+                      </button>
+                    );
+                  })}
+                </>
+              ) : (
+                <>
               <div className={`${styles.participantOption} ${includeMe ? styles.participantSelected : ""}`}>
                 <button type="button" className={styles.participantSelect} aria-pressed={includeMe} onClick={() => handleIncludeMeChange(!includeMe)}>
                   <span className={styles.selectionMark}>{includeMe && <Check size={13} />}</span>
@@ -445,6 +507,8 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
                   </div>
                 );
               })}
+                </>
+              )}
             </div>
             <div className={styles.peerRows}>
               {showPeerInput ? (
