@@ -44,7 +44,7 @@ export function Dashboard({ user }: { user: User }) {
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
   const [activePeerId, setActivePeerId] = useState<string | null>(null);
   const [repaymentPeerId, setRepaymentPeerId] = useState<string | null>(null);
-  const [voidingSplitId, setVoidingSplitId] = useState<string | null>(null);
+  const [voidingSplit, setVoidingSplit] = useState<{ splitId: string; peerId: string } | null>(null);
   const autoOpenFired = useRef(false);
 
   const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
@@ -155,7 +155,7 @@ export function Dashboard({ user }: { user: User }) {
   const setPeersLocal = useCallback((p: Peer[]) => setPeers(p), [setPeers]);
   const setSplitsLocal = useCallback((s: Split[]) => setSplits(s), [setSplits]);
 
-  const anyModalOpen = isExpenseModalOpen || isSplitModalOpen || Boolean(activePeerId) || Boolean(repaymentPeerId) || Boolean(voidingSplitId);
+  const anyModalOpen = isExpenseModalOpen || isSplitModalOpen || Boolean(activePeerId) || Boolean(repaymentPeerId) || Boolean(voidingSplit);
 
   const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
   const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
@@ -263,7 +263,7 @@ export function Dashboard({ user }: { user: User }) {
           peerId={activePeerId}
           onClose={closePeerDetail}
           onRepay={(peerId) => { setActivePeerId(null); setRepaymentPeerId(peerId); }}
-          onVoid={(splitId) => { setActivePeerId(null); setVoidingSplitId(splitId); }}
+          onVoid={(splitId, peerId) => { setActivePeerId(null); setVoidingSplit({ splitId, peerId }); }}
         />
 
         <RepaymentModal
@@ -272,8 +272,9 @@ export function Dashboard({ user }: { user: User }) {
         />
 
         <VoidSplitModal
-          splitId={voidingSplitId}
-          onClose={() => setVoidingSplitId(null)}
+          splitId={voidingSplit?.splitId ?? null}
+          peerId={voidingSplit?.peerId ?? null}
+          onClose={() => setVoidingSplit(null)}
         />
 
         <PwaInstallPrompt />

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal/modal";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Button } from "@/components/ui/button/button";
+import { DateInput } from "@/components/ui/date-input/date-input";
 import styles from "./repayment-modal.module.css";
 import { SPLIT_CATEGORY_TAG, formatCurrency, formatDateForInput, parseAmount } from "@/utils/expense-utils";
 import { putLocalExpense, putLocalSplit } from "@/utils/db";
@@ -22,12 +23,11 @@ export function RepaymentModal({ peerId, onClose }: RepaymentModalProps) {
   const [date, setDate] = useState(formatDateForInput(new Date()));
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const peer = peerId ? peers.find((p) => p.id === peerId) : null;
 
   const openSplits = splits.filter(
-    (s) => s.status === "open" && s.peer_breakdown.some((pb) => pb.peer_id === peerId)
+    (s) => s.status === "open" && s.peer_breakdown.some((pb) => pb.peer_id === peerId && pb.status !== "voided")
   );
 
   const totalOutstanding = openSplits.reduce((sum, s) => {
@@ -35,6 +35,7 @@ export function RepaymentModal({ peerId, onClose }: RepaymentModalProps) {
     if (!entry) return sum;
     return sum + Math.max(0, entry.amount_owed - entry.amount_repaid);
   }, 0);
+  const remainingAfterRepayment = Math.max(0, totalOutstanding - (parseAmount(amount) || 0));
 
   useEffect(() => {
     if (peerId) {
@@ -74,6 +75,7 @@ export function RepaymentModal({ peerId, onClose }: RepaymentModalProps) {
         if (splitIdx === -1 || pbIdx === -1) continue;
 
         const pb = updatedSplits[splitIdx].peer_breakdown[pbIdx];
+        if (pb.status === "voided") continue;
         const rowRemaining = pb.amount_owed - pb.amount_repaid;
         const allocated = Math.min(remaining, rowRemaining);
 
@@ -113,29 +115,11 @@ export function RepaymentModal({ peerId, onClose }: RepaymentModalProps) {
   return (
     <Modal isOpen={Boolean(peerId)} onClose={onClose} title={`Repayment · ${peer.name}`}>
       <div className={styles.form}>
-        <p className={styles.outstanding}>
-          Outstanding: <strong>{formatCurrency(totalOutstanding)}</strong>
-        </p>
         <AmountInput value={amount} onChange={setAmount} />
-        <div
-          className={styles.dateLinkContainer}
-          onClick={() => dateInputRef.current?.showPicker()}
-          style={{ cursor: "pointer" }}
-        >
-          <div className={styles.dateLink}>
-            <span className={styles.dateValue}>
-              {date === formatDateForInput(new Date()) ? "Today" : new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-            </span>
-            <span className={styles.changeAction}> · change</span>
-          </div>
-          <input
-            ref={dateInputRef}
-            type="date"
-            className={styles.hiddenDateInput}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
+        <p className={styles.outstandingHint}>
+          {formatCurrency(remainingAfterRepayment)} remaining after repayment
+        </p>
+        <DateInput value={date} onChange={setDate} />
         {error && <p className={styles.error}>{error}</p>}
         <Button
           type="button"

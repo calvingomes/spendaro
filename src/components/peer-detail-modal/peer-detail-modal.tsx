@@ -11,7 +11,7 @@ interface PeerDetailModalProps {
   peerId: string | null;
   onClose: () => void;
   onRepay: (peerId: string) => void;
-  onVoid: (splitId: string) => void;
+  onVoid: (splitId: string, peerId: string) => void;
 }
 
 export function PeerDetailModal({ peerId, onClose, onRepay, onVoid }: PeerDetailModalProps) {
@@ -25,13 +25,13 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onVoid }: PeerDetail
     s.peer_breakdown.some((pb) => pb.peer_id === peer.id)
   );
 
-  const openSplits = peerSplits.filter((s) => s.status === "open");
-  const voidedSplits = peerSplits.filter((s) => s.status === "voided");
+  const openSplits = peerSplits.filter((s) => s.status === "open" && s.peer_breakdown.find((pb) => pb.peer_id === peer.id)?.status !== "voided");
+  const voidedSplits = peerSplits.filter((s) => s.status === "voided" || s.peer_breakdown.find((pb) => pb.peer_id === peer.id)?.status === "voided");
 
   const totalOutstanding = openSplits.reduce((sum, s) => {
     const entry = s.peer_breakdown.find((pb) => pb.peer_id === peer.id);
     if (!entry) return sum;
-    return sum + Math.max(0, entry.amount_owed - entry.amount_repaid);
+    return entry.status === "voided" ? sum : sum + Math.max(0, entry.amount_owed - entry.amount_repaid);
   }, 0);
 
   const title = peer.name;
@@ -80,7 +80,7 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onVoid }: PeerDetail
                     <button
                       type="button"
                       className={styles.voidButton}
-                      onClick={() => onVoid(s.id)}
+                      onClick={() => onVoid(s.id, peer.id)}
                     >
                       Void
                     </button>

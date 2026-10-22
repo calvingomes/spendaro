@@ -14,7 +14,7 @@ export function SplitsWorkspace() {
       .filter((s) => s.status === "open")
       .reduce((sum, s) => {
         const entry = s.peer_breakdown.find((pb) => pb.peer_id === peer.id);
-        if (!entry) return sum;
+        if (!entry || entry.status === "voided") return sum;
         return sum + Math.max(0, entry.amount_owed - entry.amount_repaid);
       }, 0);
     return { ...peer, outstanding };
@@ -23,7 +23,7 @@ export function SplitsWorkspace() {
       s.peer_breakdown.some((pb) => pb.peer_id === p.id)
     );
     return hasAnySplit;
-  });
+  }).sort((a, b) => b.outstanding - a.outstanding || a.name.localeCompare(b.name));
 
   return (
     <div className={styles.container}>
@@ -54,17 +54,18 @@ export function SplitsWorkspace() {
           </Button>
         </div>
       ) : (
-        <div className={styles.peersGrid}>
+        <div className={styles.peersList}>
           {peerBalances.map((peer) => (
-            <div
+            <button
               key={peer.id}
-              className={styles.peerCard}
+              type="button"
+              className={styles.peerRow}
               onClick={() => openPeerDetail(peer.id)}
             >
-              <span className={styles.peerInitial}>
-                {peer.name.charAt(0).toUpperCase()}
+              <span className={styles.peerIdentity}>
+                <span className={styles.peerInitial}>{peer.name.charAt(0).toUpperCase()}</span>
+                <span className={styles.peerName}>{peer.name.charAt(0).toUpperCase() + peer.name.slice(1)}</span>
               </span>
-              <p className={styles.peerName}>{peer.name}</p>
               <div className={styles.peerBalance}>
                 {peer.outstanding > 0 ? (
                   <>
@@ -75,7 +76,7 @@ export function SplitsWorkspace() {
                   <span className={styles.settledLabel}>all settled</span>
                 )}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

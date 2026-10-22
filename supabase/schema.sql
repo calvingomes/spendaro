@@ -129,9 +129,13 @@ create table if not exists public.split_peers (
   peer_id uuid not null references public.peers (id) on delete restrict,
   amount_owed numeric(12, 2) not null check (amount_owed >= 0),
   amount_repaid numeric(12, 2) not null default 0 check (amount_repaid >= 0),
+  status text not null default 'open' check (status in ('open', 'voided')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.split_peers
+  add column if not exists status text not null default 'open' check (status in ('open', 'voided'));
 
 alter table public.split_peers enable row level security;
 
@@ -147,4 +151,3 @@ create policy "Users can update own split_peers"
   on public.split_peers for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
-

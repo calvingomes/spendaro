@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   const { data: openRows, error: spErr } = await supabase
     .from("split_peers")
-    .select("id, split_id, amount_owed, amount_repaid, splits(created_at, status)")
+    .select("id, split_id, amount_owed, amount_repaid, status, splits(created_at, status)")
     .eq("peer_id", peer_id)
     .eq("user_id", user.id);
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   const allocatable = (openRows || [])
     .filter((row) => {
       const split = row.splits as unknown as { created_at: string; status: string } | null;
-      return split?.status === "open" && row.amount_owed > row.amount_repaid;
+      return split?.status === "open" && row.status !== "voided" && row.amount_owed > row.amount_repaid;
     })
     .sort((a, b) => {
       const sa = a.splits as unknown as { created_at: string } | null;

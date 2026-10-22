@@ -96,7 +96,8 @@ async function processSyncQueueInternal(): Promise<SyncResult> {
       if (target === "splits") url = "/api/splits";
       if (isRepay) url = "/api/splits/repayments";
       if (isPatch && target === "splits" && item.payload.id) {
-        url = `/api/splits?id=${item.payload.id}&action=${item.payload.action}`;
+        const peerQuery = item.payload.peer_id ? `&peer_id=${item.payload.peer_id}` : "";
+        url = `/api/splits?id=${item.payload.id}&action=${item.payload.action}${peerQuery}`;
       }
 
       if (isDelete && item.payload.id) {
