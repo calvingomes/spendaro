@@ -35,9 +35,9 @@ export function SplitsWorkspace() {
     );
     return hasAnySplit;
   }).sort((a, b) => {
-    const rank = (balance: number) => balance > 0 ? 0 : balance === 0 ? 1 : 2;
+    const rank = (balance: number) => balance < 0 ? 0 : balance > 0 ? 1 : 2;
     return rank(a.netBalance) - rank(b.netBalance)
-      || (a.netBalance > 0 ? b.netBalance - a.netBalance : a.netBalance - b.netBalance)
+      || (a.netBalance < 0 ? a.netBalance - b.netBalance : b.netBalance - a.netBalance)
       || a.name.localeCompare(b.name);
   }), [peers, splits]);
 

@@ -11,7 +11,7 @@ import { DateInput } from "@/components/ui/date-input/date-input";
 import { Button } from "@/components/ui/button/button";
 import styles from "./split-modal.module.css";
 import { SPLIT_CATEGORY_TAG, formatCurrency, formatDateForInput, normalizeText, parseAmount } from "@/utils/expense-utils";
-import { putLocalExpense, putLocalPeer, putLocalSplit } from "@/utils/db";
+import { deleteLocalExpense, putLocalExpense, putLocalPeer, putLocalSplit, saveLocalSplits } from "@/utils/db";
 import { queueAction } from "@/utils/sync-queue";
 import { useDashboard } from "@/context/dashboard-context";
 import type { Expense, Peer, Split } from "@/lib/types";
@@ -43,9 +43,10 @@ const emptyStep1: Step1Form = {
 interface SplitModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editingSplit?: Split | null;
 }
 
-export function SplitModal({ isOpen, onClose }: SplitModalProps) {
+export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalProps) {
   const { expenses, setExpenses, peers, setPeers, splits, setSplits, user, categories, addCategory, removeCategory } = useDashboard();
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState<Step1Form>(emptyStep1);
@@ -58,24 +59,38 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const [newPeerName, setNewPeerName] = useState("");
   const [showPeerInput, setShowPeerInput] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
     const peerInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       setStep(1);
-      setForm({ ...emptyStep1, created_at: formatDateForInput(new Date()) });
-      setPeerEntries([]);
-      setSpecificMyShare(null);
-      setMyShareIsManual(false);
-      setIncludeMe(true);
-      setSplitMethod("equal");
-      setDirection("they_owe_me");
+      setForm(editingSplit ? {
+        label: editingSplit.label,
+        amount: String(editingSplit.direction === "i_owe_them"
+          ? editingSplit.peer_breakdown.reduce((sum, entry) => sum + entry.amount_owed, 0)
+          : editingSplit.my_share + editingSplit.peer_total),
+        category: editingSplit.category,
+        created_at: formatDateForInput(editingSplit.created_at),
+      } : { ...emptyStep1, created_at: formatDateForInput(new Date()) });
+      setPeerEntries(editingSplit ? editingSplit.peer_breakdown.map((entry) => ({
+        peer_id: entry.peer_id,
+        name: entry.peer_name,
+        amount_owed: entry.amount_owed,
+        amount_is_manual: true,
+      })) : []);
+      setSpecificMyShare(editingSplit?.my_share ?? null);
+      setMyShareIsManual(Boolean(editingSplit));
+      setIncludeMe(editingSplit ? editingSplit.my_share > 0 : true);
+      setSplitMethod(editingSplit?.split_method === "specific" ? "specific" : "equal");
+      setDirection(editingSplit?.direction ?? "they_owe_me");
       setNewPeerName("");
       setShowPeerInput(false);
+      setConfirmDelete(false);
       setError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, editingSplit]);
 
   useEffect(() => {
     if (showPeerInput && peerInputRef.current) {
@@ -280,9 +295,9 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         ? new Date(form.created_at + "T" + new Date().toTimeString().slice(0, 8)).toISOString()
         : new Date().toISOString();
 
-      const sourceId = crypto.randomUUID();
-      const peerLedgerId = crypto.randomUUID();
-      const splitId = crypto.randomUUID();
+      const sourceId = editingSplit?.source_expense_id ?? crypto.randomUUID();
+      const peerLedgerId = editingSplit?.peer_ledger_expense_id ?? crypto.randomUUID();
+      const splitId = editingSplit?.id ?? crypto.randomUUID();
 
       const effectivePeerTotal = direction === "i_owe_them" ? 0 : peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
       // When someone else paid, this is a liability rather than an expense
@@ -340,30 +355,35 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         direction,
         split_method: splitMethod,
         note: null,
-        status: "open",
+        status: editingSplit?.status ?? "open",
         created_at: now,
         updated_at: now,
         peer_breakdown: peerEntries.map((e) => ({
           peer_id: e.peer_id,
           peer_name: e.name,
           amount_owed: e.amount_owed,
-          amount_repaid: 0,
+          amount_repaid: editingSplit?.peer_breakdown.find((old) => old.peer_id === e.peer_id)?.amount_repaid ?? 0,
+          status: editingSplit?.peer_breakdown.find((old) => old.peer_id === e.peer_id)?.status,
         })),
       };
 
-      setExpenses([sourceExpense, ledgerExpense, ...expenses]);
+      setExpenses(editingSplit
+        ? expenses.map((expense) => expense.id === sourceId ? sourceExpense : expense.id === peerLedgerId ? ledgerExpense : expense)
+        : [sourceExpense, ledgerExpense, ...expenses]);
       setPeers([...peers, ...newPeersToCreate]);
-      setSplits([newSplit, ...splits]);
+      setSplits(editingSplit
+        ? splits.map((split) => split.id === splitId ? newSplit : split)
+        : [newSplit, ...splits]);
 
       await putLocalExpense(sourceExpense);
       await putLocalExpense(ledgerExpense);
       await putLocalSplit(newSplit);
       addCategory(form.category);
 
-      queueAction("POST", {
-        id: sourceId,
+      queueAction(editingSplit ? "PATCH" : "POST", {
+        id: splitId,
+        source_expense_id: sourceId,
         peer_ledger_expense_id: peerLedgerId,
-        split_id: splitId,
         label: normalizeText(form.label),
         category: form.category,
         my_share: effectiveMyShare,
@@ -372,6 +392,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         direction,
         date: now,
         peers: peerEntries.map((e) => ({ peer_id: e.peer_id, amount_owed: e.amount_owed })),
+        ...(editingSplit ? { action: "edit" } : { split_id: splitId }),
       }, "splits");
 
       onClose();
@@ -382,10 +403,40 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!editingSplit || isPending) return;
+    setIsPending(true);
+    const nextSplits = splits.filter((split) => split.id !== editingSplit.id);
+    const nextExpenses = expenses.filter((expense) => expense.id !== editingSplit.source_expense_id && expense.id !== editingSplit.peer_ledger_expense_id);
+    setSplits(nextSplits);
+    setExpenses(nextExpenses);
+    try {
+      await Promise.all([
+        saveLocalSplits(nextSplits),
+        deleteLocalExpense(editingSplit.source_expense_id),
+        deleteLocalExpense(editingSplit.peer_ledger_expense_id),
+      ]);
+      queueAction("DELETE", { id: editingSplit.id }, "splits");
+      onClose();
+    } catch (err) {
+      setSplits(splits);
+      setExpenses(expenses);
+      await Promise.all([
+        saveLocalSplits(splits),
+        ...expenses
+          .filter((expense) => expense.id === editingSplit.source_expense_id || expense.id === editingSplit.peer_ledger_expense_id)
+          .map(putLocalExpense),
+      ]);
+      setError(err instanceof Error ? err.message : "Failed to delete split");
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   const title = step === 1 ? "Add split" : direction === "i_owe_them" ? "Who paid?" : "Who's splitting?";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={editingSplit ? "Edit split" : title}>
       {step === 1 ? (
         <div className={styles.form}>
           <RectangleToggle
@@ -424,8 +475,23 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
           />
           {error && <p className={styles.error}>{error}</p>}
           <Button type="button" variant="primary" size="lg" fullWidth onClick={handleNext}>
-            Split with
+            {editingSplit ? "Edit participants" : "Split with"}
           </Button>
+          {editingSplit && (confirmDelete ? (
+            <div className={styles.deleteConfirmation}>
+              <p>Delete this split and all its participant shares?</p>
+              <div className={styles.deleteConfirmationActions}>
+                <button type="button" disabled={isPending} onClick={() => setConfirmDelete(false)}>Keep split</button>
+                <button type="button" className={styles.confirmDeleteButton} disabled={isPending} onClick={handleDelete}>
+                  {isPending ? "Deleting..." : "Delete split"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className={styles.deleteSplitButton} onClick={() => setConfirmDelete(true)}>
+              Delete split
+            </button>
+          ))}
         </div>
       ) : (
         <div className={styles.form}>
@@ -555,7 +621,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
               disabled={isPending || peerEntries.length === 0}
               onClick={handleSubmit}
             >
-              {isPending ? "Saving..." : "Add Split"}
+              {isPending ? "Saving..." : editingSplit ? "Save changes" : "Add Split"}
             </Button>
           </div>
         </div>

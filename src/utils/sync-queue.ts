@@ -103,10 +103,11 @@ async function processSyncQueueInternal(): Promise<SyncResult> {
       if (isDelete && item.payload.id) {
         if (target === "pots") url = `/api/pots?id=${item.payload.id}`;
         if (target === "peers") url = `/api/peers?id=${item.payload.id}`;
+        if (target === "splits") url = `/api/splits?id=${item.payload.id}`;
       }
 
       const fetchOptions: RequestInit = {
-        method: isRepay ? "POST" : isPatch ? "PATCH" : isDelete && target === "pots" ? "DELETE" : item.action,
+        method: isRepay ? "POST" : isPatch ? "PATCH" : isDelete && ["pots", "splits"].includes(target) ? "DELETE" : item.action,
         headers: { "Content-Type": "application/json" },
       };
 

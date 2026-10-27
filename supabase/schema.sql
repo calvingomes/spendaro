@@ -126,6 +126,10 @@ create policy "Users can update own splits"
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+create policy "Users can delete own splits"
+  on public.splits for delete
+  using (auth.uid() = user_id);
+
 create table if not exists public.split_peers (
   id uuid primary key default gen_random_uuid(),
   split_id uuid not null references public.splits (id) on delete cascade,

@@ -47,6 +47,8 @@ export function Dashboard({ user }: { user: User }) {
   const [repaymentPeerId, setRepaymentPeerId] = useState<string | null>(null);
   const [voidingSplit, setVoidingSplit] = useState<{ splitId: string; peerId: string } | null>(null);
   const [settlingSplit, setSettlingSplit] = useState<{ splitId: string; peerId: string } | null>(null);
+  const [editingSplit, setEditingSplit] = useState<Split | null>(null);
+  const editReturnPeerId = useRef<string | null>(null);
   const autoOpenFired = useRef(false);
 
   const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
@@ -157,7 +159,7 @@ export function Dashboard({ user }: { user: User }) {
   const setPeersLocal = useCallback((p: Peer[]) => setPeers(p), [setPeers]);
   const setSplitsLocal = useCallback((s: Split[]) => setSplits(s), [setSplits]);
 
-  const anyModalOpen = isExpenseModalOpen || isSplitModalOpen || Boolean(activePeerId) || Boolean(repaymentPeerId) || Boolean(voidingSplit) || Boolean(settlingSplit);
+  const anyModalOpen = isExpenseModalOpen || isSplitModalOpen || Boolean(activePeerId) || Boolean(repaymentPeerId) || Boolean(voidingSplit) || Boolean(settlingSplit) || Boolean(editingSplit);
 
   const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
   const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
@@ -261,11 +263,26 @@ export function Dashboard({ user }: { user: User }) {
           onClose={closeSplitModal}
         />
 
+        <SplitModal
+          isOpen={Boolean(editingSplit)}
+          onClose={() => {
+            setEditingSplit(null);
+            setActivePeerId(editReturnPeerId.current);
+            editReturnPeerId.current = null;
+          }}
+          editingSplit={editingSplit}
+        />
+
         <PeerDetailModal
           peerId={activePeerId}
           onClose={closePeerDetail}
           onRepay={(peerId) => { setActivePeerId(null); setRepaymentPeerId(peerId); }}
           onSettle={(splitId, peerId) => { setActivePeerId(null); setSettlingSplit({ splitId, peerId }); }}
+          onEdit={(split) => {
+            editReturnPeerId.current = activePeerId;
+            setActivePeerId(null);
+            setEditingSplit(split);
+          }}
         />
 
         <SettleSplitModal
