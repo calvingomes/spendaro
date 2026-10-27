@@ -65,13 +65,14 @@ export async function POST(request: NextRequest) {
   const sourceId = id ?? crypto.randomUUID();
   const peerLedgerId = body.peer_ledger_expense_id ?? crypto.randomUUID();
   const splitId = body.split_id ?? crypto.randomUUID();
+  const sourceAmount = direction === "i_owe_them" ? 0 : Number(my_share);
 
   const { error: srcErr } = await supabase.from("expenses").insert({
     id: sourceId,
     user_id: user.id,
     label,
     category,
-    amount: Number(my_share),
+    amount: sourceAmount,
     type: "debit",
     created_at: now,
     updated_at: now,
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     peer_ledger_expense_id: peerLedgerId,
     label,
     category,
-    my_share: Number(my_share),
+    my_share: sourceAmount,
     peer_total: Number(peer_total),
     direction,
     split_method,

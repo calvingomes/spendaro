@@ -285,7 +285,9 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       const splitId = crypto.randomUUID();
 
       const effectivePeerTotal = direction === "i_owe_them" ? 0 : peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
-      const effectiveMyShare = direction === "i_owe_them" ? totalAmount : includeMe ? myShare : 0;
+      // When someone else paid, this is a liability rather than an expense
+      // until the user records a repayment.
+      const effectiveMyShare = direction === "i_owe_them" ? 0 : includeMe ? myShare : 0;
 
       const sourceExpense: Expense = {
         id: sourceId,
