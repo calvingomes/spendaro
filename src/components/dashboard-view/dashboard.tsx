@@ -241,7 +241,12 @@ export function Dashboard({ user }: { user: User }) {
 
           {activeTab === "pots" && <PotsWorkspace />}
 
-          {activeTab === "split" && <SplitsWorkspace />}
+          {activeTab === "split" && (
+            <SplitsWorkspace onEditSplit={(split) => {
+              editReturnPeerId.current = null;
+              setEditingSplit(split);
+            }} />
+          )}
         </div>
 
         {!anyModalOpen && <MobileNavigation />}
