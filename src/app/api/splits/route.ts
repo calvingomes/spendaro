@@ -65,13 +65,14 @@ export async function POST(request: NextRequest) {
   const sourceId = id ?? crypto.randomUUID();
   const peerLedgerId = body.peer_ledger_expense_id ?? crypto.randomUUID();
   const splitId = body.split_id ?? crypto.randomUUID();
+  const sourceAmount = direction === "i_owe_them" ? 0 : Number(my_share);
 
   const { error: srcErr } = await supabase.from("expenses").insert({
     id: sourceId,
     user_id: user.id,
     label,
     category,
-    amount: Number(my_share),
+    amount: sourceAmount,
     type: "debit",
     created_at: now,
     updated_at: now,
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
     peer_ledger_expense_id: peerLedgerId,
     label,
     category,
-    my_share: Number(my_share),
+    my_share: sourceAmount,
     peer_total: Number(peer_total),
     direction,
     split_method,
@@ -147,7 +148,83 @@ export async function PATCH(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const action = searchParams.get("action");
-  if (!id || !["void", "void-peer"].includes(action ?? "")) return NextResponse.json({ error: "id and a supported void action are required" }, { status: 400 });
+  if (!id || !["void", "void-peer", "edit"].includes(action ?? "")) return NextResponse.json({ error: "id and a supported action are required" }, { status: 400 });
+
+  if (action === "edit") {
+    const body = await request.json();
+    const { label, category, my_share, peer_total, split_method, direction = "they_owe_me", date, peers } = body;
+    if (!label || !category || my_share == null || peer_total == null || !split_method || !Array.isArray(peers) || peers.length === 0) {
+      return NextResponse.json({ error: "Missing required split fields" }, { status: 400 });
+    }
+
+    const { data: split } = await supabase.from("splits").select("*").eq("id", id).eq("user_id", user.id).single();
+    if (!split) return NextResponse.json({ error: "Split not found" }, { status: 404 });
+    if (split.status !== "open") return NextResponse.json({ error: "Only open splits can be edited" }, { status: 409 });
+    const { data: existingRows, error: rowsError } = await supabase
+      .from("split_peers")
+      .select("id, peer_id, amount_repaid, status")
+      .eq("split_id", id)
+      .eq("user_id", user.id);
+    if (rowsError) return NextResponse.json({ error: rowsError.message }, { status: 500 });
+    if ((existingRows ?? []).some((row) => Number(row.amount_repaid) > 0 || row.status === "voided")) {
+      return NextResponse.json({ error: "Splits with recorded payments or voided shares cannot be edited" }, { status: 409 });
+    }
+    const { data: ownedPeers, error: peersError } = await supabase.from("peers").select("id").eq("user_id", user.id).in("id", (peers as { peer_id: string }[]).map((peer) => peer.peer_id));
+    if (peersError) return NextResponse.json({ error: peersError.message }, { status: 500 });
+    if ((ownedPeers ?? []).length !== new Set((peers as { peer_id: string }[]).map((peer) => peer.peer_id)).size) {
+      return NextResponse.json({ error: "One or more participants could not be found" }, { status: 400 });
+    }
+
+    const now = new Date().toISOString();
+    const createdAt = date ? new Date(date).toISOString() : split.created_at;
+    const sourceAmount = direction === "i_owe_them" ? 0 : Number(my_share);
+    const peerTotalAmount = direction === "i_owe_them" ? 0 : Number(peer_total);
+    const { error: sourceError } = await supabase.from("expenses").update({
+      label,
+      category,
+      amount: sourceAmount,
+      created_at: createdAt,
+      updated_at: now,
+    }).eq("id", split.source_expense_id).eq("user_id", user.id);
+    if (sourceError) return NextResponse.json({ error: sourceError.message }, { status: 500 });
+
+    const { error: ledgerError } = await supabase.from("expenses").update({
+      label: `Split · ${label}`,
+      amount: peerTotalAmount,
+      created_at: createdAt,
+      updated_at: now,
+    }).eq("id", split.peer_ledger_expense_id).eq("user_id", user.id);
+    if (ledgerError) return NextResponse.json({ error: ledgerError.message }, { status: 500 });
+
+    const { error: updateError } = await supabase.from("splits").update({
+      label,
+      category,
+      my_share: sourceAmount,
+      peer_total: peerTotalAmount,
+      split_method,
+      direction,
+      created_at: createdAt,
+      updated_at: now,
+    }).eq("id", id).eq("user_id", user.id);
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+    const nextPeerIds = new Set((peers as { peer_id: string; amount_owed: number }[]).map((peer) => peer.peer_id));
+    for (const oldRow of existingRows ?? []) {
+      if (!nextPeerIds.has(oldRow.peer_id)) {
+        const { error } = await supabase.from("split_peers").update({ amount_owed: 0, updated_at: now }).eq("id", oldRow.id).eq("user_id", user.id);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+    }
+    for (const peer of peers as { peer_id: string; amount_owed: number }[]) {
+      const oldRow = (existingRows ?? []).find((row) => row.peer_id === peer.peer_id);
+      const rowPayload = { amount_owed: Number(peer.amount_owed), updated_at: now };
+      const { error } = oldRow
+        ? await supabase.from("split_peers").update(rowPayload).eq("id", oldRow.id).eq("user_id", user.id)
+        : await supabase.from("split_peers").insert({ split_id: id, user_id: user.id, peer_id: peer.peer_id, ...rowPayload, amount_repaid: 0 });
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ success: true });
+  }
 
   if (action === "void-peer") {
     const peerId = searchParams.get("peer_id");
@@ -169,5 +246,28 @@ export async function PATCH(request: NextRequest) {
     .eq("user_id", user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const id = new URL(request.url).searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+  const { data: split } = await supabase.from("splits").select("id, source_expense_id, peer_ledger_expense_id, status").eq("id", id).eq("user_id", user.id).single();
+  if (!split) return NextResponse.json({ error: "Split not found" }, { status: 404 });
+  if (split.status !== "open") return NextResponse.json({ error: "Only open splits can be deleted" }, { status: 409 });
+  const { data: rows, error: rowsError } = await supabase.from("split_peers").select("amount_repaid, status").eq("split_id", id).eq("user_id", user.id);
+  if (rowsError) return NextResponse.json({ error: rowsError.message }, { status: 500 });
+  if ((rows ?? []).some((row) => Number(row.amount_repaid) > 0 || row.status === "voided")) {
+    return NextResponse.json({ error: "Splits with recorded payments or voided shares cannot be deleted" }, { status: 409 });
+  }
+
+  const { error: deleteError } = await supabase.from("splits").delete().eq("id", id).eq("user_id", user.id);
+  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
+  const { error: expensesError } = await supabase.from("expenses").delete().in("id", [split.source_expense_id, split.peer_ledger_expense_id]).eq("user_id", user.id);
+  if (expensesError) return NextResponse.json({ error: expensesError.message }, { status: 500 });
   return NextResponse.json({ success: true });
 }

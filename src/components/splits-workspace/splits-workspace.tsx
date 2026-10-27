@@ -7,8 +7,9 @@ import { displayCategory, formatCurrency } from "@/utils/expense-utils";
 import { Button } from "@/components/ui/button/button";
 import { Modal } from "@/components/ui/modal/modal";
 import { useDashboard } from "@/context/dashboard-context";
+import type { Split } from "@/lib/types";
 
-export function SplitsWorkspace() {
+export function SplitsWorkspace({ onEditSplit }: { onEditSplit: (split: Split) => void }) {
   const { peers, splits, openSplitModal, openPeerDetail } = useDashboard();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyPeerId, setHistoryPeerId] = useState("all");
@@ -35,11 +36,21 @@ export function SplitsWorkspace() {
     );
     return hasAnySplit;
   }).sort((a, b) => {
-    const rank = (balance: number) => balance > 0 ? 0 : balance === 0 ? 1 : 2;
+    const rank = (balance: number) => balance < 0 ? 0 : balance > 0 ? 1 : 2;
     return rank(a.netBalance) - rank(b.netBalance)
-      || (a.netBalance > 0 ? b.netBalance - a.netBalance : a.netBalance - b.netBalance)
+      || (a.netBalance < 0 ? a.netBalance - b.netBalance : b.netBalance - a.netBalance)
       || a.name.localeCompare(b.name);
   }), [peers, splits]);
+
+  const activeGroupSplits = useMemo(() => splits
+    .filter((split) => {
+      if (split.status !== "open") return false;
+      const activeParticipants = split.peer_breakdown.filter((entry) => entry.status !== "voided");
+      const includesMe = split.direction === "they_owe_me" && split.my_share > 0;
+      const hasOutstandingShare = activeParticipants.some((entry) => entry.amount_owed > entry.amount_repaid);
+      return includesMe && activeParticipants.length + 1 > 1 && hasOutstandingShare;
+    })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()), [splits]);
 
   const historyRows = useMemo(() => splits.flatMap((split) => split.peer_breakdown.flatMap((entry) => {
     const peer = peers.find((item) => item.id === entry.peer_id);
@@ -140,7 +151,7 @@ export function SplitsWorkspace() {
         </div>
       </header>
 
-      {visiblePeers.length === 0 ? (
+      {visiblePeers.length === 0 && activeGroupSplits.length === 0 ? (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>
             <Users size={32} />
@@ -156,29 +167,68 @@ export function SplitsWorkspace() {
           </Button>
         </div>
       ) : (
-        <div className={styles.peersList}>
-          {visiblePeers.map((peer) => (
-            <button
-              key={peer.id}
-              type="button"
-              className={`${styles.peerRow} ${peer.outstanding === 0 ? styles.fullySettledRow : ""}`}
-              onClick={() => openPeerDetail(peer.id)}
-            >
-              <span className={styles.peerIdentity}>
-                <span className={styles.peerInitial}>{peer.name.charAt(0).toUpperCase()}</span>
-                <span className={styles.peerName}>{peer.name.charAt(0).toUpperCase() + peer.name.slice(1)}</span>
-              </span>
-              <div className={styles.peerBalance}>
-                {peer.netBalance > 0 ? (
-                  <span className={styles.peerBalanceLine}><span className={styles.owesLabel}>owes you</span><strong className={styles.owesAmount}>{formatCurrency(peer.netBalance)}</strong></span>
-                ) : peer.netBalance < 0 ? (
-                  <span className={styles.peerBalanceLine}><span className={styles.owesLabel}>you owe</span><strong className={styles.youOweAmount}>{formatCurrency(Math.abs(peer.netBalance))}</strong></span>
-                ) : (
-                  <span className={styles.settledLabel}>{peer.outstanding === 0 ? "Fully settled" : "Balanced"}</span>
-                )}
+        <div className={styles.overviewContent}>
+          <div className={styles.peersList}>
+            {visiblePeers.map((peer) => (
+              <button
+                key={peer.id}
+                type="button"
+                className={`${styles.peerRow} ${peer.outstanding === 0 ? styles.fullySettledRow : ""}`}
+                onClick={() => openPeerDetail(peer.id)}
+              >
+                <span className={styles.peerIdentity}>
+                  <span className={styles.peerInitial}>{peer.name.charAt(0).toUpperCase()}</span>
+                  <span className={styles.peerName}>{peer.name.charAt(0).toUpperCase() + peer.name.slice(1)}</span>
+                </span>
+                <div className={styles.peerBalance}>
+                  {peer.netBalance > 0 ? (
+                    <span className={styles.peerBalanceLine}><span className={styles.owesLabel}>owes you</span><strong className={styles.owesAmount}>{formatCurrency(peer.netBalance)}</strong></span>
+                  ) : peer.netBalance < 0 ? (
+                    <span className={styles.peerBalanceLine}><span className={styles.owesLabel}>you owe</span><strong className={styles.youOweAmount}>{formatCurrency(Math.abs(peer.netBalance))}</strong></span>
+                  ) : (
+                    <span className={styles.settledLabel}>{peer.outstanding === 0 ? "Fully settled" : "Balanced"}</span>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {activeGroupSplits.length > 0 && (
+            <section className={styles.groupSplits}>
+              <h3 className={styles.groupSplitsTitle}>Shared expenses</h3>
+              <div className={styles.groupSplitList}>
+                {activeGroupSplits.map((split) => {
+                  const canEdit = split.peer_breakdown.every((entry) => Number(entry.amount_repaid) === 0 && entry.status !== "voided");
+                  const participantNames = [
+                    "You",
+                    ...split.peer_breakdown
+                      .filter((entry) => entry.status !== "voided")
+                      .map((entry) => entry.peer_name.charAt(0).toUpperCase() + entry.peer_name.slice(1)),
+                  ];
+                  const total = split.direction === "i_owe_them"
+                    ? split.peer_breakdown.reduce((sum, entry) => sum + entry.amount_owed, 0)
+                    : split.my_share + split.peer_total;
+
+                  return (
+                    <button
+                      key={split.id}
+                      type="button"
+                      className={styles.groupSplitRow}
+                      disabled={!canEdit}
+                      title={canEdit ? "Edit split" : "Splits with recorded payments or voided shares cannot be edited"}
+                      onClick={() => { if (canEdit) onEditSplit(split); }}
+                    >
+                      <span className={styles.groupSplitInfo}>
+                        <span className={styles.groupSplitLabel}>{split.label}</span>
+                        <span className={styles.groupSplitPeople}>{participantNames.join(" · ")}</span>
+                      </span>
+                      <span className={styles.groupSplitAmount}>{formatCurrency(total)}</span>
+                    </button>
+                  );
+                })}
               </div>
-            </button>
-          ))}
+            </section>
+          )}
         </div>
       )}
 

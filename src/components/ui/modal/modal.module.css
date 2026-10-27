@@ -27,6 +27,17 @@
   color: var(--color-text);
 }
 
+.modalTitleWithSubtitle {
+  margin-bottom: 4px;
+}
+
+.modalSubtitle {
+  margin: 0 0 20px;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
 .modalCard {
   position: fixed;
   top: 50%;

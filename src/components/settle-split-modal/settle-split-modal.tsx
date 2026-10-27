@@ -22,6 +22,7 @@ export function SettleSplitModal({ splitId, peerId, onClose, onVoid }: SettleSpl
   const [isPending, setIsPending] = useState(false);
   const split = splitId ? splits.find((item) => item.id === splitId) : null;
   const peer = peers.find((item) => item.id === peerId);
+  const peerName = peer ? peer.name.charAt(0).toUpperCase() + peer.name.slice(1) : "";
   const entry = split?.peer_breakdown.find((item) => item.peer_id === peerId);
   const remaining = entry ? Math.max(0, entry.amount_owed - entry.amount_repaid) : 0;
 
@@ -61,7 +62,7 @@ export function SettleSplitModal({ splitId, peerId, onClose, onVoid }: SettleSpl
     <Modal isOpen={Boolean(splitId && peerId)} onClose={onClose} title="Settle up">
       <div className={styles.container}>
         <p className={styles.description}>
-          How would you like to settle <strong>{formatCurrency(remaining)}</strong> for <strong>{split.label}</strong> with <strong>{peer.name}</strong>?
+          How would you like to settle <strong>{formatCurrency(remaining)}</strong> for <strong>{split.label}</strong> with <strong>{peerName}</strong>?
         </p>
         <div className={styles.actions}>
           <Button type="button" variant="secondary" size="md" disabled={isPending} onClick={() => { onVoid(split.id, peer.id); onClose(); }}>
