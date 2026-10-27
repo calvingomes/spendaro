@@ -138,6 +138,12 @@
   text-align: right;
 }
 
+@media (max-width: 600px) {
+  .peerAmountInput {
+    font-size: 16px;
+  }
+}
+
 .addPeerRow {
   position: relative;
 }
