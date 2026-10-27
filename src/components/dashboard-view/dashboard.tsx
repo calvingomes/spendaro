@@ -18,6 +18,7 @@ import { SplitModal } from "@/components/split-modal/split-modal";
 import { PeerDetailModal } from "@/components/peer-detail-modal/peer-detail-modal";
 import { RepaymentModal } from "@/components/repayment-modal/repayment-modal";
 import { VoidSplitModal } from "@/components/void-split-modal/void-split-modal";
+import { SettleSplitModal } from "@/components/settle-split-modal/settle-split-modal";
 import { DashboardContext } from "@/context/dashboard-context";
 import { useAppData } from "@/context/app-data-context";
 import { saveLocalExpenses, putLocalExpense, deleteLocalExpense } from "@/utils/db";
@@ -44,7 +45,8 @@ export function Dashboard({ user }: { user: User }) {
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
   const [activePeerId, setActivePeerId] = useState<string | null>(null);
   const [repaymentPeerId, setRepaymentPeerId] = useState<string | null>(null);
-  const [voidingSplitId, setVoidingSplitId] = useState<string | null>(null);
+  const [voidingSplit, setVoidingSplit] = useState<{ splitId: string; peerId: string } | null>(null);
+  const [settlingSplit, setSettlingSplit] = useState<{ splitId: string; peerId: string } | null>(null);
   const autoOpenFired = useRef(false);
 
   const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
@@ -155,7 +157,7 @@ export function Dashboard({ user }: { user: User }) {
   const setPeersLocal = useCallback((p: Peer[]) => setPeers(p), [setPeers]);
   const setSplitsLocal = useCallback((s: Split[]) => setSplits(s), [setSplits]);
 
-  const anyModalOpen = isExpenseModalOpen || isSplitModalOpen || Boolean(activePeerId) || Boolean(repaymentPeerId) || Boolean(voidingSplitId);
+  const anyModalOpen = isExpenseModalOpen || isSplitModalOpen || Boolean(activePeerId) || Boolean(repaymentPeerId) || Boolean(voidingSplit) || Boolean(settlingSplit);
 
   const avatarUrl = user.user_metadata?.avatar_url as string | undefined;
   const userName = (user.user_metadata?.full_name ?? user.user_metadata?.name ?? "User") as string;
@@ -263,7 +265,14 @@ export function Dashboard({ user }: { user: User }) {
           peerId={activePeerId}
           onClose={closePeerDetail}
           onRepay={(peerId) => { setActivePeerId(null); setRepaymentPeerId(peerId); }}
-          onVoid={(splitId) => { setActivePeerId(null); setVoidingSplitId(splitId); }}
+          onSettle={(splitId, peerId) => { setActivePeerId(null); setSettlingSplit({ splitId, peerId }); }}
+        />
+
+        <SettleSplitModal
+          splitId={settlingSplit?.splitId ?? null}
+          peerId={settlingSplit?.peerId ?? null}
+          onClose={() => setSettlingSplit(null)}
+          onVoid={(splitId, peerId) => setVoidingSplit({ splitId, peerId })}
         />
 
         <RepaymentModal
@@ -272,8 +281,9 @@ export function Dashboard({ user }: { user: User }) {
         />
 
         <VoidSplitModal
-          splitId={voidingSplitId}
-          onClose={() => setVoidingSplitId(null)}
+          splitId={voidingSplit?.splitId ?? null}
+          peerId={voidingSplit?.peerId ?? null}
+          onClose={() => setVoidingSplit(null)}
         />
 
         <PwaInstallPrompt />

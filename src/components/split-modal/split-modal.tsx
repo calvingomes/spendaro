@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import { ArrowRight, ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Check } from "lucide-react";
 import { Modal } from "@/components/ui/modal/modal";
 import { AmountInput } from "@/components/ui/amount-input/amount-input";
 import { Input } from "@/components/ui/input/input";
@@ -16,12 +16,14 @@ import { queueAction } from "@/utils/sync-queue";
 import { useDashboard } from "@/context/dashboard-context";
 import type { Expense, Peer, Split } from "@/lib/types";
 
-type SplitMethod = "equal" | "percentage" | "specific";
+type SplitMethod = "equal" | "specific";
+type SplitDirection = "they_owe_me" | "i_owe_them";
 
 type PeerEntry = {
   peer_id: string;
   name: string;
   amount_owed: number;
+  amount_is_manual?: boolean;
 };
 
 type Step1Form = {
@@ -48,7 +50,11 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState<Step1Form>(emptyStep1);
   const [splitMethod, setSplitMethod] = useState<SplitMethod>("equal");
+  const [direction, setDirection] = useState<SplitDirection>("they_owe_me");
   const [peerEntries, setPeerEntries] = useState<PeerEntry[]>([]);
+  const [specificMyShare, setSpecificMyShare] = useState<number | null>(null);
+  const [myShareIsManual, setMyShareIsManual] = useState(false);
+  const [includeMe, setIncludeMe] = useState(true);
   const [newPeerName, setNewPeerName] = useState("");
   const [showPeerInput, setShowPeerInput] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -60,7 +66,11 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       setStep(1);
       setForm({ ...emptyStep1, created_at: formatDateForInput(new Date()) });
       setPeerEntries([]);
+      setSpecificMyShare(null);
+      setMyShareIsManual(false);
+      setIncludeMe(true);
       setSplitMethod("equal");
+      setDirection("they_owe_me");
       setNewPeerName("");
       setShowPeerInput(false);
       setError(null);
@@ -78,11 +88,22 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   const handleAddCategory = (newCat: string) => {
     addCategory(newCat);
     setForm((c) => ({ ...c, category: normalizeText(newCat) }));
-  };const totalAmount = parseAmount(form.amount) || 0;
+  };
+  const totalAmount = parseAmount(form.amount) || 0;
 
-  const autoDistribute = (entries: PeerEntry[], method: SplitMethod): PeerEntry[] => {
+  const handleDirectionChange = (nextDirection: SplitDirection) => {
+    setDirection(nextDirection);
+    setPeerEntries([]);
+    setSpecificMyShare(null);
+    setMyShareIsManual(false);
+    setIncludeMe(true);
+    setError(null);
+  };
+
+  const autoDistribute = (entries: PeerEntry[], method: SplitMethod, hasMe = includeMe): PeerEntry[] => {
     if (entries.length === 0) return entries;
-    const count = entries.length + 1;
+    const count = entries.length + (hasMe ? 1 : 0);
+    if (count === 0) return entries;
     if (method === "equal") {
       const share = totalAmount / count;
       return entries.map((e) => ({ ...e, amount_owed: Math.round(share * 100) / 100 }));
@@ -91,7 +112,11 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   };
 
   const peerTotal = peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
-  const myShare = Math.max(0, totalAmount - peerTotal);
+  const myShare = direction === "i_owe_them" ? totalAmount : includeMe
+    ? splitMethod === "specific" && specificMyShare !== null
+      ? specificMyShare
+      : Math.max(0, totalAmount - peerTotal)
+    : 0;
 
   const handleAddPeer = (name: string) => {
     const trimmed = name.trim();
@@ -103,27 +128,109 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       setShowPeerInput(false);
       return;
     }
-    const newEntry: PeerEntry = { peer_id: peerId, name: trimmed, amount_owed: 0 };
-    const updated = autoDistribute([...peerEntries, newEntry], splitMethod);
+    const newEntry: PeerEntry = { peer_id: peerId, name: trimmed, amount_owed: direction === "i_owe_them" ? totalAmount : 0 };
+    if (direction === "i_owe_them") {
+      setPeerEntries([newEntry]);
+      setNewPeerName("");
+      setShowPeerInput(false);
+      return;
+    }
+    const updatedEntries = [...peerEntries, newEntry];
+    const updated = splitMethod === "specific" ? redistributeSpecific(updatedEntries) : autoDistribute(updatedEntries, splitMethod);
     setPeerEntries(updated);
     setNewPeerName("");
     setShowPeerInput(false);
   };
 
+  const handleTogglePeer = (peer: Peer) => {
+    const selected = peerEntries.some((entry) => entry.peer_id === peer.id);
+    if (selected) {
+      handleRemovePeer(peer.id);
+      return;
+    }
+    if (direction === "i_owe_them") {
+      setPeerEntries([{ peer_id: peer.id, name: peer.name, amount_owed: totalAmount }]);
+      return;
+    }
+    setPeerEntries((prev) => {
+      const updated = [
+      ...prev,
+      { peer_id: peer.id, name: peer.name, amount_owed: 0 },
+      ];
+      return splitMethod === "specific" ? redistributeSpecific(updated) : autoDistribute(updated, splitMethod);
+    });
+  };
+
   const handleAmountChange = (peerId: string, val: string) => {
-    setPeerEntries((prev) => prev.map((e) => e.peer_id === peerId ? { ...e, amount_owed: parseAmount(val) || 0 } : e));
+    setPeerEntries((prev) => redistributeSpecific(prev.map((e) => e.peer_id === peerId
+      ? { ...e, amount_owed: parseAmount(val) || 0, amount_is_manual: true }
+      : e)));
+  };
+
+  const redistributeSpecific = (entries: PeerEntry[], hasMe = includeMe, manualMyShare = myShareIsManual, myShareValue = specificMyShare) => {
+    const fixedTotalCents = Math.round((entries.reduce((sum, entry) => sum + (entry.amount_is_manual ? entry.amount_owed : 0), 0)
+      + (hasMe && manualMyShare ? (myShareValue || 0) : 0)) * 100);
+    const unassigned = entries.filter((entry) => !entry.amount_is_manual);
+    const hasUnassignedMe = hasMe && !manualMyShare;
+    const remainingParticipants = unassigned.length + (hasUnassignedMe ? 1 : 0);
+    if (remainingParticipants === 0) return entries;
+
+    const remainingCents = Math.max(0, Math.round(totalAmount * 100) - fixedTotalCents);
+    const baseCents = Math.floor(remainingCents / remainingParticipants);
+    let extraCents = remainingCents - baseCents * remainingParticipants;
+    const adjustedEntries = entries.map((entry) => {
+      if (entry.amount_is_manual) return entry;
+      const amountCents = baseCents + (extraCents > 0 ? 1 : 0);
+      if (extraCents > 0) extraCents -= 1;
+      return { ...entry, amount_owed: amountCents / 100 };
+    });
+    return adjustedEntries;
+  };
+
+  useEffect(() => {
+    if (splitMethod !== "specific" || !includeMe || myShareIsManual) return;
+    const nextShare = Math.max(0, Math.round((totalAmount - peerEntries.reduce((sum, entry) => sum + entry.amount_owed, 0)) * 100) / 100);
+    setSpecificMyShare((current) => current === nextShare ? current : nextShare);
+  }, [splitMethod, includeMe, myShareIsManual, peerEntries, totalAmount]);
+
+  const handleMyAmountChange = (val: string) => {
+    const amount = parseAmount(val) || 0;
+    setSpecificMyShare(amount);
+    setMyShareIsManual(true);
+    setPeerEntries((prev) => redistributeSpecific(prev, includeMe, true, amount));
   };
 
   const handleMethodChange = (method: SplitMethod) => {
+    if (method === "specific" && splitMethod !== "specific") {
+      setSpecificMyShare(includeMe ? Math.round((totalAmount / (peerEntries.length + 1)) * 100) / 100 : 0);
+      setMyShareIsManual(false);
+      const count = peerEntries.length + (includeMe ? 1 : 0);
+      setPeerEntries((prev) => prev.map((entry) => ({
+        ...entry,
+        amount_is_manual: false,
+        amount_owed: count > 0 ? Math.round((totalAmount / count) * 100) / 100 : 0,
+      })));
+    } else if (method === "equal") {
+      setSpecificMyShare(null);
+      setMyShareIsManual(false);
+    }
     setSplitMethod(method);
     if (method === "equal") {
       setPeerEntries((prev) => autoDistribute(prev, "equal"));
     }
   };
 
+  const handleIncludeMeChange = (checked: boolean) => {
+    setIncludeMe(checked);
+    if (splitMethod === "equal") setPeerEntries((prev) => autoDistribute(prev, "equal", checked));
+    if (splitMethod === "specific") setPeerEntries((prev) => redistributeSpecific(prev, checked, myShareIsManual));
+  };
+
+  const selectedPeerIds = new Set(peerEntries.map((entry) => entry.peer_id));
+
   const handleRemovePeer = (peerId: string) => {
     const updated = peerEntries.filter((e) => e.peer_id !== peerId);
-    setPeerEntries(autoDistribute(updated, splitMethod));
+    setPeerEntries(splitMethod === "specific" ? redistributeSpecific(updated) : autoDistribute(updated, splitMethod));
   };
 
   const validateStep1 = () => {
@@ -134,12 +241,23 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
   };
 
   const validateStep2 = () => {
-    if (peerEntries.length === 0) { setError("Add at least one person."); return false; }
+    if (direction === "i_owe_them") {
+      if (peerEntries.length !== 1) { setError("Select who paid for you."); return false; }
+      return true;
+    }
+    if (peerEntries.length === 0 && includeMe) { setError("Add at least one person to split with."); return false; }
+    if (peerEntries.length === 0 && !includeMe) { setError("Add at least one person to cover this expense."); return false; }
     const adjustedPeerTotal = peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
-    if (splitMethod !== "equal" && Math.abs(adjustedPeerTotal + myShare - totalAmount) > 0.01) {
+    if (includeMe && splitMethod === "specific" && Math.abs(adjustedPeerTotal + myShare - totalAmount) > 0.01) {
       setError(`Amounts don't add up to ${formatCurrency(totalAmount)}.`); return false;
     }
-    if (myShare < 0) { setError("Peer total exceeds the bill amount."); return false; }
+    if (includeMe && adjustedPeerTotal > totalAmount + 0.01) {
+      setError("Participant shares exceed the bill amount."); return false;
+    }
+    if (!includeMe && Math.abs(adjustedPeerTotal - totalAmount) > 0.01) {
+      setError(`Amounts don't add up to ${formatCurrency(totalAmount)}.`); return false;
+    }
+    if (includeMe && myShare < 0) { setError("Peer total exceeds the bill amount."); return false; }
     return true;
   };
 
@@ -166,8 +284,8 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
       const peerLedgerId = crypto.randomUUID();
       const splitId = crypto.randomUUID();
 
-      const effectivePeerTotal = peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
-      const effectiveMyShare = totalAmount - effectivePeerTotal;
+      const effectivePeerTotal = direction === "i_owe_them" ? 0 : peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
+      const effectiveMyShare = direction === "i_owe_them" ? totalAmount : includeMe ? myShare : 0;
 
       const sourceExpense: Expense = {
         id: sourceId,
@@ -217,6 +335,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         category: form.category,
         my_share: effectiveMyShare,
         peer_total: effectivePeerTotal,
+        direction,
         split_method: splitMethod,
         note: null,
         status: "open",
@@ -248,6 +367,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
         my_share: effectiveMyShare,
         peer_total: effectivePeerTotal,
         split_method: splitMethod,
+        direction,
         date: now,
         peers: peerEntries.map((e) => ({ peer_id: e.peer_id, amount_owed: e.amount_owed })),
       }, "splits");
@@ -260,12 +380,20 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
     }
   };
 
-  const title = step === 1 ? "Add split" : "Who's splitting?";
+  const title = step === 1 ? "Add split" : direction === "i_owe_them" ? "Who paid?" : "Who's splitting?";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       {step === 1 ? (
         <div className={styles.form}>
+          <RectangleToggle
+            options={[
+              { value: "they_owe_me", label: "I paid" },
+              { value: "i_owe_them", label: "They paid" },
+            ]}
+            value={direction}
+            onChange={(value) => handleDirectionChange(value as SplitDirection)}
+          />
           <AmountInput
             value={form.amount}
             onChange={(val) => setForm((c) => ({ ...c, amount: val }))}
@@ -293,47 +421,96 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
             onChange={(val) => setForm((c) => ({ ...c, created_at: val }))}
           />
           {error && <p className={styles.error}>{error}</p>}
-          <Button type="button" variant="primary" size="lg" fullWidth onClick={handleNext} icon={<ArrowRight size={14} />}>
-            Next — Split with
+          <Button type="button" variant="primary" size="lg" fullWidth onClick={handleNext}>
+            Split with
           </Button>
         </div>
       ) : (
         <div className={styles.form}>
-          <div className={styles.methodRow}>
-            <RectangleToggle
-              options={[
-                { value: "equal", label: "Equal" },
-                { value: "percentage", label: "%" },
-                { value: "specific", label: "Specific" },
-              ]}
-              value={splitMethod}
-              onChange={(v) => handleMethodChange(v as SplitMethod)}
-            />
-          </div>
+          {direction === "they_owe_me" && (
+            <div className={styles.methodRow}>
+              <RectangleToggle
+                options={[
+                  { value: "equal", label: "Equal" },
+                  { value: "specific", label: "Specific" },
+                ]}
+                value={splitMethod}
+                onChange={(v) => handleMethodChange(v as SplitMethod)}
+              />
+            </div>
+          )}
 
           <div className={styles.peersSection}>
+            <div className={styles.participantList}>
+              {direction === "i_owe_them" ? (
+                <>
+                  <p className={styles.participantPrompt}>Who paid for you?</p>
+                  {Array.from(new Map([...peers.map((peer) => [peer.id, peer] as const), ...peerEntries.map((entry) => [entry.peer_id, { id: entry.peer_id, name: entry.name }] as const)]).values()).map((peer) => {
+                    const selected = selectedPeerIds.has(peer.id);
+                    return (
+                      <button
+                        key={peer.id}
+                        type="button"
+                        className={`${styles.participantOption} ${selected ? styles.participantSelected : ""}`}
+                        aria-pressed={selected}
+                        onClick={() => handleTogglePeer({ ...peer, user_id: user.id, created_at: "", updated_at: "" })}
+                      >
+                        <span className={styles.selectionMark}>{selected && <Check size={13} />}</span>
+                        <span className={styles.peerInitial}>{peer.name.charAt(0).toUpperCase()}</span>
+                        <span className={styles.peerName}>{peer.name}</span>
+                        {selected && <span className={styles.participantAmount}>{formatCurrency(totalAmount)}</span>}
+                      </button>
+                    );
+                  })}
+                </>
+              ) : (
+                <>
+              <div className={`${styles.participantOption} ${includeMe ? styles.participantSelected : ""}`}>
+                <button type="button" className={styles.participantSelect} aria-pressed={includeMe} onClick={() => handleIncludeMeChange(!includeMe)}>
+                  <span className={styles.selectionMark}>{includeMe && <Check size={13} />}</span>
+                  <span className={styles.peerInitial}>{user.email?.charAt(0).toUpperCase() || "Y"}</span>
+                  <span className={styles.peerName}>You</span>
+                </button>
+                {includeMe && (splitMethod === "specific" ? (
+                  <input
+                    className={styles.peerAmountInput}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={specificMyShare ?? ""}
+                    onChange={(e) => handleMyAmountChange(e.target.value)}
+                    placeholder="0"
+                    aria-label="Your share"
+                  />
+                ) : <span className={styles.participantAmount}>{formatCurrency(myShare)}</span>)}
+              </div>
+              {Array.from(new Map([...peers.map((peer) => [peer.id, peer] as const), ...peerEntries.map((entry) => [entry.peer_id, { id: entry.peer_id, name: entry.name }] as const)]).values()).map((peer) => {
+                const selected = selectedPeerIds.has(peer.id);
+                const entry = peerEntries.find((item) => item.peer_id === peer.id);
+                return (
+                  <div key={peer.id} className={`${styles.participantOption} ${selected ? styles.participantSelected : ""}`}>
+                    <button
+                      type="button"
+                      className={styles.participantSelect}
+                      aria-pressed={selected}
+                      onClick={() => handleTogglePeer({ ...peer, user_id: user.id, created_at: "", updated_at: "" })}
+                    >
+                      <span className={styles.selectionMark}>{selected && <Check size={13} />}</span>
+                      <span className={styles.peerInitial}>{peer.name.charAt(0).toUpperCase()}</span>
+                      <span className={styles.peerName}>{peer.name}</span>
+                    </button>
+                    {selected && (splitMethod === "equal" ? (
+                      <span className={styles.participantAmount}>{formatCurrency(entry?.amount_owed || 0)}</span>
+                    ) : (
+                      <input className={styles.peerAmountInput} type="number" min="0" step="0.01" value={entry?.amount_owed || ""} onChange={(e) => handleAmountChange(peer.id, e.target.value)} placeholder="0" aria-label={`${peer.name}'s share`} />
+                    ))}
+                  </div>
+                );
+              })}
+                </>
+              )}
+            </div>
             <div className={styles.peerRows}>
-              {peerEntries.map((entry) => (
-                <div key={entry.peer_id} className={styles.peerRow}>
-                  <span className={styles.peerInitial}>{entry.name.charAt(0).toUpperCase()}</span>
-                  <span className={styles.peerName}>{entry.name}</span>
-                  {splitMethod === "equal" ? (
-                    <span className={styles.peerAmountReadonly}>{formatCurrency(entry.amount_owed)}</span>
-                  ) : (
-                    <input
-                      className={styles.peerAmountInput}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={entry.amount_owed || ""}
-                      onChange={(e) => handleAmountChange(entry.peer_id, e.target.value)}
-                      placeholder="0"
-                    />
-                  )}
-                  <button type="button" className={styles.removePeer} onClick={() => handleRemovePeer(entry.peer_id)}>×</button>
-                </div>
-              ))}
-
               {showPeerInput ? (
                 <div className={styles.addPeerRow}>
                   <input
@@ -351,23 +528,15 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
                       if (newPeerName.trim()) handleAddPeer(newPeerName);
                       else { setShowPeerInput(false); setNewPeerName(""); }
                     }}
-                    list="peer-suggestions"
                   />
-                  <datalist id="peer-suggestions">
-                    {peers.map((p) => <option key={p.id} value={p.name} />)}
-                  </datalist>
                 </div>
               ) : (
                 <button type="button" className={styles.addPeerButton} onClick={() => setShowPeerInput(true)}>
-                  <Plus size={14} /> Add person
+                  <Plus size={14} /> New person
                 </button>
               )}
             </div>
 
-            <div className={styles.myShareRow}>
-              <span className={styles.myShareLabel}>Your share</span>
-              <span className={styles.myShareAmount}>{formatCurrency(myShare)}</span>
-            </div>
           </div>
 
           {error && <p className={styles.error}>{error}</p>}
@@ -380,6 +549,7 @@ export function SplitModal({ isOpen, onClose }: SplitModalProps) {
               type="button"
               variant="primary"
               size="lg"
+              fullWidth
               disabled={isPending || peerEntries.length === 0}
               onClick={handleSubmit}
             >

@@ -14,20 +14,95 @@
   gap: var(--space-3);
 }
 
-.peerRows {
+.participantList {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  max-height: min(40vh, 320px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-.peerRow {
+@media (max-height: 700px) {
+  .participantList {
+    max-height: min(34vh, 260px);
+  }
+}
+
+@media (max-height: 560px) {
+  .participantList {
+    max-height: min(28vh, 200px);
+  }
+}
+
+.participantPrompt {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.participantOption {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: 44px;
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.participantSelected {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-surface-raised);
+}
+
+.participantSelect {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: 0;
+  color: var(--color-text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.selectionMark {
+  display: flex;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  background: var(--color-bg-control);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-1);
+}
+
+.participantSelected .selectionMark {
+  color: var(--color-bg);
+  background: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.participantAmount {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.peerRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .peerInitial {
@@ -51,12 +126,6 @@
   color: var(--color-text);
 }
 
-.peerAmountReadonly {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
-
 .peerAmountInput {
   width: 80px;
   padding: var(--space-1) var(--space-2);
@@ -69,24 +138,10 @@
   text-align: right;
 }
 
-.removePeer {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-pill);
-  border: none;
-  background: transparent;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.removePeer:hover {
-  color: var(--color-red);
+@media (max-width: 600px) {
+  .peerAmountInput {
+    font-size: 16px;
+  }
 }
 
 .addPeerRow {
@@ -123,28 +178,6 @@
   color: var(--color-text);
 }
 
-.myShareRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-3) var(--space-3);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2);
-}
-
-.myShareLabel {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.myShareAmount {
-  font-size: var(--text-base);
-  font-weight: 700;
-  color: var(--color-text);
-}
-
 .stepActions {
   display: flex;
   align-items: center;
@@ -175,4 +208,21 @@
   color: var(--color-red);
   font-size: var(--text-sm);
   margin: 0;
+}
+
+@media (max-width: 600px) {
+  .stepActions {
+    align-items: stretch;
+  }
+
+  .backButton {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .stepActions > button:last-child {
+    flex: 1;
+    min-width: 0;
+  }
 }

@@ -13,6 +13,12 @@
   align-items: center;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .title {
   font-size: var(--text-lg);
   font-weight: 600;
@@ -58,29 +64,52 @@
   margin: 0;
 }
 
-.peersGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--space-4);
+.peersList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   overflow-y: auto;
   padding-bottom: var(--space-8);
 }
 
-.peerCard {
+.peerRow {
+  width: 100%;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-3);
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  text-align: left;
+  color: var(--color-text);
+  font: inherit;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.peerCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+.fullySettledRow {
+  animation: settleSlideUp 150ms ease-in 1.8s forwards;
+}
+
+.fullySettledRow .settledLabel {
+  color: var(--color-green);
+}
+
+@keyframes settleSlideUp {
+  to {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.98);
+  }
+}
+
+.peerIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .peerInitial {
@@ -111,7 +140,15 @@
 .peerBalance {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
   gap: 2px;
+  flex-shrink: 0;
+}
+
+.peerBalanceLine {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
 }
 
 .owesLabel {
@@ -126,8 +163,157 @@
   color: var(--color-green);
 }
 
+.youOweAmount {
+  color: var(--color-amber);
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
 .settledLabel {
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-text-tertiary);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  padding-top: var(--space-2);
+}
+
+.historyContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.historyFilterLabel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.historyFilterLabel::after {
+  position: absolute;
+  right: var(--space-3);
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--color-text-secondary);
+  border-bottom: 1.5px solid var(--color-text-secondary);
+  content: "";
+  pointer-events: none;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.historyFilter {
+  min-width: 0;
+  padding: var(--space-2) 36px var(--space-2) var(--space-3);
+  color: var(--color-text);
+  background: var(--color-bg-control);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  font: inherit;
+  appearance: none;
+}
+
+.historyGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.historyGroupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.historyGroupTitle span {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+.historyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+}
+
+.historyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.historyTitle {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyMeta {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.historyRight {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.historyAmount {
+  color: var(--color-text);
+  font-size: var(--text-sm);
+}
+
+.historySettled,
+.historyVoided,
+.historyPartial {
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.historySettled {
+  color: var(--color-green);
+}
+
+.historyVoided {
+  color: var(--color-text-tertiary);
+}
+
+.historyPartial {
+  color: var(--color-amber);
+}
+
+.historyEmpty {
+  margin: 0;
+  padding: var(--space-4) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  text-align: center;
 }

@@ -9,11 +9,21 @@
   padding: var(--space-4) 0 var(--space-2);
 }
 
+.summaryBalances {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.summaryBalance {
+  min-width: 0;
+}
+
 .summaryLabel {
   margin: 0;
   font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -24,6 +34,14 @@
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--color-green);
+}
+
+.youOweSummaryAmount {
+  margin: var(--space-1) 0 0;
+  color: var(--color-amber);
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
 }
 
 .settledSummary {
@@ -57,10 +75,6 @@
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2);
-}
-
-.splitRow.voided {
-  opacity: 0.5;
 }
 
 .splitInfo {
@@ -99,41 +113,10 @@
   white-space: nowrap;
 }
 
-.voidButton {
-  padding: 2px var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-1);
-  background: transparent;
-  color: var(--color-text-tertiary);
-  font-size: var(--text-xs);
-  cursor: pointer;
+.splitOwedToYou {
+  color: var(--color-green);
 }
 
-.voidButton:hover {
-  border-color: var(--color-red);
-  color: var(--color-red);
-}
-
-.voidedSection {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.voidedToggle {
-  background: transparent;
-  border: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--text-xs);
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-}
-
-.voidedBadge {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.splitYouOwe {
+  color: var(--color-amber);
 }

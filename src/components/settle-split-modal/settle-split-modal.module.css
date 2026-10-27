@@ -1,0 +1,29 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.description strong {
+  color: var(--color-text);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+@media (max-width: 600px) {
+  .actions > * {
+    flex: 1;
+    min-width: 0;
+  }
+}

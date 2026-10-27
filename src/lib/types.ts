@@ -35,6 +35,7 @@ export type SplitPeerEntry = {
   peer_id: string;
   amount_owed: number;
   amount_repaid: number;
+  status?: "open" | "voided";
   created_at: string;
   updated_at: string;
 };
@@ -44,6 +45,7 @@ export type SplitPeerBreakdown = {
   peer_name: string;
   amount_owed: number;
   amount_repaid: number;
+  status?: "open" | "voided";
 };
 
 export type Split = {
@@ -55,6 +57,7 @@ export type Split = {
   category: string;
   my_share: number;
   peer_total: number;
+  direction?: "they_owe_me" | "i_owe_them";
   split_method: "equal" | "percentage" | "specific";
   note: string | null;
   status: "open" | "voided";

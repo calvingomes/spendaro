@@ -30,6 +30,7 @@ export async function GET() {
         peer_name: (sp.peers as { name: string } | null)?.name ?? "",
         amount_owed: sp.amount_owed,
         amount_repaid: sp.amount_repaid,
+        status: sp.status ?? "open",
       }));
     return { ...split, peer_breakdown: peers };
   });
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
     my_share,
     peer_total,
     split_method,
+    direction = "they_owe_me",
     note,
     date,
     peers,
@@ -100,6 +102,7 @@ export async function POST(request: NextRequest) {
     category,
     my_share: Number(my_share),
     peer_total: Number(peer_total),
+    direction,
     split_method,
     note: note || null,
     created_at: now,
@@ -144,7 +147,20 @@ export async function PATCH(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   const action = searchParams.get("action");
-  if (!id || action !== "void") return NextResponse.json({ error: "id and action=void required" }, { status: 400 });
+  if (!id || !["void", "void-peer"].includes(action ?? "")) return NextResponse.json({ error: "id and a supported void action are required" }, { status: 400 });
+
+  if (action === "void-peer") {
+    const peerId = searchParams.get("peer_id");
+    if (!peerId) return NextResponse.json({ error: "peer_id is required" }, { status: 400 });
+    const { error } = await supabase
+      .from("split_peers")
+      .update({ status: "voided", updated_at: new Date().toISOString() })
+      .eq("split_id", id)
+      .eq("peer_id", peerId)
+      .eq("user_id", user.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  }
 
   const { error } = await supabase
     .from("splits")

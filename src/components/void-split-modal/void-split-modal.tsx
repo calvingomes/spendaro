@@ -10,34 +10,39 @@ import { useDashboard } from "@/context/dashboard-context";
 
 interface VoidSplitModalProps {
   splitId: string | null;
+  peerId: string | null;
   onClose: () => void;
 }
 
-export function VoidSplitModal({ splitId, onClose }: VoidSplitModalProps) {
-  const { splits, setSplits } = useDashboard();
+export function VoidSplitModal({ splitId, peerId, onClose }: VoidSplitModalProps) {
+  const { splits, setSplits, peers } = useDashboard();
   const [isPending, setIsPending] = useState(false);
 
   const split = splitId ? splits.find((s) => s.id === splitId) : null;
 
   const handleVoid = async () => {
-    if (!split) return;
+    if (!split || !peerId) return;
     setIsPending(true);
-    const updated = { ...split, status: "voided" as const, updated_at: new Date().toISOString() };
+    const updated = {
+      ...split,
+      updated_at: new Date().toISOString(),
+      peer_breakdown: split.peer_breakdown.map((entry) => entry.peer_id === peerId ? { ...entry, status: "voided" as const } : entry),
+    };
     setSplits(splits.map((s) => s.id === split.id ? updated : s));
     await putLocalSplit(updated);
-    queueAction("PATCH", { id: split.id, action: "void" }, "splits");
+    queueAction("PATCH", { id: split.id, action: "void-peer", peer_id: peerId }, "splits");
     setIsPending(false);
     onClose();
   };
 
   if (!split) return null;
+  const peer = peers.find((item) => item.id === peerId);
 
   return (
-    <Modal isOpen={Boolean(splitId)} onClose={onClose} title="Void split?">
+    <Modal isOpen={Boolean(splitId && peerId)} onClose={onClose} title="Void this share?">
       <div className={styles.container}>
         <p className={styles.description}>
-          Voiding <strong>{split.label}</strong> will hide it from open balances.
-          All existing expense rows stay intact — no money is reversed.
+          Voiding <strong>{peer?.name ?? "this person's"}</strong> share of <strong>{split.label}</strong> removes it from their open balance. Other participants and the expense remain unchanged.
         </p>
         <div className={styles.actions}>
           <button type="button" className={styles.cancelButton} onClick={onClose}>Cancel</button>
@@ -48,7 +53,7 @@ export function VoidSplitModal({ splitId, onClose }: VoidSplitModalProps) {
             disabled={isPending}
             onClick={handleVoid}
           >
-            {isPending ? "Voiding..." : "Void split"}
+            {isPending ? "Voiding..." : "Void share"}
           </Button>
         </div>
       </div>
