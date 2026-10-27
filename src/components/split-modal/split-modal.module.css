@@ -18,6 +18,22 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  max-height: min(40vh, 320px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-height: 700px) {
+  .participantList {
+    max-height: min(34vh, 260px);
+  }
+}
+
+@media (max-height: 560px) {
+  .participantList {
+    max-height: min(28vh, 200px);
+  }
 }
 
 .participantPrompt {
