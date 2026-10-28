@@ -63,6 +63,8 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
   const [error, setError] = useState<string | null>(null);
     const peerInputRef = useRef<HTMLInputElement>(null);
 
+  const sharesLocked = Boolean(editingSplit?.peer_breakdown.some((entry) => Number(entry.amount_repaid) > 0 || entry.status === "voided"));
+
   useEffect(() => {
     if (isOpen) {
       setStep(1);
@@ -128,7 +130,9 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
 
   const peerTotal = peerEntries.reduce((s, e) => s + (e.amount_owed || 0), 0);
   const myShare = direction === "i_owe_them" ? totalAmount : includeMe
-    ? splitMethod === "specific" && specificMyShare !== null
+    ? sharesLocked
+      ? Math.max(0, Math.round((totalAmount - peerTotal) * 100) / 100)
+      : splitMethod === "specific" && specificMyShare !== null
       ? specificMyShare
       : Math.max(0, totalAmount - peerTotal)
     : 0;
@@ -252,6 +256,9 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
     if (!form.amount || parseAmount(form.amount) <= 0) { setError("Enter a valid amount."); return false; }
     if (!form.label.trim()) { setError("Enter a label."); return false; }
     if (!form.category.trim()) { setError("Select a category."); return false; }
+    if (sharesLocked && direction === "they_owe_me" && includeMe && totalAmount < peerTotal - 0.01) {
+      setError("The expense total cannot be less than the locked participant shares."); return false;
+    }
     return true;
   };
 
@@ -279,7 +286,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
   const handleNext = () => {
     setError(null);
     if (!validateStep1()) return;
-    if (splitMethod === "equal" && peerEntries.length > 0) {
+    if (!sharesLocked && splitMethod === "equal" && peerEntries.length > 0) {
       setPeerEntries(autoDistribute(peerEntries, "equal"));
     }
     setStep(2);
@@ -446,10 +453,12 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
             ]}
             value={direction}
             onChange={(value) => handleDirectionChange(value as SplitDirection)}
+            disabled={sharesLocked}
           />
           <AmountInput
             value={form.amount}
             onChange={(val) => setForm((c) => ({ ...c, amount: val }))}
+            disabled={sharesLocked && (direction === "i_owe_them" || !includeMe)}
           />
           <Input
             label="Label"
@@ -479,7 +488,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
           </Button>
           {editingSplit && (confirmDelete ? (
             <div className={styles.deleteConfirmation}>
-              <p>Delete this split and all its participant shares?</p>
+              <p>Delete this split and its linked expense entries? Recorded repayment transactions will remain.</p>
               <div className={styles.deleteConfirmationActions}>
                 <button type="button" disabled={isPending} onClick={() => setConfirmDelete(false)}>Keep split</button>
                 <button type="button" className={styles.confirmDeleteButton} disabled={isPending} onClick={handleDelete}>
@@ -504,6 +513,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
                 ]}
                 value={splitMethod}
                 onChange={(v) => handleMethodChange(v as SplitMethod)}
+                disabled={sharesLocked}
               />
             </div>
           )}
@@ -521,6 +531,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
                         type="button"
                         className={`${styles.participantOption} ${selected ? styles.participantSelected : ""}`}
                         aria-pressed={selected}
+                        disabled={sharesLocked}
                         onClick={() => handleTogglePeer({ ...peer, user_id: user.id, created_at: "", updated_at: "" })}
                       >
                         <span className={styles.selectionMark}>{selected && <Check size={13} />}</span>
@@ -534,7 +545,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
               ) : (
                 <>
               <div className={`${styles.participantOption} ${includeMe ? styles.participantSelected : ""}`}>
-                <button type="button" className={styles.participantSelect} aria-pressed={includeMe} onClick={() => handleIncludeMeChange(!includeMe)}>
+                <button type="button" className={styles.participantSelect} aria-pressed={includeMe} disabled={sharesLocked} onClick={() => handleIncludeMeChange(!includeMe)}>
                   <span className={styles.selectionMark}>{includeMe && <Check size={13} />}</span>
                   <span className={styles.peerInitial}>{user.email?.charAt(0).toUpperCase() || "Y"}</span>
                   <span className={styles.peerName}>You</span>
@@ -545,10 +556,11 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
                     type="number"
                     min="0"
                     step="0.01"
-                    value={specificMyShare ?? ""}
+                    value={sharesLocked ? myShare : specificMyShare ?? ""}
                     onChange={(e) => handleMyAmountChange(e.target.value)}
                     placeholder="0"
                     aria-label="Your share"
+                    disabled={sharesLocked}
                   />
                 ) : <span className={styles.participantAmount}>{formatCurrency(myShare)}</span>)}
               </div>
@@ -561,6 +573,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
                       type="button"
                       className={styles.participantSelect}
                       aria-pressed={selected}
+                    disabled={sharesLocked}
                       onClick={() => handleTogglePeer({ ...peer, user_id: user.id, created_at: "", updated_at: "" })}
                     >
                       <span className={styles.selectionMark}>{selected && <Check size={13} />}</span>
@@ -570,7 +583,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
                     {selected && (splitMethod === "equal" ? (
                       <span className={styles.participantAmount}>{formatCurrency(entry?.amount_owed || 0)}</span>
                     ) : (
-                      <input className={styles.peerAmountInput} type="number" min="0" step="0.01" value={entry?.amount_owed || ""} onChange={(e) => handleAmountChange(peer.id, e.target.value)} placeholder="0" aria-label={`${peer.name}'s share`} />
+                      <input className={styles.peerAmountInput} type="number" min="0" step="0.01" value={entry?.amount_owed || ""} onChange={(e) => handleAmountChange(peer.id, e.target.value)} placeholder="0" aria-label={`${peer.name}'s share`} disabled={sharesLocked} />
                     ))}
                   </div>
                 );
@@ -598,6 +611,8 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
                     }}
                   />
                 </div>
+              ) : sharesLocked ? (
+                <p className={styles.participantPrompt}>Participant shares are locked after a payment or void.</p>
               ) : (
                 <button type="button" className={styles.addPeerButton} onClick={() => setShowPeerInput(true)}>
                   <Plus size={14} /> New person

@@ -39,7 +39,6 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onSettle, onEdit }: 
     return totals;
   }, { totalOwedToMe: 0, totalIOwe: 0 });
   const totalOutstanding = totalOwedToMe + totalIOwe;
-  const hasEditableOpenSplit = openSplits.some((split) => split.peer_breakdown.every((item) => Number(item.amount_repaid) === 0 && item.status !== "voided"));
 
   const title = peer.name.charAt(0).toUpperCase() + peer.name.slice(1);
 
@@ -48,7 +47,7 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onSettle, onEdit }: 
       isOpen={Boolean(peerId)}
       onClose={onClose}
       title={title}
-      subtitle={hasEditableOpenSplit ? "Tap an open split to edit it." : undefined}
+      subtitle={openSplits.length > 0 ? "Tap an open split to edit it." : undefined}
     >
       <div className={styles.container}>
         <div className={styles.summary}>
@@ -89,19 +88,18 @@ export function PeerDetailModal({ peerId, onClose, onRepay, onSettle, onEdit }: 
             {openSplits.map((s) => {
               const entry = s.peer_breakdown.find((pb) => pb.peer_id === peer.id);
               const remaining = entry ? Math.max(0, entry.amount_owed - entry.amount_repaid) : 0;
-              const canEdit = s.peer_breakdown.every((item) => Number(item.amount_repaid) === 0 && item.status !== "voided");
               return (
                 <div
                   key={s.id}
-                  className={`${styles.splitRow} ${canEdit ? styles.editableSplitRow : ""}`}
-                  tabIndex={canEdit ? 0 : undefined}
-                  aria-label={canEdit ? `Edit split ${s.label}` : undefined}
-                  onClick={() => { if (canEdit) onEdit(s); }}
+                  className={`${styles.splitRow} ${styles.editableSplitRow}`}
+                  tabIndex={0}
+                  aria-label={`Edit split ${s.label}`}
+                  onClick={() => onEdit(s)}
                   onKeyDown={(event) => {
                     if (event.target !== event.currentTarget) return;
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
-                      if (canEdit) onEdit(s);
+                      onEdit(s);
                     }
                   }}
                 >

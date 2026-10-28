@@ -46,6 +46,14 @@
   color: var(--color-text);
 }
 
+.toggleButton:disabled {
+  cursor: default;
+}
+
+.toggleButton:disabled:hover {
+  color: var(--color-text-secondary);
+}
+
 .activeToggle {
   color: var(--color-text);
 }

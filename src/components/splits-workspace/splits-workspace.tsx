@@ -198,7 +198,6 @@ export function SplitsWorkspace({ onEditSplit }: { onEditSplit: (split: Split) =
               <h3 className={styles.groupSplitsTitle}>Shared expenses</h3>
               <div className={styles.groupSplitList}>
                 {activeGroupSplits.map((split) => {
-                  const canEdit = split.peer_breakdown.every((entry) => Number(entry.amount_repaid) === 0 && entry.status !== "voided");
                   const participantNames = [
                     "You",
                     ...split.peer_breakdown
@@ -214,9 +213,7 @@ export function SplitsWorkspace({ onEditSplit }: { onEditSplit: (split: Split) =
                       key={split.id}
                       type="button"
                       className={styles.groupSplitRow}
-                      disabled={!canEdit}
-                      title={canEdit ? "Edit split" : "Splits with recorded payments or voided shares cannot be edited"}
-                      onClick={() => { if (canEdit) onEditSplit(split); }}
+                      onClick={() => onEditSplit(split)}
                     >
                       <span className={styles.groupSplitInfo}>
                         <span className={styles.groupSplitLabel}>{split.label}</span>
