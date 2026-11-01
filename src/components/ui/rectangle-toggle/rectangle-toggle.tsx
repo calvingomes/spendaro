@@ -12,6 +12,7 @@ interface ToggleControlProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   colorMap?: Partial<Record<T, "green" | "red">>;
+  disabled?: boolean;
 }
 
 export function RectangleToggle<T extends string>({
@@ -19,6 +20,7 @@ export function RectangleToggle<T extends string>({
   value,
   onChange,
   colorMap,
+  disabled = false,
 }: ToggleControlProps<T>) {
   const activeIndex = options.findIndex((opt) => opt.value === value);
   const N = options.length;
@@ -53,6 +55,7 @@ export function RectangleToggle<T extends string>({
               .filter(Boolean)
               .join(" ")}
             onClick={() => onChange(option.value)}
+            disabled={disabled}
           >
             {option.label}
           </button>

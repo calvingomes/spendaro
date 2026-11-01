@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { User as UserIcon } from "lucide-react";
 import styles from "./dashboard.module.css";
 import { ExpenseWorkspace } from "@/components/expense-workspace/expense-workspace";
@@ -49,20 +49,12 @@ export function Dashboard({ user }: { user: User }) {
   const [settlingSplit, setSettlingSplit] = useState<{ splitId: string; peerId: string } | null>(null);
   const [editingSplit, setEditingSplit] = useState<Split | null>(null);
   const editReturnPeerId = useRef<string | null>(null);
-  const autoOpenFired = useRef(false);
 
   const { syncAndRefresh, rollbackByActionId } = useExpenseSync({
     expenses,
     setExpenses,
     onSyncError: setSyncError,
   });
-
-  useEffect(() => {
-    if (!autoOpenFired.current) {
-      autoOpenFired.current = true;
-      setIsExpenseModalOpen(true);
-    }
-  }, []);
 
   const returnToTab = useRef<NavTab>("home");
 
