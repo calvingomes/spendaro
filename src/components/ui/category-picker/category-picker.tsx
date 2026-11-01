@@ -43,7 +43,12 @@ export function CategoryPicker({
     setShowAddCategory(false);
   };
 
-  const sortedCategories = [...categories].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+  const sortedCategories = [...categories].sort((a, b) => {
+    const aSelected = a.toLowerCase() === value.toLowerCase();
+    const bSelected = b.toLowerCase() === value.toLowerCase();
+    if (aSelected !== bSelected) return aSelected ? -1 : 1;
+    return a.localeCompare(b, undefined, { sensitivity: "base" });
+  });
   const useTwoRows = sortedCategories.length > 3;
   const row1 = useTwoRows ? sortedCategories.filter((_, index) => index % 2 === 0) : sortedCategories;
   const row2 = useTwoRows ? sortedCategories.filter((_, index) => index % 2 === 1) : [];
