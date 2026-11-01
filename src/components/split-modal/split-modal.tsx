@@ -100,7 +100,10 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
     }
   }, [showPeerInput]);
 
-  const allCategories = useMemo(() => Array.from(new Set(categories)).filter(Boolean), [categories]);
+  const allCategories = useMemo(
+    () => Array.from(new Set(categories)).filter(Boolean).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
+    [categories],
+  );
 
   const handleAddCategory = (newCat: string) => {
     addCategory(newCat);
