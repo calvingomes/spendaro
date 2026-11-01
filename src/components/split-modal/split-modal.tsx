@@ -249,6 +249,17 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
   };
 
   const selectedPeerIds = new Set(peerEntries.map((entry) => entry.peer_id));
+  const orderedPeers = useMemo(() => {
+    const allPeers = Array.from(new Map([
+      ...peers.map((peer) => [peer.id, peer] as const),
+      ...peerEntries.map((entry) => [entry.peer_id, { id: entry.peer_id, name: entry.name }] as const),
+    ]).values());
+    const peerById = new Map(allPeers.map((peer) => [peer.id, peer]));
+    return [
+      ...peerEntries.map((entry) => peerById.get(entry.peer_id)).filter((peer): peer is NonNullable<typeof peer> => Boolean(peer)),
+      ...allPeers.filter((peer) => !selectedPeerIds.has(peer.id)),
+    ];
+  }, [peers, peerEntries]);
 
   const handleRemovePeer = (peerId: string) => {
     const updated = peerEntries.filter((e) => e.peer_id !== peerId);
@@ -526,7 +537,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
               {direction === "i_owe_them" ? (
                 <>
                   <p className={styles.participantPrompt}>Who paid for you?</p>
-                  {Array.from(new Map([...peers.map((peer) => [peer.id, peer] as const), ...peerEntries.map((entry) => [entry.peer_id, { id: entry.peer_id, name: entry.name }] as const)]).values()).map((peer) => {
+                  {orderedPeers.map((peer) => {
                     const selected = selectedPeerIds.has(peer.id);
                     return (
                       <button
@@ -567,7 +578,7 @@ export function SplitModal({ isOpen, onClose, editingSplit = null }: SplitModalP
                   />
                 ) : <span className={styles.participantAmount}>{formatCurrency(myShare)}</span>)}
               </div>
-              {Array.from(new Map([...peers.map((peer) => [peer.id, peer] as const), ...peerEntries.map((entry) => [entry.peer_id, { id: entry.peer_id, name: entry.name }] as const)]).values()).map((peer) => {
+              {orderedPeers.map((peer) => {
                 const selected = selectedPeerIds.has(peer.id);
                 const entry = peerEntries.find((item) => item.peer_id === peer.id);
                 return (
