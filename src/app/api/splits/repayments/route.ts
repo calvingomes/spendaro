@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   const { data: openRows, error: spErr } = await supabase
     .from("split_peers")
-    .select("id, split_id, amount_owed, amount_repaid, status, splits(created_at, status, direction, category)")
+    .select("id, split_id, amount_owed, amount_repaid, status, splits(created_at, status, direction, category, label)")
     .eq("peer_id", peer_id)
     .eq("user_id", user.id);
 
@@ -49,14 +49,14 @@ export async function POST(request: NextRequest) {
     if (remaining <= 0) break;
     const rowRemaining = row.amount_owed - row.amount_repaid;
     const allocated = Math.min(remaining, rowRemaining);
-    const split = row.splits as unknown as { direction?: string; category?: string } | null;
+    const split = row.splits as unknown as { direction?: string; category?: string; label?: string } | null;
     const expenseType = split?.direction === "i_owe_them" ? "debit" : "credit";
 
     const expenseId = crypto.randomUUID();
     const { error: expErr } = await supabase.from("expenses").insert({
       id: expenseId,
       user_id: user.id,
-      label: `Repayment · ${peer.name}`,
+      label: `${peer.name} · ${split?.label || "Split repayment"}`,
       category: split?.category || SPLIT_CATEGORY_TAG,
       amount: allocated,
       type: expenseType,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     createdExpenses.push({
       id: expenseId,
-      label: `Repayment · ${peer.name}`,
+      label: `${peer.name} · ${split?.label || "Split repayment"}`,
       category: split?.category || SPLIT_CATEGORY_TAG,
       amount: allocated,
       type: expenseType,
