@@ -32,6 +32,7 @@ export function ExpenseList({ expenses, onEdit, onDuplicate, isPending, activeTy
     const currentYear = new Date().getFullYear();
 
     return expenses
+      .filter((e) => e.amount > 0)
       .filter((e) => {
         // Filter by Transaction Type (debit / credit / all)
         if (activeType === "all") return true;
