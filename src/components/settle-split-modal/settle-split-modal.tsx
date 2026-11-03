@@ -40,7 +40,7 @@ export function SettleSplitModal({ splitId, peerId, onClose, onVoid }: SettleSpl
     const repayment: Expense = {
       id: crypto.randomUUID(),
       user_id: user.id,
-      label: `Repayment · ${peer.name}`,
+      label: `${peer.name} · ${split.label}`,
       category: split.category,
       amount: remaining,
       type: split.direction === "i_owe_them" ? "debit" : "credit",
