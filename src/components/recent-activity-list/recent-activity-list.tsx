@@ -34,7 +34,7 @@ export function RecentActivityList({ expenses, onEdit, onDuplicate, isPending }:
               </tr>
             </thead>
             <tbody>
-              {expenses.map((expense) => (
+              {expenses.filter((expense) => expense.amount > 0).map((expense) => (
                 <ExpenseRow
                   key={expense.id}
                   expense={expense}

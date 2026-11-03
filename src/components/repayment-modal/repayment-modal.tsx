@@ -86,7 +86,7 @@ export function RepaymentModal({ peerId, onClose }: RepaymentModalProps) {
           id: crypto.randomUUID(),
           user_id: user.id,
           label: `Repayment · ${peer.name}`,
-          category: SPLIT_CATEGORY_TAG,
+          category: split.category || SPLIT_CATEGORY_TAG,
           amount: allocated,
           type: expenseType,
           created_at: now,
